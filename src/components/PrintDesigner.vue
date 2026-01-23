@@ -193,6 +193,7 @@ const handleGuideMouseUp = (e: MouseEvent) => {
                 ref="scrollContainer"
                 class="flex-1 overflow-auto bg-gray-100 p-8 flex justify-center items-start relative"
                 @scroll="handleScroll"
+                  @click="store.selectGuide(null)"
               >
                  <Canvas ref="canvasContainer" />
 
@@ -204,7 +205,7 @@ const handleGuideMouseUp = (e: MouseEvent) => {
                           v-if="guide.type === 'horizontal'"
                           class="absolute left-0 w-full h-3 -mt-1.5 cursor-row-resize pointer-events-auto group flex flex-col justify-center"
                           :style="{ top: `${offsetY + guide.position * store.zoom}px` }"
-                          @mousedown.stop="(e) => handleGuideDragStart(e, 'horizontal', guide.id)"
+                          @mousedown.stop="(e) => { store.selectGuide(guide.id); handleGuideDragStart(e, 'horizontal', guide.id); }"
                        >
                           <div class="w-full border-t border-cyan-500 group-hover:border-cyan-400"></div>
                           <div class="absolute left-2 -top-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
@@ -215,7 +216,7 @@ const handleGuideMouseUp = (e: MouseEvent) => {
                           v-else
                           class="absolute top-0 h-full w-3 -ml-1.5 cursor-col-resize pointer-events-auto group flex flex-row justify-center"
                           :style="{ left: `${offsetX + guide.position * store.zoom}px` }"
-                          @mousedown.stop="(e) => handleGuideDragStart(e, 'vertical', guide.id)"
+                          @mousedown.stop="(e) => { store.selectGuide(guide.id); handleGuideDragStart(e, 'vertical', guide.id); }"
                        >
                            <div class="h-full border-l border-cyan-500 group-hover:border-cyan-400"></div>
                            <div class="absolute top-2 -left-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">

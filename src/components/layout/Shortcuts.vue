@@ -12,11 +12,17 @@ const menuY = ref(0);
 const canPasteHere = ref(false);
 
 const handleKeydown = (e: KeyboardEvent) => {
+  // ignore when typing in inputs
+  const target = e.target as Element | null;
+  if (target && (target.closest('input, textarea, select, [contenteditable="true"]'))) return;
   // Delete
   if (e.key === 'Delete') {
     if (store.selectedElementId) {
       e.preventDefault();
       store.removeElement(store.selectedElementId);
+    } else if (store.selectedGuideId) {
+      e.preventDefault();
+      store.removeGuide(store.selectedGuideId);
     }
     return;
   }
@@ -102,8 +108,17 @@ onUnmounted(() => {
     <div class="bg-white border border-gray-200 shadow-xl rounded-md min-w-[160px] py-1">
       <button 
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
-        :disabled="!store.selectedElementId || !canPasteHere"
-        @click="() => { if (store.selectedElementId && canPasteHere) { store.removeElement(store.selectedElementId); } showMenu=false; }"
+        :disabled="(!store.selectedElementId && !store.selectedGuideId) || !canPasteHere"
+        @click="() => { 
+          if (canPasteHere) { 
+            if (store.selectedElementId) { 
+              store.removeElement(store.selectedElementId); 
+            } else if (store.selectedGuideId) {
+              store.removeGuide(store.selectedGuideId);
+            }
+          } 
+          showMenu=false; 
+        }"
       >
         Delete
       </button>

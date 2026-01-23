@@ -61,6 +61,7 @@ export interface DesignerState {
   pages: Page[];
   currentPageIndex: number;
   selectedElementId: string | null;
+  selectedGuideId: string | null;
   canvasSize: Size; // A4 usually
   zoom: number;
   isDragging: boolean;

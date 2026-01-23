@@ -123,7 +123,7 @@ const handleFieldAction = (field: PropertyField) => {
                     :min="field.min"
                     :max="field.max"
                     :step="field.step || 1"
-                    :value="field.target === 'style' ? element.style[field.key!] ?? '' : (element as any)[field.key!]"
+                    :value="field.target === 'style' ? (element.style as any)[field.key!] ?? '' : (element as any)[field.key!]"
                     @input="(e) => handleFieldInput(field, (e.target as HTMLInputElement).value)"
                     class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
                   />
@@ -132,7 +132,7 @@ const handleFieldAction = (field: PropertyField) => {
                   <input
                     type="text"
                     :placeholder="field.placeholder"
-                    :value="field.target === 'style' ? element.style[field.key!] ?? '' : (element as any)[field.key!]"
+                    :value="field.target === 'style' ? (element.style as any)[field.key!] ?? '' : (element as any)[field.key!]"
                     @input="(e) => handleFieldInput(field, (e.target as HTMLInputElement).value)"
                     class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
                   />
@@ -140,7 +140,7 @@ const handleFieldAction = (field: PropertyField) => {
                 <template v-else-if="field.type === 'color'">
                   <input
                     type="color"
-                    :value="field.target === 'style' ? element.style[field.key!] ?? '#000000' : (element as any)[field.key!]"
+                    :value="field.target === 'style' ? (element.style as any)[field.key!] ?? '#000000' : (element as any)[field.key!]"
                     @input="(e) => handleFieldInput(field, (e.target as HTMLInputElement).value)"
                     class="w-full h-8 px-1 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
                   />
@@ -148,7 +148,7 @@ const handleFieldAction = (field: PropertyField) => {
                 <template v-else-if="field.type === 'textarea'">
                   <textarea
                     :placeholder="field.placeholder"
-                    :value="field.key === 'data' ? JSON.stringify(element.data, null, 2) : (field.target === 'style' ? element.style[field.key!] ?? '' : (element as any)[field.key!])"
+                    :value="field.key === 'data' ? JSON.stringify(element.data, null, 2) : (field.target === 'style' ? (element.style as any)[field.key!] ?? '' : (element as any)[field.key!])"
                     @change="field.key === 'data' ? handleDataJsonChange(field.key!, $event) : handleFieldInput(field, ( $event.target as HTMLTextAreaElement ).value)"
                     class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none h-24"
                   ></textarea>

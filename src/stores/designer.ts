@@ -8,6 +8,7 @@ export const useDesignerStore = defineStore('designer', {
     pages: [{ id: uuidv4(), elements: [] }],
     currentPageIndex: 0,
     selectedElementId: null,
+    selectedGuideId: null,
     canvasSize: { width: 794, height: 1123 }, // A4 at 96 DPI (approx)
     zoom: 1,
     isDragging: false,
@@ -57,10 +58,16 @@ export const useDesignerStore = defineStore('designer', {
       const index = this.guides.findIndex(g => g.id === id);
       if (index !== -1) {
         this.guides.splice(index, 1);
+        if (this.selectedGuideId === id) {
+          this.selectedGuideId = null;
+        }
       }
     },
     clearGuides() {
       this.guides = [];
+    },
+    selectGuide(id: string | null) {
+      this.selectedGuideId = id;
     },
     addElement(element: Omit<PrintElement, 'id'>) {
       this.snapshot();
