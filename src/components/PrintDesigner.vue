@@ -12,6 +12,17 @@ const store = useDesignerStore();
 const scrollContainer = ref<HTMLElement | null>(null);
 const canvasContainer = ref<HTMLElement | null>(null);
 
+onMounted(() => {
+  // Load data from localStorage on startup
+  store.loadFromLocalStorage();
+  updateOffset();
+  window.addEventListener('resize', updateOffset);
+  // Also watch for store changes that might affect layout
+  store.$subscribe(() => {
+    nextTick(updateOffset);
+  });
+});
+
 const scrollX = ref(0);
 const scrollY = ref(0);
 const offsetX = ref(0);
@@ -39,11 +50,11 @@ const updateOffset = () => {
     // The Canvas wrapper has `flex flex-col gap-8 pb-20`.
     // The visual left of the content is (scrollContainerWidth - (canvasWidth * zoom)) / 2 if centered.
     // But we are using `justify-center`.
-    
+
     const containerWidth = scrollContainer.value.clientWidth;
     // We assume Canvas component renders pages of width `store.canvasSize.width`
     const contentWidth = store.canvasSize.width * store.zoom;
-    
+
     if (contentWidth < containerWidth) {
        // Centered
        offsetX.value = (containerWidth - contentWidth) / 2;
@@ -51,22 +62,13 @@ const updateOffset = () => {
        // Left aligned (due to overflow)
        // Note: when overflow-auto + justify-center, if content overflows, it usually starts at left 0.
        // However, there is padding p-8 (32px).
-       offsetX.value = 32; 
+       offsetX.value = 32;
     }
-    
+
     // Top offset is padding top (32px)
     offsetY.value = 32;
   }
 };
-
-onMounted(() => {
-  updateOffset();
-  window.addEventListener('resize', updateOffset);
-  // Also watch for store changes that might affect layout
-  store.$subscribe(() => {
-    nextTick(updateOffset);
-  });
-});
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateOffset);

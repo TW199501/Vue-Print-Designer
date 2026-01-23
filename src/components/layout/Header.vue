@@ -3,7 +3,7 @@ import { ref, computed, nextTick, watch } from 'vue';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useDesignerStore } from '@/stores/designer';
-import { Printer, FileOutput, ZoomIn, ZoomOut, Settings } from 'lucide-vue-next';
+import { Printer, FileOutput, ZoomIn, ZoomOut, Settings, Save } from 'lucide-vue-next';
 import { PAPER_SIZES, type PaperSizeKey } from '@/constants/paper';
 
 const store = useDesignerStore();
@@ -95,7 +95,7 @@ const handleExport = async () => {
 
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i] as HTMLElement;
-      
+
       const canvas = await html2canvas(page, {
         scale: 1,
         useCORS: true,
@@ -103,11 +103,11 @@ const handleExport = async () => {
       });
 
       const imgData = canvas.toDataURL('image/png');
-      
+
       if (i > 0) {
         pdf.addPage([store.canvasSize.width, store.canvasSize.height]);
       }
-      
+
       pdf.addImage(imgData, 'PNG', 0, 0, store.canvasSize.width, store.canvasSize.height);
     }
 
@@ -118,6 +118,24 @@ const handleExport = async () => {
   } finally {
     store.setShowGrid(previousShowGrid);
     store.selectElement(previousSelection);
+  }
+};
+
+const handleSave = () => {
+  const data = {
+    pages: store.pages,
+    canvasSize: store.canvasSize,
+    guides: store.guides,
+    zoom: store.zoom,
+    showGrid: store.showGrid
+  };
+
+  try {
+    localStorage.setItem('localdata', JSON.stringify(data));
+    alert('保存成功！');
+  } catch (error) {
+    console.error('Save failed', error);
+    alert('保存失败');
   }
 };
 </script>
@@ -239,6 +257,11 @@ const handleExport = async () => {
       <button @click="handleExport" class="flex items-center gap-2 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm">
         <FileOutput class="w-4 h-4" />
         <span>Export PDF</span>
+      </button>
+
+      <button @click="handleSave" class="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
+        <Save class="w-4 h-4" />
+        <span>Save</span>
       </button>
     </div>
   </header>

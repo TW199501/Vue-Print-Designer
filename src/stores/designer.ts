@@ -18,6 +18,26 @@ export const useDesignerStore = defineStore('designer', {
     historyFuture: [],
   }),
   actions: {
+    loadFromLocalStorage() {
+      try {
+        const data = localStorage.getItem('localdata');
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (parsed.pages) this.pages = parsed.pages;
+          if (parsed.canvasSize) this.canvasSize = parsed.canvasSize;
+          if (parsed.guides) this.guides = parsed.guides;
+          if (parsed.zoom !== undefined) this.zoom = parsed.zoom;
+          if (parsed.showGrid !== undefined) this.showGrid = parsed.showGrid;
+          this.selectedElementId = null;
+          this.selectedGuideId = null;
+          this.currentPageIndex = 0;
+          this.historyPast = [];
+          this.historyFuture = [];
+        }
+      } catch (error) {
+        console.error('Load from localStorage failed', error);
+      }
+    },
     snapshot() {
       this.historyPast.push(cloneDeep(this.pages));
       this.historyFuture = [];
