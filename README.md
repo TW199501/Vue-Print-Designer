@@ -18,6 +18,16 @@ npm install
 npm run dev
 ```
 
+## Git Workflow
+
+This project is version-controlled with Git.
+
+### Basic Commands
+- **Check status**: `git status`
+- **Add changes**: `git add .`
+- **Commit changes**: `git commit -m "Description of changes"`
+- **View history**: `git log`
+
 ## How to Use
 
 1.  **Add Elements**: Drag elements from the left sidebar to the canvas.
