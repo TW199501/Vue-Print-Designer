@@ -69,6 +69,16 @@ const handleKeydown = (e: KeyboardEvent) => {
 };
 
 const handleContextMenu = (e: MouseEvent) => {
+  // Check if the click is inside the designer area
+  const target = e.target as Element;
+  const designerArea = document.querySelector('.overflow-auto'); // The scroll container (canvas area)
+
+  if (!designerArea || !designerArea.contains(target)) {
+    // Not in designer area, show native context menu
+    return;
+  }
+
+  // Inside designer area, show custom context menu
   e.preventDefault();
   showMenu.value = true;
   menuX.value = e.clientX;
@@ -104,32 +114,30 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="showMenu" class="fixed z-50" :style="{ left: `${menuX}px`, top: `${menuY}px` }">
+  <div v-if="showMenu" class="fixed z-[9999]" :style="{ left: `${menuX}px`, top: `${menuY}px` }">
     <div class="bg-white border border-gray-200 shadow-xl rounded-md min-w-[160px] py-1">
-      <button 
+      <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
-        :disabled="(!store.selectedElementId && !store.selectedGuideId) || !canPasteHere"
-        @click="() => { 
-          if (canPasteHere) { 
-            if (store.selectedElementId) { 
-              store.removeElement(store.selectedElementId); 
-            } else if (store.selectedGuideId) {
-              store.removeGuide(store.selectedGuideId);
-            }
-          } 
-          showMenu=false; 
+        :disabled="(!store.selectedElementId && !store.selectedGuideId)"
+        @click="() => {
+          if (store.selectedElementId) {
+            store.removeElement(store.selectedElementId);
+          } else if (store.selectedGuideId) {
+            store.removeGuide(store.selectedGuideId);
+          }
+          showMenu=false;
         }"
       >
         Delete
       </button>
-      <button 
+      <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
         :disabled="!store.selectedElementId || !canPasteHere"
         @click="() => { if (store.selectedElementId && canPasteHere) { clipboard = store.selectedElement ? cloneDeep(store.selectedElement) : null; } showMenu=false; }"
       >
         Copy
       </button>
-      <button 
+      <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
         :disabled="!clipboard || !canPasteHere"
         @click="() => { if (clipboard && canPasteHere) { const p = cloneDeep(clipboard); (p as any).id = undefined; p.x += 10; p.y += 10; store.addElement(p as Omit<PrintElement,'id'>); } showMenu=false; }"
@@ -137,13 +145,13 @@ onUnmounted(() => {
         Paste
       </button>
       <div class="border-t border-gray-200 my-1"></div>
-      <button 
+      <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
         @click="store.undo(); showMenu=false;"
       >
         Undo
       </button>
-      <button 
+      <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
         @click="store.redo(); showMenu=false;"
       >

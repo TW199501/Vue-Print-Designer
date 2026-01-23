@@ -251,9 +251,9 @@ const handleGuideMouseUp = (e: MouseEvent) => {
            </div>
         </div>
         
-        <footer class="h-6 bg-white border-t border-gray-200 text-xs flex items-center px-4 text-gray-500 z-30">
+        <!-- <footer class="h-6 bg-white border-t border-gray-200 text-xs flex items-center px-4 text-gray-500 z-30">
            Ready
-        </footer>
+        </footer> -->
       </main>
       <PropertiesPanel />
     </div>
