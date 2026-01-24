@@ -58,16 +58,15 @@ const handleMouseMove = (e: MouseEvent) => {
   const dx = (e.clientX - startX) / props.zoom;
   const dy = (e.clientY - startY) / props.zoom;
   
-  store.updateElement(props.element.id, {
-    x: initialLeft + dx,
-    y: initialTop + dy
-  });
+  store.moveElementWithSnap(props.element.id, initialLeft + dx, initialTop + dy);
 };
 
 const handleMouseUp = () => {
   isDragging = false;
   window.removeEventListener('mousemove', handleMouseMove);
   window.removeEventListener('mouseup', handleMouseUp);
+  store.setHighlightedGuide(null);
+  store.setHighlightedEdge(null);
 };
 
 // Resizing Logic (Simple bottom-right handle for now)

@@ -80,6 +80,8 @@ export interface DesignerState {
   selectedElementId: string | null;
   selectedElementIds: string[];
   selectedGuideId: string | null;
+  highlightedGuideId: string | null;
+  highlightedEdge: 'left' | 'top' | 'right' | 'bottom' | null;
   canvasSize: Size; // A4 usually
   zoom: number;
   isDragging: boolean;

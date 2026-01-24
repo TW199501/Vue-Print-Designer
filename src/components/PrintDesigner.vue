@@ -209,7 +209,7 @@ const handleGuideMouseUp = (e: MouseEvent) => {
                           :style="{ top: `${offsetY + guide.position * store.zoom}px` }"
                           @mousedown.stop="(e) => { store.selectGuide(guide.id); handleGuideDragStart(e, 'horizontal', guide.id); }"
                        >
-                          <div class="w-full border-t border-cyan-500 group-hover:border-cyan-400"></div>
+                          <div :class="['w-full', store.highlightedGuideId === guide.id ? 'border-t-2 border-pink-500' : 'border-t border-cyan-500', 'group-hover:border-cyan-400']"></div>
                           <div class="absolute left-2 -top-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
                              {{ Math.round(guide.position) }}
                           </div>
@@ -220,7 +220,7 @@ const handleGuideMouseUp = (e: MouseEvent) => {
                           :style="{ left: `${offsetX + guide.position * store.zoom}px` }"
                           @mousedown.stop="(e) => { store.selectGuide(guide.id); handleGuideDragStart(e, 'vertical', guide.id); }"
                        >
-                           <div class="h-full border-l border-cyan-500 group-hover:border-cyan-400"></div>
+                           <div :class="['h-full', store.highlightedGuideId === guide.id ? 'border-l-2 border-pink-500' : 'border-l border-cyan-500', 'group-hover:border-cyan-400']"></div>
                            <div class="absolute top-2 -left-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
                              {{ Math.round(guide.position) }}
                           </div>
@@ -245,6 +245,30 @@ const handleGuideMouseUp = (e: MouseEvent) => {
                        ]">
                           {{ Math.round(draggingGuidePos) }}
                        </div>
+                    </div>
+                    
+                    <!-- Edge Highlight -->
+                    <div v-if="store.highlightedEdge" class="absolute pointer-events-none">
+                      <div 
+                        v-if="store.highlightedEdge === 'top'" 
+                        class="absolute left-0 w-full border-t border-pink-500"
+                        :style="{ top: `${offsetY}px` }"
+                      ></div>
+                      <div 
+                        v-else-if="store.highlightedEdge === 'bottom'" 
+                        class="absolute left-0 w-full border-t border-pink-500"
+                        :style="{ top: `${offsetY + store.canvasSize.height * store.zoom}px` }"
+                      ></div>
+                      <div 
+                        v-else-if="store.highlightedEdge === 'left'" 
+                        class="absolute top-0 h-full border-l border-pink-500"
+                        :style="{ left: `${offsetX}px` }"
+                      ></div>
+                      <div 
+                        v-else-if="store.highlightedEdge === 'right'" 
+                        class="absolute top-0 h-full border-l border-pink-500"
+                        :style="{ left: `${offsetX + store.canvasSize.width * store.zoom}px` }"
+                      ></div>
                     </div>
                  </div>
               </div>

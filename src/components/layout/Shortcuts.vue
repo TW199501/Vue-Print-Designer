@@ -15,6 +15,17 @@ const handleKeydown = (e: KeyboardEvent) => {
   // ignore when typing in inputs
   const target = e.target as Element | null;
   if (target && (target.closest('input, textarea, select, [contenteditable="true"]'))) return;
+  // Arrow move
+  if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+    if (store.selectedElementIds.length > 0) {
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 1;
+      const dx = e.key === 'ArrowLeft' ? -step : (e.key === 'ArrowRight' ? step : 0);
+      const dy = e.key === 'ArrowUp' ? -step : (e.key === 'ArrowDown' ? step : 0);
+      store.nudgeSelectedElements(dx, dy);
+    }
+    return;
+  }
   // Delete
   if (e.key === 'Delete') {
     if (store.selectedElementIds.length > 1) {
@@ -71,6 +82,14 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 };
 
+const handleKeyup = (e: KeyboardEvent) => {
+  if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+    // Clear highlight after arrow movement stops
+    store.setHighlightedGuide(null);
+    store.setHighlightedEdge(null);
+  }
+};
+
 const handleContextMenu = (e: MouseEvent) => {
   // Check if the click is inside the designer area
   const target = e.target as Element;
@@ -107,12 +126,14 @@ const closeMenuOnce = () => {
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
   window.addEventListener('contextmenu', handleContextMenu);
+  window.addEventListener('keyup', handleKeyup);
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
   window.removeEventListener('contextmenu', handleContextMenu);
   window.removeEventListener('click', closeMenuOnce);
+  window.removeEventListener('keyup', handleKeyup);
 });
 </script>
 

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
 import cloneDeep from 'lodash/cloneDeep';
-import { type DesignerState, type PrintElement, type Page, ElementType } from '@/types';
+import { type DesignerState, type PrintElement, type Page, type Guide, ElementType } from '@/types';
 
 export const useDesignerStore = defineStore('designer', {
   state: (): DesignerState => ({
@@ -10,6 +10,8 @@ export const useDesignerStore = defineStore('designer', {
     selectedElementId: null,
     selectedElementIds: [],
     selectedGuideId: null,
+    highlightedGuideId: null,
+    highlightedEdge: null,
     canvasSize: { width: 794, height: 1123 }, // A4 at 96 DPI (approx)
     zoom: 1,
     isDragging: false,
@@ -96,6 +98,102 @@ export const useDesignerStore = defineStore('designer', {
     },
     selectGuide(id: string | null) {
       this.selectedGuideId = id;
+    },
+    setHighlightedGuide(id: string | null) {
+      this.highlightedGuideId = id;
+    },
+    setHighlightedEdge(edge: 'left' | 'top' | 'right' | 'bottom' | null) {
+      this.highlightedEdge = edge;
+    },
+    getSnapPosition(el: PrintElement, nx: number, ny: number) {
+      const threshold = 5;
+      let x = nx;
+      let y = ny;
+      let highlightedGuideId: string | null = null;
+      let highlightedEdge: 'left' | 'top' | 'right' | 'bottom' | null = null;
+
+      // Canvas edges
+      const maxX = Math.max(0, this.canvasSize.width - el.width);
+      const maxY = Math.max(0, this.canvasSize.height - el.height);
+      if (Math.abs(x - 0) <= threshold) {
+        x = 0;
+        highlightedEdge = 'left';
+      } else if (Math.abs((x + el.width) - this.canvasSize.width) <= threshold) {
+        x = maxX;
+        highlightedEdge = 'right';
+      }
+      if (Math.abs(y - 0) <= threshold) {
+        y = 0;
+        highlightedEdge = highlightedEdge || 'top';
+      } else if (Math.abs((y + el.height) - this.canvasSize.height) <= threshold) {
+        y = maxY;
+        highlightedEdge = highlightedEdge || 'bottom';
+      }
+
+      // Guides
+      for (const guide of this.guides) {
+        if (guide.type === 'vertical') {
+          // left edge
+          if (Math.abs(x - guide.position) <= threshold) {
+            x = guide.position;
+            highlightedGuideId = guide.id;
+          }
+          // right edge
+          else if (Math.abs((x + el.width) - guide.position) <= threshold) {
+            x = guide.position - el.width;
+            highlightedGuideId = guide.id;
+          }
+        } else {
+          // top edge
+          if (Math.abs(y - guide.position) <= threshold) {
+            y = guide.position;
+            highlightedGuideId = guide.id;
+          }
+          // bottom edge
+          else if (Math.abs((y + el.height) - guide.position) <= threshold) {
+            y = guide.position - el.height;
+            highlightedGuideId = guide.id;
+          }
+        }
+      }
+
+      // Clamp to canvas
+      x = Math.min(Math.max(0, x), maxX);
+      y = Math.min(Math.max(0, y), maxY);
+
+      return { x, y, highlightedGuideId, highlightedEdge };
+    },
+    moveElementWithSnap(id: string, x: number, y: number) {
+      for (const page of this.pages) {
+        const index = page.elements.findIndex(e => e.id === id);
+        if (index !== -1) {
+          const el = page.elements[index];
+          const snapped = this.getSnapPosition(el, x, y);
+          this.setHighlightedGuide(snapped.highlightedGuideId || null);
+          this.setHighlightedEdge(snapped.highlightedEdge || null);
+          this.updateElement(id, { x: snapped.x, y: snapped.y });
+          return;
+        }
+      }
+    },
+    nudgeSelectedElements(dx: number, dy: number) {
+      if (this.selectedElementIds.length === 0) return;
+      // Move each selected element
+      for (const id of this.selectedElementIds) {
+        for (const page of this.pages) {
+          const index = page.elements.findIndex(e => e.id === id);
+          if (index !== -1) {
+            const el = page.elements[index];
+            const targetX = el.x + dx;
+            const targetY = el.y + dy;
+            const snapped = this.getSnapPosition(el, targetX, targetY);
+            this.setHighlightedGuide(snapped.highlightedGuideId || null);
+            this.setHighlightedEdge(snapped.highlightedEdge || null);
+            this.updateElement(id, { x: snapped.x, y: snapped.y });
+            break;
+          }
+        }
+      }
     },
     addElement(element: Omit<PrintElement, 'id'>) {
       this.snapshot();
