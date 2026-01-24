@@ -54,6 +54,19 @@ export interface PrintElement {
   data?: any[]; // For table
   columns?: TableColumn[]; // For table
   style: ElementStyle;
+  // Pager-specific (optional)
+  labelText?: string;
+  labelPosition?: 'before' | 'after';
+  labelFontSize?: number;
+  labelColor?: string;
+  labelFontFamily?: string;
+  labelFontWeight?: string;
+  labelBackgroundColor?: string;
+  labelBorder?: string;
+  // Pager frame border composed controls
+  frameBorderStyle?: 'solid' | 'dashed' | 'dotted';
+  frameBorderWidth?: number;
+  frameBorderColor?: string;
 }
 
 export interface Page {

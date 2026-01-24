@@ -5,6 +5,7 @@ import { ElementType, type ElementPropertiesSchema, type PropertyField } from '@
 import { elementPropertiesSchema as TextSchema } from '@/components/elements/TextElement.vue';
 import { elementPropertiesSchema as ImageSchema } from '@/components/elements/ImageElement.vue';
 import { elementPropertiesSchema as TableSchema } from '@/components/elements/TableElement.vue';
+import { elementPropertiesSchema as PagerSchema } from '@/components/elements/PageNumberElement.vue';
 
 const store = useDesignerStore();
 const element = computed(() => store.selectedElement);
@@ -38,6 +39,7 @@ const getSchema = (type: ElementType): ElementPropertiesSchema | null => {
     case ElementType.TEXT: return TextSchema;
     case ElementType.IMAGE: return ImageSchema;
     case ElementType.TABLE: return TableSchema;
+    case ElementType.PAGE_NUMBER: return PagerSchema;
     default: return null;
   }
 };
@@ -45,6 +47,19 @@ const getSchema = (type: ElementType): ElementPropertiesSchema | null => {
 const handleFieldInput = (field: PropertyField, rawValue: any) => {
   if (!element.value) return;
   const value = field.type === 'number' ? Number(rawValue) : rawValue;
+  // Special handling for Pager border composed fields
+  if (element.value.type === ElementType.PAGE_NUMBER && field.key && ['frameBorderStyle', 'frameBorderWidth', 'frameBorderColor'].includes(field.key)) {
+    // Persist the individual field on element
+    handleChange(field.key, value);
+    // Compose border value and update style.border
+    const el: any = element.value;
+    const width = field.key === 'frameBorderWidth' ? Number(value) : Number(el.frameBorderWidth ?? 0);
+    const style = field.key === 'frameBorderStyle' ? String(value || '') : String(el.frameBorderStyle || '');
+    const color = field.key === 'frameBorderColor' ? String(value || '') : String(el.frameBorderColor || '');
+    const has = !!style && !!color && width > 0;
+    handleStyleChange('border', has ? `${width}px ${style} ${color}` : 'none');
+    return;
+  }
   if (field.target === 'style' && field.key) {
     handleStyleChange(field.key, value);
   } else if (field.target === 'element' && field.key) {
@@ -56,6 +71,10 @@ const handleFieldAction = (field: PropertyField) => {
   if (!element.value || !field.actionName) return;
   if (field.actionName === 'paginateTable') {
     store.paginateTable(element.value.id);
+  } else if (field.actionName === 'removeBorder' && element.value.type === ElementType.PAGE_NUMBER) {
+    // Clear composed border fields and remove border
+    store.updateElement(element.value.id, { frameBorderStyle: undefined, frameBorderColor: undefined, frameBorderWidth: 0 });
+    handleStyleChange('border', 'none');
   }
 };
 
