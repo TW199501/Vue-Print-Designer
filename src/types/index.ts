@@ -47,6 +47,7 @@ export interface PrintElement {
   width: number;
   height: number;
   content?: string; // For text/image url
+  variable?: string;
   data?: any[]; // For table
   columns?: TableColumn[]; // For table
   style: ElementStyle;
@@ -79,16 +80,22 @@ export interface Guide {
 }
 
 // Dynamic properties schema for element-specific fields
+export interface PropertyFieldOption {
+  label: string;
+  value: string | number;
+}
+
 export interface PropertyField {
   label: string;
-  type: 'number' | 'text' | 'textarea' | 'color' | 'action';
+  type: 'number' | 'text' | 'textarea' | 'color' | 'action' | 'select';
   target: 'element' | 'style' | 'data';
-  key?: string; // required for non-action fields
+  key?: string;
   placeholder?: string;
   min?: number;
   max?: number;
   step?: number;
-  actionName?: string; // required for action fields
+  actionName?: string;
+  options?: PropertyFieldOption[];
 }
 
 export interface PropertySection {

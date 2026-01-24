@@ -14,8 +14,47 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       title: 'Text',
       fields: [
         { label: 'Content', type: 'textarea', target: 'element', key: 'content', placeholder: 'Enter text' },
+        { label: 'Variable (@foobar)', type: 'text', target: 'element', key: 'variable', placeholder: '@foobar' },
         { label: 'Font Size (PX)', type: 'number', target: 'style', key: 'fontSize', min: 8, max: 96, step: 1 },
-        { label: 'Color', type: 'color', target: 'style', key: 'color' }
+        { label: 'Color', type: 'color', target: 'style', key: 'color' },
+        {
+          label: 'Text Align',
+          type: 'select',
+          target: 'style',
+          key: 'textAlign',
+          options: [
+            { label: 'Default', value: '' },
+            { label: 'Left', value: 'left' },
+            { label: 'Center', value: 'center' },
+            { label: 'Right', value: 'right' }
+          ]
+        },
+        {
+          label: 'Font Family',
+          type: 'select',
+          target: 'style',
+          key: 'fontFamily',
+          options: [
+            { label: 'Default', value: '' },
+            { label: 'Arial', value: 'Arial, sans-serif' },
+            { label: 'Times New Roman', value: '"Times New Roman", serif' },
+            { label: 'Courier New', value: '"Courier New", monospace' },
+            { label: 'SimSun (宋体)', value: 'SimSun, serif' },
+            { label: 'SimHei (黑体)', value: 'SimHei, sans-serif' }
+          ]
+        },
+        {
+          label: 'Font Weight',
+          type: 'select',
+          target: 'style',
+          key: 'fontWeight',
+          options: [
+            { label: 'Default', value: '' },
+            { label: 'Normal', value: '400' },
+            { label: 'Medium', value: '500' },
+            { label: 'Bold', value: '700' }
+          ]
+        }
       ]
     }
   ]
@@ -32,6 +71,6 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
     color: element.style.color,
     padding: `${element.style.padding}px`
   }">
-    {{ element.content || 'Double click to edit' }}
+    {{ element.variable || element.content || 'Double click to edit' }}
   </div>
 </template>

@@ -165,6 +165,21 @@ const handleDeleteSelected = () => {
                     class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
                   />
                 </template>
+                <template v-else-if="field.type === 'select'">
+                  <select
+                    :value="field.target === 'style' ? (element.style as any)[field.key!] ?? '' : (element as any)[field.key!]"
+                    @change="(e) => handleFieldInput(field, (e.target as HTMLSelectElement).value)"
+                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+                  >
+                    <option
+                      v-for="opt in field.options || []"
+                      :key="String(opt.value)"
+                      :value="opt.value"
+                    >
+                      {{ opt.label }}
+                    </option>
+                  </select>
+                </template>
                 <template v-else-if="field.type === 'color'">
                   <input
                     type="color"
