@@ -180,21 +180,51 @@ const handleMouseUp = () => {
     }
   }
 
-  // Apply selection
-  // Always update selection, even if empty (clears selection)
   store.setSelection(selectedIds);
 
   isBoxSelecting.value = false;
   currentSelectingPageIndex.value = null;
   justFinishedBoxSelection.value = true;
 
-  // Reset the flag after a short delay to prevent immediate clear
   setTimeout(() => {
     justFinishedBoxSelection.value = false;
   }, 50);
 
   window.removeEventListener('mousemove', handleMouseMove);
   window.removeEventListener('mouseup', handleMouseUp);
+};
+
+const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
+  const pageElement = e.currentTarget as HTMLElement;
+  const rect = pageElement.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / zoom.value;
+  const y = (e.clientY - rect.top) / zoom.value;
+
+  const page = pages.value[pageIndex];
+  if (!page) return;
+
+  let targetId: string | null = null;
+  let topZ = -Infinity;
+
+  for (let i = 0; i < page.elements.length; i++) {
+    const el = page.elements[i];
+    const within =
+      x >= el.x &&
+      x <= el.x + el.width &&
+      y >= el.y &&
+      y <= el.y + el.height;
+    if (within) {
+      const z = (el.style?.zIndex as number) ?? 1;
+      if (z >= topZ) {
+        topZ = z;
+        targetId = el.id;
+      }
+    }
+  }
+
+  if (targetId) {
+    store.selectElement(targetId, false);
+  }
 };
 </script>
 
@@ -209,6 +239,7 @@ const handleMouseUp = () => {
       @drop="(e) => handleDrop(e, index)"
       @dragover="handleDragOver"
       @mousedown="(e) => handlePageMouseDown(e, index)"
+      @contextmenu="(e) => handleContextMenu(e, index)"
       @click.self="handleBackgroundClick"
     >
       <!-- Grid Background -->
