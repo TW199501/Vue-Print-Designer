@@ -11,7 +11,10 @@ export interface Size {
 export enum ElementType {
   TEXT = 'text',
   IMAGE = 'image',
-  TABLE = 'table'
+  TABLE = 'table',
+  HEADER = 'header',
+  FOOTER = 'footer',
+  PAGE_NUMBER = 'pageNumber'
 }
 
 export interface ElementStyle {

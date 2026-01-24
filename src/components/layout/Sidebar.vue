@@ -6,6 +6,9 @@ const draggableItems = [
   { type: ElementType.TEXT, label: 'Text', icon: Type },
   { type: ElementType.IMAGE, label: 'Image', icon: Image },
   { type: ElementType.TABLE, label: 'Table', icon: Table },
+  { type: ElementType.HEADER, label: 'Header', icon: Type },
+  { type: ElementType.FOOTER, label: 'Footer', icon: Type },
+  { type: ElementType.PAGE_NUMBER, label: 'Pager', icon: Type },
 ];
 
 const handleDragStart = (event: DragEvent, type: ElementType) => {

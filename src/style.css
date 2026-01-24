@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+  .exporting .marker {
+    display: none !important;
+  }
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
     width: 12px;

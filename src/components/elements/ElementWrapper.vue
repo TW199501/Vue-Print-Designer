@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { PrintElement } from '@/types';
+import { ElementType } from '@/types';
 import { useDesignerStore } from '@/stores/designer';
-
+ 
 const props = defineProps<{
   element: PrintElement;
   isSelected: boolean;
@@ -112,7 +113,7 @@ const handleResizeStart = (e: MouseEvent) => {
 
     <!-- Resize Handles (only visible when selected and not multi-selected) -->
     <div
-      v-if="isSelected && store.selectedElementIds.length <= 1"
+      v-if="isSelected && store.selectedElementIds.length <= 1 && element.type !== ElementType.HEADER && element.type !== ElementType.FOOTER"
       class="absolute bottom-0 right-0 w-3 h-3 bg-blue-600 cursor-se-resize z-50"
       @mousedown="handleResizeStart"
     ></div>

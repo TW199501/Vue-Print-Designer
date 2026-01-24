@@ -6,6 +6,9 @@ import ElementWrapper from '../elements/ElementWrapper.vue';
 import TextElement from '../elements/TextElement.vue';
 import ImageElement from '../elements/ImageElement.vue';
 import TableElement from '../elements/TableElement.vue';
+import HeaderElement from '../elements/HeaderElement.vue';
+import FooterElement from '../elements/FooterElement.vue';
+import PageNumberElement from '../elements/PageNumberElement.vue';
 
 const store = useDesignerStore();
 
@@ -46,6 +49,9 @@ const getComponent = (type: ElementType) => {
     case ElementType.TEXT: return TextElement;
     case ElementType.IMAGE: return ImageElement;
     case ElementType.TABLE: return TableElement;
+    case ElementType.HEADER: return HeaderElement;
+    case ElementType.FOOTER: return FooterElement;
+    case ElementType.PAGE_NUMBER: return PageNumberElement;
     default: return TextElement;
   }
 };
@@ -64,8 +70,8 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     type,
     x,
     y,
-    width: 200,
-    height: 100,
+    width: type === ElementType.HEADER || type === ElementType.FOOTER ? canvasSize.value.width : 200,
+    height: type === ElementType.HEADER || type === ElementType.FOOTER ? 4 : (type === ElementType.PAGE_NUMBER ? 20 : 100),
     style: {
       fontSize: 14,
       color: '#000000',
@@ -258,13 +264,10 @@ const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
         :is-selected="store.selectedElementId === element.id || store.selectedElementIds.includes(element.id)"
         :zoom="zoom"
       >
-        <component :is="getComponent(element.type)" :element="element" />
+        <component :is="getComponent(element.type)" :element="element" :page-index="index" :total-pages="pages.length" />
       </ElementWrapper>
 
-      <!-- Page Number -->
-      <div class="absolute bottom-2 right-4 text-xs text-gray-400 select-none">
-        Page {{ index + 1 }}
-      </div>
+      
     </div>
   </div>
 </template>
