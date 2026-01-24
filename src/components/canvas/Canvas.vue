@@ -181,9 +181,8 @@ const handleMouseUp = () => {
   }
 
   // Apply selection
-  if (selectedIds.length > 0) {
-    store.setSelection(selectedIds);
-  }
+  // Always update selection, even if empty (clears selection)
+  store.setSelection(selectedIds);
 
   isBoxSelecting.value = false;
   currentSelectingPageIndex.value = null;
