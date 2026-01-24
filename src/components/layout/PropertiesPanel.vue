@@ -77,11 +77,11 @@ const handleDeleteSelected = () => {
     <!-- Multi-selected elements -->
     <div v-if="isMultiSelected" class="p-6 text-center">
       <div class="mb-4">
-        <div class="text-3xl font-bold text-blue-600 mb-2">
-          {{ store.selectedElementIds.length }}
-        </div>
-        <p class="text-sm text-gray-600">
-          {{ store.selectedElementIds.length === 1 ? 'element' : 'elements' }} selected
+        <div class="text-sm text-gray-600">Multi-select mode, You can delete selected elements. </div>
+        <p class="text-md mt-2">
+          You have 
+          <span class="font-bold font-medium text-red-600">{{ store.selectedElementIds.length }}</span> 
+          elements selected.
         </p>
       </div>
       <button
