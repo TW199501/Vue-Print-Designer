@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch } from 'vue';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import cloneDeep from 'lodash/cloneDeep';
-import { v4 as uuidv4 } from 'uuid';
 import { useDesignerStore } from '@/stores/designer';
 import { Printer, FileOutput, ZoomIn, ZoomOut, Settings, Save } from 'lucide-vue-next';
 import { PAPER_SIZES, type PaperSizeKey } from '@/constants/paper';
+import { usePrint } from '@/utils/print';
 
 const store = useDesignerStore();
+const { print, exportPdf } = usePrint();
 
 const selectedPaper = ref<PaperSizeKey>('A4');
 const customWidth = ref(PAPER_SIZES.A4.width);
@@ -72,150 +70,14 @@ const handleZoomSlider = () => {
   store.setZoom(clamped / 100);
 };
 
-const createRepeatedPages = () => {
-  const original = cloneDeep(store.pages);
-  const findLineY = (type: 'header' | 'footer') => {
-    for (const p of original) {
-      const el = p.elements.find(e => 
-        (type === 'header' && e.type === 'header') ||
-        (type === 'footer' && e.type === 'footer')
-      );
-      if (el) return el.y;
-    }
-    return null;
-  };
-  const headerY = findLineY('header');
-  const footerY = findLineY('footer');
-  if (headerY === null && footerY === null) return original;
 
-  const basePage = original[0];
-  const repeatHeaders = headerY !== null ? basePage.elements.filter(e => e.type !== 'header' && e.type !== 'footer' && e.type !== 'pageNumber' && (e.y + e.height) <= headerY) : [];
-  const repeatFooters = footerY !== null ? basePage.elements.filter(e => e.type !== 'header' && e.type !== 'footer' && e.type !== 'pageNumber' && e.y >= footerY) : [];
-
-  const withRepeats = cloneDeep(original);
-  for (let i = 0; i < withRepeats.length; i++) {
-    if (i === 0) continue;
-    const page = withRepeats[i];
-    for (const el of repeatHeaders) {
-      page.elements.push({ ...cloneDeep(el), id: uuidv4() });
-    }
-    for (const el of repeatFooters) {
-      page.elements.push({ ...cloneDeep(el), id: uuidv4() });
-    }
-  }
-  return withRepeats;
-};
 
 const handlePrint = async () => {
-  const previousSelection = store.selectedElementId;
-  const previousShowGrid = store.showGrid;
-  const previousZoom = store.zoom;
-  const previousPages = cloneDeep(store.pages);
-
-  store.selectElement(null);
-  store.setShowGrid(false);
-  store.setZoom(1);
-  document.body.classList.add('exporting');
-  store.pages = createRepeatedPages();
-  await nextTick();
-
-  const pages = document.querySelectorAll('.print-page');
-  if (!pages.length) return;
-
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    window.print();
-    document.body.classList.remove('exporting');
-    store.setShowGrid(previousShowGrid);
-    store.selectElement(previousSelection);
-    store.setZoom(previousZoom);
-    store.pages = previousPages;
-    return;
-  }
-
-  const style = `
-    <style>
-      @page { size: ${store.canvasSize.width}px ${store.canvasSize.height}px; margin: 0; }
-      html, body { margin: 0; padding: 0; background: #fff; }
-      .print-page { width: ${store.canvasSize.width}px; height: ${store.canvasSize.height}px; box-shadow: none !important; page-break-after: always; }
-      .print-page:last-child { page-break-after: auto; }
-      .marker { display: none !important; }
-    </style>
-  `;
-
-  const bodyHtml = Array.from(pages).map(p => (p as HTMLElement).outerHTML).join('');
-  printWindow.document.open();
-  printWindow.document.write(`<!doctype html><html><head>${style}</head><body>${bodyHtml}</body></html>`);
-  printWindow.document.close();
-  printWindow.focus();
-
-  const restore = () => {
-    document.body.classList.remove('exporting');
-    store.setShowGrid(previousShowGrid);
-    store.selectElement(previousSelection);
-    store.setZoom(previousZoom);
-    store.pages = previousPages;
-  };
-
-  printWindow.onload = () => {
-    printWindow.print();
-    printWindow.onafterprint = () => {
-      printWindow.close();
-      restore();
-    };
-  };
+  await print();
 };
 
 const handleExport = async () => {
-  const previousSelection = store.selectedElementId;
-  const previousShowGrid = store.showGrid;
-  const previousPages = cloneDeep(store.pages);
-
-  store.selectElement(null);
-  store.setShowGrid(false);
-  document.body.classList.add('exporting');
-  store.pages = createRepeatedPages();
-  await nextTick();
-
-  try {
-    const pages = document.querySelectorAll('.print-page');
-    if (!pages.length) return;
-
-    const pdf = new jsPDF({
-      orientation: 'p',
-      unit: 'px',
-      format: [store.canvasSize.width, store.canvasSize.height],
-      hotfixes: ['px_scaling']
-    });
-
-    for (let i = 0; i < pages.length; i++) {
-      const page = pages[i] as HTMLElement;
-
-      const canvas = await html2canvas(page, {
-        scale: 1,
-        useCORS: true,
-        logging: false
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-
-      if (i > 0) {
-        pdf.addPage([store.canvasSize.width, store.canvasSize.height]);
-      }
-
-      pdf.addImage(imgData, 'PNG', 0, 0, store.canvasSize.width, store.canvasSize.height);
-    }
-
-    pdf.save('print-design.pdf');
-  } catch (error) {
-    console.error('Export failed', error);
-    alert('Export failed');
-  } finally {
-    document.body.classList.remove('exporting');
-    store.setShowGrid(previousShowGrid);
-    store.selectElement(previousSelection);
-    store.pages = previousPages;
-  }
+  await exportPdf();
 };
 
 const handleSave = () => {
