@@ -46,11 +46,15 @@ const draw = () => {
   const targetVisualGap = 50; // px between major marks
   const logicalGapRaw = targetVisualGap / zoom;
   
+  // Use a small epsilon to avoid jumping to next step due to floating point jitter
+  // e.g. if logicalGapRaw is 50.0001, we still want step 50, not 100
+  const effectiveGap = logicalGapRaw - 0.001;
+  
   // Find closest nice number
   const steps = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
   let step = steps[steps.length - 1];
   for (const s of steps) {
-    if (s >= logicalGapRaw) {
+    if (s >= effectiveGap) {
       step = s;
       break;
     }

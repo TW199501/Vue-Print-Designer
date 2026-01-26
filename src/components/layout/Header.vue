@@ -54,13 +54,17 @@ watch(() => store.canvasSize, (newSize) => {
 }, { immediate: true });
 
 const handleZoomIn = () => {
-  store.setZoom(Math.min(store.zoom + 0.1, 5));
-  zoomPercent.value = Math.round(store.zoom * 100);
+  const currentPercent = Math.round(store.zoom * 100);
+  const nextPercent = Math.min(currentPercent + 10, 500);
+  store.setZoom(nextPercent / 100);
+  zoomPercent.value = nextPercent;
 };
 
 const handleZoomOut = () => {
-  store.setZoom(Math.max(store.zoom - 0.1, 0.2));
-  zoomPercent.value = Math.round(store.zoom * 100);
+  const currentPercent = Math.round(store.zoom * 100);
+  const nextPercent = Math.max(currentPercent - 10, 20);
+  store.setZoom(nextPercent / 100);
+  zoomPercent.value = nextPercent;
 };
 
 watch(() => store.zoom, (z) => {
