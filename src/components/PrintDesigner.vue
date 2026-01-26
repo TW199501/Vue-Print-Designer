@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import { useDesignerStore } from '@/stores/designer';
 import Header from './layout/Header.vue';
 import Sidebar from './layout/Sidebar.vue';
@@ -11,6 +11,7 @@ import Shortcuts from './layout/Shortcuts.vue';
 const store = useDesignerStore();
 const scrollContainer = ref<HTMLElement | null>(null);
 const canvasContainer = ref<HTMLElement | null>(null);
+const canvasWrapper = ref<HTMLElement | null>(null);
 
 onMounted(() => {
   // Load data from localStorage on startup
@@ -38,35 +39,46 @@ const handleScroll = (e: Event) => {
 const scrollWidth = ref(0);
 const scrollHeight = ref(0);
 
+const canvasStyle = computed(() => {
+  const pagesCount = store.pages.length;
+  const pageHeight = store.canvasSize.height;
+  const pageWidth = store.canvasSize.width;
+  const gap = 32; // gap-8
+  const paddingBottom = 80; // pb-20
+
+  const unscaledHeight = pagesCount > 0
+    ? (pagesCount * pageHeight) + ((pagesCount - 1) * gap) + paddingBottom
+    : 0;
+
+  const unscaledWidth = pageWidth;
+
+  return {
+    width: `${unscaledWidth * store.zoom}px`,
+    height: `${unscaledHeight * store.zoom}px`,
+  };
+});
+
 const updateOffset = () => {
-  if (scrollContainer.value && canvasContainer.value) {
-    // Update scroll dimensions
-    scrollWidth.value = scrollContainer.value.scrollWidth;
-    scrollHeight.value = scrollContainer.value.scrollHeight;
+  if (scrollContainer.value && canvasWrapper.value) {
+    // Calculate expected scroll dimensions based on canvas size to avoid loop with overlay size
+    const containerClientWidth = scrollContainer.value.clientWidth;
+    const containerClientHeight = scrollContainer.value.clientHeight;
+    
+    const wrapperW = parseFloat(canvasStyle.value.width);
+    const wrapperH = parseFloat(canvasStyle.value.height);
+    
+    // p-8 = 32px padding on each side
+    const paddingX = 64; 
+    const paddingY = 64;
 
-    // We need to find the position of the first page relative to the scroll container content
-    // But since Canvas component renders pages with transform scale, getting exact visual position is tricky.
-    // However, the flex container centers the Canvas wrapper.
-    // The Canvas wrapper has `flex flex-col gap-8 pb-20`.
-    // The visual left of the content is (scrollContainerWidth - (canvasWidth * zoom)) / 2 if centered.
-    // But we are using `justify-center`.
+    scrollWidth.value = Math.max(containerClientWidth, wrapperW + paddingX);
+    scrollHeight.value = Math.max(containerClientHeight, wrapperH + paddingY);
 
-    const containerWidth = scrollContainer.value.clientWidth;
-    // We assume Canvas component renders pages of width `store.canvasSize.width`
-    const contentWidth = store.canvasSize.width * store.zoom;
+    const containerRect = scrollContainer.value.getBoundingClientRect();
+    const wrapperRect = canvasWrapper.value.getBoundingClientRect();
 
-    if (contentWidth < containerWidth) {
-       // Centered
-       offsetX.value = (containerWidth - contentWidth) / 2;
-    } else {
-       // Left aligned (due to overflow)
-       // Note: when overflow-auto + justify-center, if content overflows, it usually starts at left 0.
-       // However, there is padding p-8 (32px).
-       offsetX.value = 32;
-    }
-
-    // Top offset is padding top (32px)
-    offsetY.value = 32;
+    offsetX.value = wrapperRect.left - containerRect.left + scrollContainer.value.scrollLeft;
+    offsetY.value = wrapperRect.top - containerRect.top + scrollContainer.value.scrollTop;
   }
 };
 
@@ -193,11 +205,13 @@ const handleGuideMouseUp = (e: MouseEvent) => {
               <!-- Canvas Area -->
               <div
                 ref="scrollContainer"
-                class="flex-1 overflow-auto bg-gray-100 p-8 flex justify-center items-start relative"
+                class="flex-1 overflow-auto bg-gray-100 p-8 flex relative"
                 @scroll="handleScroll"
                   @click="(e) => { if (e.target === scrollContainer || e.target === e.currentTarget) { store.selectGuide(null); } }"
               >
-                 <Canvas ref="canvasContainer" />
+                 <div ref="canvasWrapper" :style="canvasStyle" class="m-auto relative">
+                    <Canvas ref="canvasContainer" class="absolute top-0 left-0" />
+                 </div>
 
                  <!-- Guides Overlay -->
                  <div class="absolute top-0 left-0 pointer-events-none z-50" :style="{ width: `${scrollWidth}px`, height: `${scrollHeight}px` }">
