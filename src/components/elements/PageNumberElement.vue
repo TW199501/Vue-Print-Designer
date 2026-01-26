@@ -88,13 +88,13 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       tab: 'style',
       fields: [
         { label: 'Border Style', type: 'select', target: 'style', key: 'borderStyle', options: [
+          { label: 'None', value: 'none' },
           { label: 'Solid', value: 'solid' },
           { label: 'Dashed', value: 'dashed' },
           { label: 'Dotted', value: 'dotted' }
         ] },
         { label: 'Border Width (px)', type: 'number', target: 'style', key: 'borderWidth', min: 0, max: 20, step: 1 },
         { label: 'Border Color', type: 'color', target: 'style', key: 'borderColor' },
-        { label: 'Remove Border', type: 'action', target: 'element', actionName: 'removeBorder' },
       ]
     },
   ]
