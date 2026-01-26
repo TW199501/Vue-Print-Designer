@@ -14,6 +14,12 @@ const pages = computed(() => store.pages);
 const zoom = computed(() => store.zoom);
 const canvasSize = computed(() => store.canvasSize);
 
+const pageStyle = computed(() => ({
+  width: `${store.canvasSize.width}px`,
+  height: `${store.canvasSize.height}px`,
+  backgroundColor: store.canvasBackground
+}));
+
 // Selection box state
 const isBoxSelecting = ref(false);
 const boxSelectionStart = ref({ x: 0, y: 0 });
@@ -236,8 +242,8 @@ const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
       v-for="(page, index) in pages"
       :key="page.id"
       :id="`page-${index}`"
-      class="print-page bg-white shadow-lg relative overflow-hidden transition-all"
-      :style="{ width: `${canvasSize.width}px`, height: `${canvasSize.height}px` }"
+      class="print-page shadow-lg relative overflow-hidden transition-all"
+      :style="pageStyle"
       @drop="(e) => handleDrop(e, index)"
       @dragover="handleDragOver"
       @mousedown="(e) => handlePageMouseDown(e, index)"

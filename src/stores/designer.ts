@@ -21,6 +21,7 @@ export const useDesignerStore = defineStore('designer', {
     footerHeight: 100,
     showHeaderLine: false,
     showFooterLine: false,
+    canvasBackground: '#ffffff',
     guides: [],
     historyPast: [],
     historyFuture: [],
@@ -40,6 +41,7 @@ export const useDesignerStore = defineStore('designer', {
           if (parsed.footerHeight !== undefined) this.footerHeight = parsed.footerHeight;
           if (parsed.showHeaderLine !== undefined) this.showHeaderLine = parsed.showHeaderLine;
           if (parsed.showFooterLine !== undefined) this.showFooterLine = parsed.showFooterLine;
+          if (parsed.canvasBackground !== undefined) this.canvasBackground = parsed.canvasBackground;
           this.selectedElementId = null;
           this.selectedGuideId = null;
           this.currentPageIndex = 0;
@@ -61,6 +63,9 @@ export const useDesignerStore = defineStore('designer', {
     },
     setShowFooterLine(show: boolean) {
       this.showFooterLine = show;
+    },
+    setCanvasBackground(color: string) {
+      this.canvasBackground = color;
     },
     snapshot() {
       this.historyPast.push(cloneDeep(this.pages));

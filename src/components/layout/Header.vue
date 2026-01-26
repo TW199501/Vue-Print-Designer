@@ -15,6 +15,11 @@ const showPaperSettings = ref(false);
 const showZoomSettings = ref(false);
 const zoomPercent = ref(Math.round(store.zoom * 100));
 
+const canvasBackground = computed({
+  get: () => store.canvasBackground,
+  set: (val) => store.setCanvasBackground(val)
+});
+
 const handlePaperChange = () => {
   if (selectedPaper.value !== 'CUSTOM') {
     const size = PAPER_SIZES[selectedPaper.value];
@@ -90,7 +95,8 @@ const handleSave = () => {
     headerHeight: store.headerHeight,
     footerHeight: store.footerHeight,
     showHeaderLine: store.showHeaderLine,
-    showFooterLine: store.showFooterLine
+    showFooterLine: store.showFooterLine,
+    canvasBackground: store.canvasBackground
   };
 
   try {
@@ -191,6 +197,15 @@ const handleSave = () => {
                 :class="store.showGrid ? 'translate-x-5' : 'translate-x-0'"
               />
             </button>
+          </div>
+
+          <div class="mt-3 flex items-center justify-between">
+            <span class="text-sm text-gray-700 font-medium">Background Color</span>
+            <input 
+              type="color" 
+              v-model="canvasBackground"
+              class="h-8 w-14 p-1 border border-gray-300 rounded cursor-pointer"
+            />
           </div>
 
           <div class="border-t border-gray-200 my-4 pt-3">
