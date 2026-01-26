@@ -119,8 +119,9 @@ const handleRotateStart = (e: MouseEvent) => {
     if (moveEvent.shiftKey) {
       newRotation = Math.round(newRotation / 45) * 45;
       isSnapped.value = true;
-    } else {
+    } else if (!moveEvent.ctrlKey) {
       // Magnetic snap to 0, 90, 180, 270
+      // User can hold Ctrl to disable snapping for fine adjustments
       const snapThreshold = 5;
       const targets = [0, 90, 180, 270, 360];
       
