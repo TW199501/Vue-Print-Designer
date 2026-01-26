@@ -196,7 +196,8 @@ const handleSave = () => {
           <!-- Font Family -->
           <select 
             v-model="selectedFont"
-            class="w-32 text-sm bg-transparent border-none outline-none focus:ring-0 cursor-pointer"
+            :disabled="isLocked"
+            class="w-32 text-sm bg-transparent border-none outline-none focus:ring-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             title="Font Family"
           >
             <option v-for="opt in fontOptions" :key="opt.value" :value="opt.value">
@@ -208,14 +209,15 @@ const handleSave = () => {
 
           <!-- Font Size -->
           <div class="flex items-center gap-1">
-            <button @click="selectedFontSize--" class="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded text-sm font-medium">-</button>
+            <button @click="selectedFontSize--" :disabled="isLocked" class="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">-</button>
             <input 
               type="number" 
               v-model="selectedFontSize" 
-              class="w-12 text-center text-sm bg-transparent border-none outline-none focus:ring-0 p-0"
+              :disabled="isLocked"
+              class="w-12 text-center text-sm bg-transparent border-none outline-none focus:ring-0 p-0 disabled:opacity-50 disabled:cursor-not-allowed"
               min="1" max="200"
             />
-            <button @click="selectedFontSize++" class="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded text-sm font-medium">+</button>
+            <button @click="selectedFontSize++" :disabled="isLocked" class="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">+</button>
           </div>
 
           <div class="w-px h-4 bg-gray-300"></div>
@@ -223,7 +225,8 @@ const handleSave = () => {
           <!-- Style Toggles -->
           <button 
             @click="toggleBold" 
-            class="p-1 hover:bg-gray-200 rounded transition-colors"
+            :disabled="isLocked"
+            class="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             :class="{ 'bg-gray-300 text-blue-700': isBold }"
             title="Bold"
           >
@@ -231,7 +234,8 @@ const handleSave = () => {
           </button>
           <button 
             @click="toggleItalic" 
-            class="p-1 hover:bg-gray-200 rounded transition-colors"
+            :disabled="isLocked"
+            class="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             :class="{ 'bg-gray-300 text-blue-700': isItalic }"
             title="Italic"
           >
@@ -243,7 +247,8 @@ const handleSave = () => {
         
         <button 
           @click="resetRotation" 
-          class="p-1 hover:bg-gray-200 rounded transition-colors"
+          :disabled="isLocked"
+          class="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           title="Reset Rotation"
         >
           <RotateCcw class="w-4 h-4" />
@@ -254,28 +259,28 @@ const handleSave = () => {
 
       <!-- Alignment -->
       <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-        <button @click="store.alignSelectedElements('left')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Left">
+        <button @click="store.alignSelectedElements('left')" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Left">
           <AlignLeft class="w-4 h-4" />
         </button>
-        <button @click="store.alignSelectedElements('center')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Center">
+        <button @click="store.alignSelectedElements('center')" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Center">
           <AlignCenterHorizontal class="w-4 h-4" />
         </button>
-        <button @click="store.alignSelectedElements('right')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Right">
+        <button @click="store.alignSelectedElements('right')" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Right">
           <AlignRight class="w-4 h-4" />
         </button>
         <div class="w-px h-4 bg-gray-300 mx-1"></div>
-        <button @click="store.alignSelectedElements('top')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Top">
+        <button @click="store.alignSelectedElements('top')" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Top">
           <AlignStartVertical class="w-4 h-4" />
         </button>
-        <button @click="store.alignSelectedElements('middle')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Middle">
+        <button @click="store.alignSelectedElements('middle')" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Middle">
           <AlignCenterVertical class="w-4 h-4" />
         </button>
-        <button @click="store.alignSelectedElements('bottom')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Bottom">
+        <button @click="store.alignSelectedElements('bottom')" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Bottom">
           <AlignEndVertical class="w-4 h-4" />
         </button>
         <template v-if="store.selectedElementIds.length > 1">
           <div class="w-px h-4 bg-gray-300 mx-1"></div>
-          <button @click="store.groupSelectedElements()" class="p-1 hover:bg-gray-200 rounded" title="Group">
+          <button @click="store.groupSelectedElements()" :disabled="isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Group">
             <Group class="w-4 h-4" />
           </button>
         </template>
@@ -292,7 +297,7 @@ const handleSave = () => {
           <Redo2 class="w-4 h-4" />
         </button>
         <div class="w-px h-4 bg-gray-300 mx-1"></div>
-        <button @click="store.copy()" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Copy (Ctrl+C)">
+        <button @click="store.copy()" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Copy (Ctrl+C)">
           <Copy class="w-4 h-4" />
         </button>
         <button @click="store.paste()" :disabled="store.clipboard.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Paste (Ctrl+V)">
@@ -303,7 +308,7 @@ const handleSave = () => {
           <Unlock v-if="isLocked" class="w-4 h-4 text-red-500" />
           <Lock v-else class="w-4 h-4" />
         </button>
-        <button @click="store.removeSelectedElements()" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed text-red-600" title="Delete (Del)">
+        <button @click="store.removeSelectedElements()" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed text-red-600" title="Delete (Del)">
           <Trash2 class="w-4 h-4" />
         </button>
       </div>

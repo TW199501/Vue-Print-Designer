@@ -149,7 +149,7 @@ onUnmounted(() => {
     <div class="bg-white border border-gray-200 shadow-xl rounded-md min-w-[160px] py-1">
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
-        :disabled="(store.selectedElementIds.length === 0 && !store.selectedGuideId)"
+        :disabled="(store.selectedElementIds.length === 0 && !store.selectedGuideId) || (store.selectedElement?.locked)"
         @click="() => {
           if (store.selectedElementIds.length > 1) {
             store.removeSelectedElements();
@@ -165,7 +165,7 @@ onUnmounted(() => {
       </button>
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
-        :disabled="!store.selectedElementId"
+        :disabled="!store.selectedElementId || store.selectedElement?.locked"
         @click="() => { store.copy(); showMenu=false; }"
       >
         Copy
