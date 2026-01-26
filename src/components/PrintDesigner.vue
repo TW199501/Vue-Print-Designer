@@ -218,7 +218,7 @@ const handleGuideMouseUp = (e: MouseEvent) => {
                 @scroll="handleScroll"
                   @click="(e) => { if (e.target === scrollContainer || e.target === e.currentTarget) { store.selectGuide(null); } }"
               >
-                 <div ref="canvasWrapper" :style="canvasStyle" class="m-auto relative">
+                 <div ref="canvasWrapper" :style="canvasStyle" class="mx-auto relative">
                     <Canvas ref="canvasContainer" class="absolute top-0 left-0" />
                  </div>
 
