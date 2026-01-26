@@ -26,6 +26,7 @@ export const useDesignerStore = defineStore('designer', {
     guides: [],
     historyPast: [],
     historyFuture: [],
+    clipboard: [],
   }),
   actions: {
     loadFromLocalStorage() {
@@ -431,6 +432,49 @@ export const useDesignerStore = defineStore('designer', {
           this.currentPageIndex = this.pages.length - 1;
         }
       }
+    },
+    copy() {
+      if (this.selectedElementIds.length === 0) return;
+      
+      const elements: PrintElement[] = [];
+      for (const id of this.selectedElementIds) {
+        for (const page of this.pages) {
+          const el = page.elements.find(e => e.id === id);
+          if (el) {
+            elements.push(cloneDeep(el));
+            break;
+          }
+        }
+      }
+      this.clipboard = elements;
+    },
+    paste() {
+      if (this.clipboard.length === 0) return;
+      
+      this.snapshot();
+      
+      const newIds: string[] = [];
+      const offset = 20;
+
+      for (const item of this.clipboard) {
+        const newEl = cloneDeep(item);
+        newEl.id = uuidv4();
+        newEl.x += offset;
+        newEl.y += offset;
+        
+        // Ensure it fits in canvas (optional, but good UX)
+        if (newEl.x + newEl.width > this.canvasSize.width) {
+          newEl.x = Math.max(0, this.canvasSize.width - newEl.width);
+        }
+        if (newEl.y + newEl.height > this.canvasSize.height) {
+          newEl.y = Math.max(0, this.canvasSize.height - newEl.height);
+        }
+
+        this.pages[this.currentPageIndex].elements.push(newEl);
+        newIds.push(newEl.id);
+      }
+      
+      this.setSelection(newIds);
     },
     paginateTable(elementId: string) {
       this.snapshot();

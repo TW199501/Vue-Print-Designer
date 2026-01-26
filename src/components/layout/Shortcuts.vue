@@ -158,15 +158,15 @@ onUnmounted(() => {
       </button>
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
-        :disabled="!store.selectedElementId || !canPasteHere"
-        @click="() => { if (store.selectedElementId && canPasteHere) { clipboard = store.selectedElement ? cloneDeep(store.selectedElement) : null; } showMenu=false; }"
+        :disabled="!store.selectedElementId"
+        @click="() => { store.copy(); showMenu=false; }"
       >
         Copy
       </button>
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
-        :disabled="!clipboard || !canPasteHere"
-        @click="() => { if (clipboard && canPasteHere) { const p = cloneDeep(clipboard); (p as any).id = undefined; p.x += 10; p.y += 10; store.addElement(p as Omit<PrintElement,'id'>); } showMenu=false; }"
+        :disabled="store.clipboard.length === 0"
+        @click="() => { store.paste(); showMenu=false; }"
       >
         Paste
       </button>

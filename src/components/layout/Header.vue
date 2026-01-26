@@ -6,7 +6,8 @@ import {
   Undo2, Redo2, Trash2, HelpCircle,
   AlignLeft, AlignCenterHorizontal, AlignRight,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
-  X, Bold, Italic, RotateCcw
+  X, Bold, Italic, RotateCcw,
+  Copy, ClipboardPaste
 } from 'lucide-vue-next';
 import { PAPER_SIZES, type PaperSizeKey } from '@/constants/paper';
 import { usePrint } from '@/utils/print';
@@ -192,112 +193,33 @@ const handleSave = () => {
           <Redo2 class="w-4 h-4" />
         </button>
         <div class="w-px h-4 bg-gray-300 mx-1"></div>
+        <button @click="store.copy()" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Copy (Ctrl+C)">
+          <Copy class="w-4 h-4" />
+        </button>
+        <button @click="store.paste()" :disabled="store.clipboard.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Paste (Ctrl+V)">
+          <ClipboardPaste class="w-4 h-4" />
+        </button>
+        <div class="w-px h-4 bg-gray-300 mx-1"></div>
         <button @click="store.removeSelectedElements()" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed text-red-600" title="Delete (Del)">
           <Trash2 class="w-4 h-4" />
         </button>
       </div>
 
-      <!-- Alignment -->
-      <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-        <button @click="store.alignSelectedElements('left')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Left">
-          <AlignLeft class="w-4 h-4" />
-        </button>
-        <button @click="store.alignSelectedElements('center')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Center">
-          <AlignCenterHorizontal class="w-4 h-4" />
-        </button>
-        <button @click="store.alignSelectedElements('right')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Right">
-          <AlignRight class="w-4 h-4" />
-        </button>
-        <div class="w-px h-4 bg-gray-300 mx-1"></div>
-        <button @click="store.alignSelectedElements('top')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Top">
-          <AlignStartVertical class="w-4 h-4" />
-        </button>
-        <button @click="store.alignSelectedElements('middle')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Middle">
-          <AlignCenterVertical class="w-4 h-4" />
-        </button>
-        <button @click="store.alignSelectedElements('bottom')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Bottom">
-          <AlignEndVertical class="w-4 h-4" />
-        </button>
-      </div>
-
-      <!-- Font Controls -->
-      <div class="flex items-center gap-2 bg-gray-100 rounded-lg p-1 px-2" v-if="store.selectedElementId">
-        <template v-if="store.selectedElement?.type !== ElementType.IMAGE">
-          <!-- Font Family -->
-          <select 
-            v-model="selectedFont"
-            class="w-32 text-sm bg-transparent border-none outline-none focus:ring-0 cursor-pointer"
-            title="Font Family"
-          >
-            <option v-for="opt in fontOptions" :key="opt.value" :value="opt.value">
-              {{ opt.label }}
-            </option>
-          </select>
-          
-          <div class="w-px h-4 bg-gray-300"></div>
-
-          <!-- Font Size -->
-          <div class="flex items-center gap-1">
-            <button @click="selectedFontSize--" class="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded text-sm font-medium">-</button>
-            <input 
-              type="number" 
-              v-model="selectedFontSize" 
-              class="w-12 text-center text-sm bg-transparent border-none outline-none focus:ring-0 p-0"
-              min="1" max="200"
-            />
-            <button @click="selectedFontSize++" class="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded text-sm font-medium">+</button>
-          </div>
-
-          <div class="w-px h-4 bg-gray-300"></div>
-
-          <!-- Style Toggles -->
-          <button 
-            @click="toggleBold" 
-            class="p-1 hover:bg-gray-200 rounded transition-colors"
-            :class="{ 'bg-gray-300 text-blue-700': isBold }"
-            title="Bold"
-          >
-            <Bold class="w-4 h-4" />
-          </button>
-          <button 
-            @click="toggleItalic" 
-            class="p-1 hover:bg-gray-200 rounded transition-colors"
-            :class="{ 'bg-gray-300 text-blue-700': isItalic }"
-            title="Italic"
-          >
-            <Italic class="w-4 h-4" />
-          </button>
-
-          <div class="w-px h-4 bg-gray-300"></div>
-        </template>
-        
-        <button 
-          @click="resetRotation" 
-          class="p-1 hover:bg-gray-200 rounded transition-colors"
-          title="Reset Rotation"
-        >
-          <RotateCcw class="w-4 h-4" />
-        </button>
-      </div>
-
-      <!-- Help -->
-      <button @click="showHelp = true" class="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" title="Help">
-        <HelpCircle class="w-5 h-5" />
-      </button>
-
       <div class="h-6 w-px bg-gray-300"></div>
 
       <!-- Paper Settings -->
       <div class="relative">
-        <button 
-          @click="showPaperSettings = !showPaperSettings"
-          class="flex items-center gap-2 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm"
-        >
-          <Settings class="w-4 h-4" />
-          <span>{{ selectedPaper === 'CUSTOM' ? 'Custom' : selectedPaper }}</span>
-        </button>
+        <div class="flex items-center bg-gray-100 rounded-lg p-1 px-2">
+          <button 
+            @click="showPaperSettings = !showPaperSettings"
+            class="flex items-center gap-2 text-sm text-gray-700 hover:bg-gray-200 rounded px-1 py-0.5 transition-colors"
+          >
+            <Settings class="w-4 h-4" />
+            <span>{{ selectedPaper === 'CUSTOM' ? 'Custom' : selectedPaper }}</span>
+          </button>
+        </div>
 
-        <div v-if="showPaperSettings" class="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 z-50">
+        <div v-if="showPaperSettings" class="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 z-50">
           <h3 class="text-sm font-semibold text-gray-700 mb-3">Paper Settings</h3>
           
           <div class="space-y-3">
@@ -465,8 +387,6 @@ const handleSave = () => {
         </div>
       </div>
 
-      <div class="h-6 w-px bg-gray-300"></div>
-
       <!-- Zoom Settings -->
       <div class="relative">
         <div class="flex items-center bg-gray-100 rounded-lg p-1">
@@ -485,7 +405,7 @@ const handleSave = () => {
           </button>
         </div>
 
-        <div v-if="showZoomSettings" class="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 z-50">
+        <div v-if="showZoomSettings" class="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 z-50">
           <h3 class="text-sm font-semibold text-gray-700 mb-3">Zoom</h3>
           <div class="space-y-3">
             <div>
@@ -506,7 +426,99 @@ const handleSave = () => {
           <div class="fixed inset-0 z-[-1]" @click="showZoomSettings = false"></div>
         </div>
       </div>
-      
+
+      <div class="h-6 w-px bg-gray-300"></div>
+
+      <!-- Alignment -->
+      <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <button @click="store.alignSelectedElements('left')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Left">
+          <AlignLeft class="w-4 h-4" />
+        </button>
+        <button @click="store.alignSelectedElements('center')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Center">
+          <AlignCenterHorizontal class="w-4 h-4" />
+        </button>
+        <button @click="store.alignSelectedElements('right')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Right">
+          <AlignRight class="w-4 h-4" />
+        </button>
+        <div class="w-px h-4 bg-gray-300 mx-1"></div>
+        <button @click="store.alignSelectedElements('top')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Top">
+          <AlignStartVertical class="w-4 h-4" />
+        </button>
+        <button @click="store.alignSelectedElements('middle')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Middle">
+          <AlignCenterVertical class="w-4 h-4" />
+        </button>
+        <button @click="store.alignSelectedElements('bottom')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Bottom">
+          <AlignEndVertical class="w-4 h-4" />
+        </button>
+      </div>
+
+      <!-- Font Controls -->
+      <div class="flex items-center gap-2 bg-gray-100 rounded-lg p-1 px-2" v-if="store.selectedElementId">
+        <template v-if="store.selectedElement?.type !== ElementType.IMAGE">
+          <!-- Font Family -->
+          <select 
+            v-model="selectedFont"
+            class="w-32 text-sm bg-transparent border-none outline-none focus:ring-0 cursor-pointer"
+            title="Font Family"
+          >
+            <option v-for="opt in fontOptions" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </option>
+          </select>
+          
+          <div class="w-px h-4 bg-gray-300"></div>
+
+          <!-- Font Size -->
+          <div class="flex items-center gap-1">
+            <button @click="selectedFontSize--" class="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded text-sm font-medium">-</button>
+            <input 
+              type="number" 
+              v-model="selectedFontSize" 
+              class="w-12 text-center text-sm bg-transparent border-none outline-none focus:ring-0 p-0"
+              min="1" max="200"
+            />
+            <button @click="selectedFontSize++" class="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded text-sm font-medium">+</button>
+          </div>
+
+          <div class="w-px h-4 bg-gray-300"></div>
+
+          <!-- Style Toggles -->
+          <button 
+            @click="toggleBold" 
+            class="p-1 hover:bg-gray-200 rounded transition-colors"
+            :class="{ 'bg-gray-300 text-blue-700': isBold }"
+            title="Bold"
+          >
+            <Bold class="w-4 h-4" />
+          </button>
+          <button 
+            @click="toggleItalic" 
+            class="p-1 hover:bg-gray-200 rounded transition-colors"
+            :class="{ 'bg-gray-300 text-blue-700': isItalic }"
+            title="Italic"
+          >
+            <Italic class="w-4 h-4" />
+          </button>
+
+          <div class="w-px h-4 bg-gray-300"></div>
+        </template>
+        
+        <button 
+          @click="resetRotation" 
+          class="p-1 hover:bg-gray-200 rounded transition-colors"
+          title="Reset Rotation"
+        >
+          <RotateCcw class="w-4 h-4" />
+        </button>
+      </div>
+
+      <div class="h-6 w-px bg-gray-300"></div>
+
+      <!-- Help -->
+      <button @click="showHelp = true" class="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" title="Help">
+        <HelpCircle class="w-5 h-5" />
+      </button>
+
       <div class="h-6 w-px bg-gray-300"></div>
 
       <button @click="handlePrint" class="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">

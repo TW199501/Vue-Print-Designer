@@ -100,6 +100,7 @@ export interface DesignerState {
   guides: Guide[];
   historyPast: Page[][];
   historyFuture: Page[][];
+  clipboard: PrintElement[];
 }
 
 export interface Guide {
