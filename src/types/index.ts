@@ -33,6 +33,7 @@ export interface ElementStyle {
   borderWidth?: number;
   rowHeight?: number; // Table row height
   headerHeight?: number; // Table header height
+  footerHeight?: number; // Table footer height
 }
 
 export interface TableColumn {
@@ -52,6 +53,7 @@ export interface PrintElement {
   variable?: string;
   data?: any[]; // For table
   columns?: TableColumn[]; // For table
+  autoPaginate?: boolean; // For table
   style: ElementStyle;
   // Pager-specific (optional)
   labelText?: string;
@@ -114,7 +116,7 @@ export interface PropertyFieldOption {
 
 export interface PropertyField {
   label: string;
-  type: 'number' | 'text' | 'textarea' | 'color' | 'action' | 'select';
+  type: 'number' | 'text' | 'textarea' | 'color' | 'action' | 'select' | 'switch';
   target: 'element' | 'style' | 'data';
   key?: string;
   placeholder?: string;

@@ -14,7 +14,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       title: 'Data & Behavior',
       tab: 'properties',
       fields: [
-        { label: 'Auto Paginate', type: 'action', target: 'element', actionName: 'paginateTable' },
+        { label: 'Auto Paginate', type: 'switch', target: 'element', key: 'autoPaginate' },
         { label: 'Data (JSON)', type: 'textarea', target: 'element', key: 'data', placeholder: '[{...}]' }
       ]
     },

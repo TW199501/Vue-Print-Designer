@@ -179,9 +179,9 @@ const handleDeleteSelected = () => {
                   </button>
                 </div>
                 
-                <!-- Text/Number Input -->
+                <!-- Text/Number/Switch Input -->
                 <PropertyInput
-                  v-else-if="field.type === 'text' || field.type === 'number'"
+                  v-else-if="field.type === 'text' || field.type === 'number' || field.type === 'switch'"
                   :label="field.label"
                   :type="field.type"
                   :min="field.min"

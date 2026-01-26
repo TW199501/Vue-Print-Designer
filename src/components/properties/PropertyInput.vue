@@ -3,8 +3,8 @@ import { defineProps, defineEmits } from 'vue';
 
 defineProps<{
   label: string;
-  value: string | number;
-  type?: 'text' | 'number' | 'textarea';
+  value: string | number | boolean;
+  type?: 'text' | 'number' | 'textarea' | 'switch';
   placeholder?: string;
   min?: number;
   max?: number;
@@ -20,8 +20,26 @@ const handleInput = (e: Event) => {
 </script>
 
 <template>
-  <div>
+  <div v-if="type === 'switch'" class="flex items-center justify-between">
+    <label class="text-sm text-gray-700 font-medium">{{ label }}</label>
+    <button 
+      type="button"
+      @click="$emit('update:value', !value)"
+      class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+      :class="value ? 'bg-blue-600' : 'bg-gray-200'"
+    >
+      <span class="sr-only">Toggle {{ label }}</span>
+      <span
+        aria-hidden="true"
+        class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+        :class="value ? 'translate-x-5' : 'translate-x-0'"
+      />
+    </button>
+  </div>
+
+  <div v-else>
     <label class="block text-xs text-gray-500 mb-1">{{ label }}</label>
+    
     <textarea
       v-if="type === 'textarea'"
       :value="value"
