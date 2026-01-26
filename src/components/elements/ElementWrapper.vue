@@ -218,14 +218,14 @@ const handleResizeStart = (e: MouseEvent) => {
        
        <!-- Rotation Handle (top right, no background) -->
        <div
-         class="rotate-handle absolute -top-5 -right-5 w-5 h-5 flex items-center justify-center cursor-alias z-50 text-blue-500 hover:text-blue-700"
+         class="rotate-handle absolute -top-4 -right-5 w-5 h-5 flex items-center justify-center cursor-grab z-50 text-blue-500 hover:text-blue-700"
          title="Rotate"
          @mousedown="handleRotateStart"
        >
          <!-- Semi-circle arrow icon (smaller) -->
-         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
+         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
          </svg>
          
          <!-- Angle Tooltip -->
