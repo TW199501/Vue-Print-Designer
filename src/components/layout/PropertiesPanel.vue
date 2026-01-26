@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useDesignerStore } from '@/stores/designer';
 import { ElementType, type ElementPropertiesSchema, type PropertyField } from '@/types';
 import { elementPropertiesSchema as TextSchema } from '@/components/elements/TextElement.vue';
@@ -7,10 +7,14 @@ import { elementPropertiesSchema as ImageSchema } from '@/components/elements/Im
 import { elementPropertiesSchema as TableSchema } from '@/components/elements/TableElement.vue';
 import { elementPropertiesSchema as PagerSchema } from '@/components/elements/PageNumberElement.vue';
 import { pxToMm, mmToPx } from '@/utils/units';
+import PropertyInput from '@/components/properties/PropertyInput.vue';
+import PropertySelect from '@/components/properties/PropertySelect.vue';
+import PropertyColor from '@/components/properties/PropertyColor.vue';
 
 const store = useDesignerStore();
 const element = computed(() => store.selectedElement);
 const isMultiSelected = computed(() => store.selectedElementIds.length > 1);
+const activeTab = ref<'properties' | 'style' | 'advanced'>('properties');
 
 const handleChange = (key: string, value: any) => {
   if (element.value) {
@@ -28,7 +32,7 @@ const handleStyleChange = (key: string, value: any) => {
 
 const handleDataJsonChange = (fieldKey: string, e: Event) => {
   try {
-    const value = (e.target as HTMLInputElement).value;
+    const value = (e.target as HTMLTextAreaElement).value;
     handleChange(fieldKey, JSON.parse(value));
   } catch (err) {
     window.alert('Invalid JSON');
@@ -45,22 +49,15 @@ const getSchema = (type: ElementType): ElementPropertiesSchema | null => {
   }
 };
 
-const handleFieldInput = (field: PropertyField, rawValue: any) => {
+const currentSchema = computed(() => element.value ? getSchema(element.value.type) : null);
+
+const visibleSections = computed(() => {
+  if (!currentSchema.value) return [];
+  return currentSchema.value.sections.filter(s => (s.tab || 'properties') === activeTab.value);
+});
+
+const handleFieldChange = (field: PropertyField, value: any) => {
   if (!element.value) return;
-  const value = field.type === 'number' ? Number(rawValue) : rawValue;
-  // Special handling for Pager border composed fields
-  if (element.value.type === ElementType.PAGE_NUMBER && field.key && ['frameBorderStyle', 'frameBorderWidth', 'frameBorderColor'].includes(field.key)) {
-    // Persist the individual field on element
-    handleChange(field.key, value);
-    // Compose border value and update style.border
-    const el: any = element.value;
-    const width = field.key === 'frameBorderWidth' ? Number(value) : Number(el.frameBorderWidth ?? 0);
-    const style = field.key === 'frameBorderStyle' ? String(value || '') : String(el.frameBorderStyle || '');
-    const color = field.key === 'frameBorderColor' ? String(value || '') : String(el.frameBorderColor || '');
-    const has = !!style && !!color && width > 0;
-    handleStyleChange('border', has ? `${width}px ${style} ${color}` : 'none');
-    return;
-  }
   if (field.target === 'style' && field.key) {
     handleStyleChange(field.key, value);
   } else if (field.target === 'element' && field.key) {
@@ -72,10 +69,16 @@ const handleFieldAction = (field: PropertyField) => {
   if (!element.value || !field.actionName) return;
   if (field.actionName === 'paginateTable') {
     store.paginateTable(element.value.id);
-  } else if (field.actionName === 'removeBorder' && element.value.type === ElementType.PAGE_NUMBER) {
-    // Clear composed border fields and remove border
-    store.updateElement(element.value.id, { frameBorderStyle: undefined, frameBorderColor: undefined, frameBorderWidth: 0 });
-    handleStyleChange('border', 'none');
+  } else if (field.actionName === 'removeBorder') {
+    store.updateElement(element.value.id, { 
+      style: { 
+        ...element.value.style, 
+        borderStyle: undefined, 
+        borderWidth: undefined, 
+        borderColor: undefined,
+        border: 'none'
+      } 
+    });
   }
 };
 
@@ -89,17 +92,17 @@ const handleDeleteSelected = () => {
 </script>
 
 <template>
-  <aside class="w-72 bg-white border-l border-gray-200 flex flex-col h-full z-40 overflow-y-auto">
-    <div class="p-4 border-b border-gray-200">
+  <aside class="w-72 bg-white border-l border-gray-200 flex flex-col h-full z-40 overflow-hidden">
+    <!-- Header -->
+    <div class="p-4 border-b border-gray-200 bg-gray-50">
       <h2 class="font-semibold text-gray-700">Properties</h2>
     </div>
 
-    <!-- Multi-selected elements -->
+    <!-- Multi-select Mode -->
     <div v-if="isMultiSelected" class="p-6 text-center">
       <div class="mb-4">
-        <div class="text-sm text-gray-600">Multi-select mode, You can delete selected elements. </div>
+        <div class="text-sm text-gray-600">Multi-select mode</div>
         <p class="text-md mt-2">
-          You have 
           <span class="font-bold font-medium text-red-600">{{ store.selectedElementIds.length }}</span> 
           elements selected.
         </p>
@@ -112,158 +115,171 @@ const handleDeleteSelected = () => {
       </button>
     </div>
 
-    <!-- Single element properties -->
-    <div v-else-if="element" class="p-4 space-y-6">
-      <!-- Common Properties -->
-      <div class="space-y-3">
-        <h3 class="text-xs font-bold text-gray-500 uppercase">Position & Size</h3>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">X (mm)</label>
-            <input
-              type="number"
-              :value="pxToMm(element.x)"
-              @change="(e) => handleChange('x', mmToPx(Number((e.target as HTMLInputElement).value)))"
-              class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+    <!-- Single Element Mode -->
+    <div v-else-if="element" class="flex flex-col h-full overflow-hidden">
+      <!-- Tabs -->
+      <div class="flex border-b border-gray-200 bg-white">
+        <button 
+          v-for="tab in ['properties', 'style', 'advanced']" 
+          :key="tab"
+          @click="activeTab = tab as any"
+          :class="['flex-1 py-3 text-sm font-medium transition-colors relative', activeTab === tab ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50']"
+        >
+          {{ tab.charAt(0).toUpperCase() + tab.slice(1) }}
+          <div v-if="activeTab === tab" class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></div>
+        </button>
+      </div>
+
+      <div class="p-4 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+        
+        <!-- Properties Tab: Position & Size -->
+        <div v-if="activeTab === 'properties'" class="space-y-3">
+          <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Position & Size</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <PropertyInput 
+              label="X (mm)" 
+              type="number" 
+              :value="pxToMm(element.x)" 
+              @update:value="(v) => handleChange('x', mmToPx(Number(v)))" 
             />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Y (mm)</label>
-            <input
-              type="number"
-              :value="pxToMm(element.y)"
-              @change="(e) => handleChange('y', mmToPx(Number((e.target as HTMLInputElement).value)))"
-              class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+            <PropertyInput 
+              label="Y (mm)" 
+              type="number" 
+              :value="pxToMm(element.y)" 
+              @update:value="(v) => handleChange('y', mmToPx(Number(v)))" 
             />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Width (mm)</label>
-            <input
-              type="number"
-              :value="pxToMm(element.width)"
-              @change="(e) => handleChange('width', mmToPx(Number((e.target as HTMLInputElement).value)))"
-              class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+            <PropertyInput 
+              label="Width (mm)" 
+              type="number" 
+              :value="pxToMm(element.width)" 
+              @update:value="(v) => handleChange('width', mmToPx(Number(v)))" 
             />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Height (mm)</label>
-            <input
-              type="number"
-              :value="pxToMm(element.height)"
-              @change="(e) => handleChange('height', mmToPx(Number((e.target as HTMLInputElement).value)))"
-              class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+            <PropertyInput 
+              label="Height (mm)" 
+              type="number" 
+              :value="pxToMm(element.height)" 
+              @update:value="(v) => handleChange('height', mmToPx(Number(v)))" 
             />
           </div>
         </div>
-      </div>
 
-      <!-- Dynamic Element-Specific Properties from Component Schema -->
-      <div v-if="getSchema(element.type)" class="space-y-6">
-        <template v-for="(section, si) in getSchema(element.type)?.sections" :key="si">
-          <div class="space-y-3">
-            <h3 class="text-xs font-bold text-gray-500 uppercase">{{ section.title }}</h3>
-            <template v-for="(field, fi) in section.fields" :key="fi">
-              <div v-if="field.type !== 'action'">
-                <label class="block text-xs text-gray-500 mb-1">{{ field.label }}</label>
-                <template v-if="field.type === 'number'">
-                  <input
-                    type="number"
-                    :min="field.min"
-                    :max="field.max"
-                    :step="field.step || 1"
-                    :value="field.target === 'style' ? (element.style as any)[field.key!] ?? '' : (element as any)[field.key!]"
-                    @input="(e) => handleFieldInput(field, (e.target as HTMLInputElement).value)"
-                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-                  />
-                </template>
-                <template v-else-if="field.type === 'text'">
-                  <input
-                    type="text"
-                    :placeholder="field.placeholder"
-                    :value="field.target === 'style' ? (element.style as any)[field.key!] ?? '' : (element as any)[field.key!]"
-                    @input="(e) => handleFieldInput(field, (e.target as HTMLInputElement).value)"
-                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-                  />
-                </template>
-                <template v-else-if="field.type === 'select'">
-                  <select
-                    :value="field.target === 'style' ? (element.style as any)[field.key!] ?? '' : (element as any)[field.key!]"
-                    @change="(e) => handleFieldInput(field, (e.target as HTMLSelectElement).value)"
-                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+        <!-- Dynamic Sections -->
+        <template v-for="(section, si) in visibleSections" :key="si">
+          <div class="space-y-3 pt-2 first:pt-0 border-t first:border-0 border-gray-100">
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">{{ section.title }}</h3>
+            <div class="space-y-3">
+              <template v-for="(field, fi) in section.fields" :key="fi">
+                <!-- Action Button -->
+                <div v-if="field.type === 'action'">
+                  <button
+                    @click="handleFieldAction(field)"
+                    class="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
                   >
-                    <option
-                      v-for="opt in field.options || []"
-                      :key="String(opt.value)"
-                      :value="opt.value"
-                    >
-                      {{ opt.label }}
-                    </option>
-                  </select>
-                </template>
-                <template v-else-if="field.type === 'color'">
-                  <input
-                    type="color"
-                    :value="field.target === 'style' ? (element.style as any)[field.key!] ?? '#000000' : (element as any)[field.key!]"
-                    @input="(e) => handleFieldInput(field, (e.target as HTMLInputElement).value)"
-                    class="w-full h-8 px-1 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-                  />
-                </template>
-                <template v-else-if="field.type === 'textarea'">
+                    {{ field.label }}
+                  </button>
+                </div>
+                
+                <!-- Text/Number Input -->
+                <PropertyInput
+                  v-else-if="field.type === 'text' || field.type === 'number'"
+                  :label="field.label"
+                  :type="field.type"
+                  :min="field.min"
+                  :max="field.max"
+                  :step="field.step"
+                  :placeholder="field.placeholder"
+                  :value="field.target === 'style' ? (element.style as any)[field.key!] : (element as any)[field.key!]"
+                  @update:value="(v) => handleFieldChange(field, v)"
+                />
+
+                <!-- Select -->
+                <PropertySelect
+                  v-else-if="field.type === 'select'"
+                  :label="field.label"
+                  :options="field.options || []"
+                  :value="field.target === 'style' ? (element.style as any)[field.key!] : (element as any)[field.key!]"
+                  @update:value="(v) => handleFieldChange(field, v)"
+                />
+
+                <!-- Color -->
+                <PropertyColor
+                  v-else-if="field.type === 'color'"
+                  :label="field.label"
+                  :value="field.target === 'style' ? (element.style as any)[field.key!] : (element as any)[field.key!]"
+                  @update:value="(v) => handleFieldChange(field, v)"
+                />
+
+                <!-- Textarea -->
+                <div v-else-if="field.type === 'textarea'">
+                  <label class="block text-xs text-gray-500 mb-1 font-medium">{{ field.label }}</label>
                   <textarea
                     :placeholder="field.placeholder"
-                    :value="field.key === 'data' ? JSON.stringify(element.data, null, 2) : (field.target === 'style' ? (element.style as any)[field.key!] ?? '' : (element as any)[field.key!])"
-                    @change="field.key === 'data' ? handleDataJsonChange(field.key!, $event) : handleFieldInput(field, ( $event.target as HTMLTextAreaElement ).value)"
-                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none h-24"
+                    :value="field.key === 'data' ? JSON.stringify(element.data, null, 2) : (field.target === 'style' ? (element.style as any)[field.key!] : (element as any)[field.key!])"
+                    @change="field.key === 'data' ? handleDataJsonChange(field.key!, $event) : handleFieldChange(field, ( $event.target as HTMLTextAreaElement ).value)"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none h-24 resize-y font-mono"
                   ></textarea>
-                </template>
-              </div>
-              <div v-else>
-                <button
-                  @click="handleFieldAction(field)"
-                  class="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  {{ field.label }}
-                </button>
-              </div>
-            </template>
+                </div>
+              </template>
+            </div>
           </div>
         </template>
-      </div>
 
-      <!-- Style -->
-      <div class="space-y-3">
-        <h3 class="text-xs font-bold text-gray-500 uppercase">Style</h3>
-        <div>
-          <label class="block text-xs text-gray-500 mb-1">Border (e.g. 1px solid black)</label>
-          <input
-            type="text"
-            :value="element.style.border || ''"
-            @input="(e) => handleStyleChange('border', (e.target as HTMLInputElement).value)"
-            class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-            placeholder="none"
+        <!-- Style Tab: Generic Appearance -->
+        <div v-if="activeTab === 'style'" class="space-y-3 pt-2 border-t border-gray-100">
+          <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Appearance</h3>
+          <PropertyColor 
+            label="Background Color" 
+            :value="element.style.backgroundColor || '#ffffff'" 
+            @update:value="(v) => handleStyleChange('backgroundColor', v)" 
           />
         </div>
-        <div>
-          <label class="block text-xs text-gray-500 mb-1">Background Color</label>
-          <input
-            type="color"
-            :value="element.style.backgroundColor || '#ffffff'"
-            @input="(e) => handleStyleChange('backgroundColor', (e.target as HTMLInputElement).value)"
-            class="w-full h-8 px-1 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-          />
+
+        <!-- Advanced Tab Content -->
+        <div v-if="activeTab === 'advanced'" class="space-y-4">
+          <div class="p-4 bg-gray-50 rounded border border-gray-200">
+             <h4 class="text-sm font-medium text-gray-700 mb-2">Element Info</h4>
+             <div class="text-xs text-gray-500 space-y-1">
+               <p>ID: <span class="font-mono">{{ element.id.slice(0, 8) }}...</span></p>
+               <p>Type: {{ element.type }}</p>
+             </div>
+          </div>
+          
+          <button
+            @click="handleDeleteSelected"
+            class="w-full py-2 bg-white text-red-600 rounded border border-red-200 hover:bg-red-50 transition-colors text-sm font-medium"
+          >
+            Delete Element
+          </button>
         </div>
+
       </div>
-
-      <button
-        @click="handleDeleteSelected"
-        class="w-full py-2 bg-red-50 text-red-600 rounded border border-red-200 hover:bg-red-100 transition-colors text-sm font-medium"
-      >
-        Delete Element
-      </button>
-
     </div>
-    <div v-else class="p-8 text-center text-gray-400">
-      <p>Select an element to edit its properties</p>
+    
+    <!-- Empty State -->
+    <div v-else class="flex flex-col items-center justify-center h-full text-gray-400 p-8">
+      <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+        </svg>
+      </div>
+      <p class="font-medium">No Selection</p>
+      <p class="text-sm mt-1">Select an element to edit properties</p>
     </div>
   </aside>
 </template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #e5e7eb;
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #d1d5db;
+}
+</style>

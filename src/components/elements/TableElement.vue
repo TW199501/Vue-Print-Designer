@@ -11,12 +11,27 @@ import type { ElementPropertiesSchema } from '@/types';
 export const elementPropertiesSchema: ElementPropertiesSchema = {
   sections: [
     {
-      title: 'Table Settings',
+      title: 'Data & Behavior',
+      tab: 'properties',
       fields: [
         { label: 'Auto Paginate', type: 'action', target: 'element', actionName: 'paginateTable' },
-        { label: 'Header Height (px)', type: 'number', target: 'style', key: 'headerHeight', min: 20, max: 200, step: 1 },
-        { label: 'Row Height (px)', type: 'number', target: 'style', key: 'rowHeight', min: 20, max: 200, step: 1 },
         { label: 'Data (JSON)', type: 'textarea', target: 'element', key: 'data', placeholder: '[{...}]' }
+      ]
+    },
+    {
+      title: 'Layout',
+      tab: 'style',
+      fields: [
+        { label: 'Header Height (px)', type: 'number', target: 'style', key: 'headerHeight', min: 20, max: 200, step: 1 },
+        { label: 'Row Height (px)', type: 'number', target: 'style', key: 'rowHeight', min: 20, max: 200, step: 1 }
+      ]
+    },
+    {
+      title: 'Border',
+      tab: 'style',
+      fields: [
+        { label: 'Border Width (px)', type: 'number', target: 'style', key: 'borderWidth', min: 0, max: 20, step: 1 },
+        { label: 'Border Color', type: 'color', target: 'style', key: 'borderColor' }
       ]
     }
   ]
@@ -25,10 +40,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
 
 <template>
   <div class="w-full h-full overflow-hidden bg-white">
-    <table class="w-full border-collapse" :style="{
-      borderColor: element.style.borderColor || '#000',
-      borderWidth: `${element.style.borderWidth || 1}px`
-    }">
+    <table class="w-full border-collapse">
       <thead>
         <tr>
           <th 

@@ -12,7 +12,19 @@ import type { ElementPropertiesSchema } from '@/types';
 export const elementPropertiesSchema: ElementPropertiesSchema = {
   sections: [
     {
-      title: 'Pager',
+      title: 'Label Content',
+      tab: 'properties',
+      fields: [
+        { label: 'Label Text', type: 'text', target: 'element', key: 'labelText', placeholder: 'e.g. 第' },
+        { label: 'Label Position', type: 'select', target: 'element', key: 'labelPosition', options: [
+          { label: 'Before', value: 'before' },
+          { label: 'After', value: 'after' }
+        ] }
+      ]
+    },
+    {
+      title: 'Pager Typography',
+      tab: 'style',
       fields: [
         { label: 'Font Size (px)', type: 'number', target: 'style', key: 'fontSize', min: 8, max: 96, step: 1 },
         { label: 'Color', type: 'color', target: 'style', key: 'color' },
@@ -39,13 +51,9 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       ]
     },
     {
-      title: 'Label',
+      title: 'Label Style',
+      tab: 'style',
       fields: [
-        { label: 'Label Text', type: 'text', target: 'element', key: 'labelText', placeholder: 'e.g. 第' },
-        { label: 'Label Position', type: 'select', target: 'element', key: 'labelPosition', options: [
-          { label: 'Before', value: 'before' },
-          { label: 'After', value: 'after' }
-        ] },
         { label: 'Label Font Size (px)', type: 'number', target: 'element', key: 'labelFontSize', min: 8, max: 96, step: 1 },
         { label: 'Label Color', type: 'color', target: 'element', key: 'labelColor' },
         { label: 'Label Font Family', type: 'select', target: 'element', key: 'labelFontFamily', options: [
@@ -63,19 +71,29 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
           { label: 'Bold', value: '700' }
         ] },
         { label: 'Label Background Color', type: 'color', target: 'element', key: 'labelBackgroundColor' },
-        { label: 'Label Border (CSS)', type: 'text', target: 'element', key: 'labelBorder', placeholder: 'e.g. 1px dashed #999' },
+        // Label Border
+        { label: 'Label Border Style', type: 'select', target: 'element', key: 'labelBorderStyle', options: [
+            { label: 'None', value: '' },
+            { label: 'Solid', value: 'solid' },
+            { label: 'Dashed', value: 'dashed' },
+            { label: 'Dotted', value: 'dotted' }
+          ]
+        },
+        { label: 'Label Border Width (px)', type: 'number', target: 'element', key: 'labelBorderWidth', min: 0, max: 20, step: 1 },
+        { label: 'Label Border Color', type: 'color', target: 'element', key: 'labelBorderColor' }
       ]
     },
     {
-      title: 'Border',
+      title: 'Frame Border',
+      tab: 'style',
       fields: [
-        { label: 'Border Style', type: 'select', target: 'element', key: 'frameBorderStyle', options: [
+        { label: 'Border Style', type: 'select', target: 'style', key: 'borderStyle', options: [
           { label: 'Solid', value: 'solid' },
           { label: 'Dashed', value: 'dashed' },
           { label: 'Dotted', value: 'dotted' }
         ] },
-        { label: 'Border Width (px)', type: 'number', target: 'element', key: 'frameBorderWidth', min: 0, max: 20, step: 1 },
-        { label: 'Border Color', type: 'color', target: 'element', key: 'frameBorderColor' },
+        { label: 'Border Width (px)', type: 'number', target: 'style', key: 'borderWidth', min: 0, max: 20, step: 1 },
+        { label: 'Border Color', type: 'color', target: 'style', key: 'borderColor' },
         { label: 'Remove Border', type: 'action', target: 'element', actionName: 'removeBorder' },
       ]
     },
@@ -98,9 +116,12 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       fontFamily: element.labelFontFamily || undefined,
       fontWeight: element.labelFontWeight || undefined,
       color: element.labelColor || undefined,
-      backgroundColor: element.labelBackgroundColor || undefined,
-      border: element.labelBorder || undefined,
-      padding: element.labelBackgroundColor || element.labelBorder ? '2px 4px' : undefined
+      backgroundColor: element.labelBackgroundColor || 'transparent',
+      borderStyle: element.labelBorderStyle || 'none',
+      borderWidth: `${element.labelBorderWidth || 0}px`,
+      borderColor: element.labelBorderColor || 'transparent',
+      marginRight: '4px',
+      padding: '0 4px'
     }">{{ element.labelText }}</span>
     <span>{{ (pageIndex + 1) }}/{{ totalPages || 1 }}</span>
     <span v-if="element.labelText && element.labelPosition === 'after'" :style="{
@@ -108,9 +129,12 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       fontFamily: element.labelFontFamily || undefined,
       fontWeight: element.labelFontWeight || undefined,
       color: element.labelColor || undefined,
-      backgroundColor: element.labelBackgroundColor || undefined,
-      border: element.labelBorder || undefined,
-      padding: element.labelBackgroundColor || element.labelBorder ? '2px 4px' : undefined
+      backgroundColor: element.labelBackgroundColor || 'transparent',
+      borderStyle: element.labelBorderStyle || 'none',
+      borderWidth: `${element.labelBorderWidth || 0}px`,
+      borderColor: element.labelBorderColor || 'transparent',
+      marginLeft: '4px',
+      padding: '0 4px'
     }">{{ element.labelText }}</span>
   </div>
 </template>

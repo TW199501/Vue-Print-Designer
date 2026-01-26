@@ -16,7 +16,7 @@ const elementRef = ref<HTMLElement | null>(null);
 const style = computed(() => {
   const isMultiSelected = !props.isSelected && store.selectedElementIds.includes(props.element.id);
   const actualIsSelected = props.isSelected || isMultiSelected;
-  return {
+  const baseStyle: Record<string, any> = {
     left: `${props.element.x}px`,
     top: `${props.element.y}px`,
     width: `${props.element.width}px`,
@@ -24,8 +24,30 @@ const style = computed(() => {
     zIndex: props.element.style.zIndex || 1,
     transform: `rotate(${props.element.style.rotate || 0}deg)`,
     ...props.element.style,
-    border: actualIsSelected ? '2px solid #3b82f6' : props.element.style.border || '1px dashed transparent',
   };
+
+  if (actualIsSelected) {
+    baseStyle.border = '2px solid #3b82f6';
+  } else {
+    // Handle structured border properties
+    if (props.element.style.borderStyle && props.element.style.borderStyle !== 'none') {
+      baseStyle.borderStyle = props.element.style.borderStyle;
+      baseStyle.borderWidth = `${props.element.style.borderWidth || 1}px`;
+      baseStyle.borderColor = props.element.style.borderColor || '#000';
+      // Remove shorthand border to avoid override
+      delete baseStyle.border;
+    } 
+    // Handle legacy string border
+    else if (props.element.style.border) {
+      baseStyle.border = props.element.style.border;
+    } 
+    // Default invisible border
+    else {
+      baseStyle.border = '1px dashed transparent';
+    }
+  }
+
+  return baseStyle;
 });
 
 // Dragging Logic

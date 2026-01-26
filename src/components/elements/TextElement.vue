@@ -11,10 +11,17 @@ import type { ElementPropertiesSchema } from '@/types';
 export const elementPropertiesSchema: ElementPropertiesSchema = {
   sections: [
     {
-      title: 'Text',
+      title: 'Content',
+      tab: 'properties',
       fields: [
         { label: 'Content', type: 'textarea', target: 'element', key: 'content', placeholder: 'Enter text' },
-        { label: 'Variable (@foobar)', type: 'text', target: 'element', key: 'variable', placeholder: '@foobar' },
+        { label: 'Variable (@foobar)', type: 'text', target: 'element', key: 'variable', placeholder: '@foobar' }
+      ]
+    },
+    {
+      title: 'Typography',
+      tab: 'style',
+      fields: [
         { label: 'Font Size (px)', type: 'number', target: 'style', key: 'fontSize', min: 8, max: 96, step: 1 },
         { label: 'Color', type: 'color', target: 'style', key: 'color' },
         {
@@ -56,6 +63,21 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
           ]
         }
       ]
+    },
+    {
+      title: 'Border',
+      tab: 'style',
+      fields: [
+        { label: 'Border Style', type: 'select', target: 'style', key: 'borderStyle', options: [
+            { label: 'None', value: 'none' },
+            { label: 'Solid', value: 'solid' },
+            { label: 'Dashed', value: 'dashed' },
+            { label: 'Dotted', value: 'dotted' }
+          ]
+        },
+        { label: 'Border Width (px)', type: 'number', target: 'style', key: 'borderWidth', min: 0, max: 20, step: 1 },
+        { label: 'Border Color', type: 'color', target: 'style', key: 'borderColor' }
+      ]
     }
   ]
 };
@@ -69,7 +91,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
     fontStyle: element.style.fontStyle,
     textAlign: element.style.textAlign,
     color: element.style.color,
-    padding: `${element.style.padding}px`
+    padding: `${element.style.padding}px`,
   }">
     {{ element.variable || element.content || 'Double click to edit' }}
   </div>

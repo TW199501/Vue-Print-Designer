@@ -61,7 +61,10 @@ export interface PrintElement {
   labelFontFamily?: string;
   labelFontWeight?: string;
   labelBackgroundColor?: string;
-  labelBorder?: string;
+  labelBorder?: string; // Deprecated
+  labelBorderWidth?: number;
+  labelBorderStyle?: string;
+  labelBorderColor?: string;
   // Pager frame border composed controls
   frameBorderStyle?: 'solid' | 'dashed' | 'dotted';
   frameBorderWidth?: number;
@@ -124,6 +127,7 @@ export interface PropertyField {
 
 export interface PropertySection {
   title: string;
+  tab?: 'properties' | 'style' | 'advanced';
   fields: PropertyField[];
 }
 

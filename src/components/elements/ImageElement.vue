@@ -11,9 +11,25 @@ import type { ElementPropertiesSchema } from '@/types';
 export const elementPropertiesSchema: ElementPropertiesSchema = {
   sections: [
     {
-      title: 'Image',
+      title: 'Image Source',
+      tab: 'properties',
       fields: [
         { label: 'Image URL', type: 'text', target: 'element', key: 'content', placeholder: 'https://...' }
+      ]
+    },
+    {
+      title: 'Border',
+      tab: 'style',
+      fields: [
+        { label: 'Border Style', type: 'select', target: 'style', key: 'borderStyle', options: [
+            { label: 'None', value: 'none' },
+            { label: 'Solid', value: 'solid' },
+            { label: 'Dashed', value: 'dashed' },
+            { label: 'Dotted', value: 'dotted' }
+          ]
+        },
+        { label: 'Border Width (px)', type: 'number', target: 'style', key: 'borderWidth', min: 0, max: 20, step: 1 },
+        { label: 'Border Color', type: 'color', target: 'style', key: 'borderColor' }
       ]
     }
   ]
