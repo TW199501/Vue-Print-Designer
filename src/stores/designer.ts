@@ -338,6 +338,59 @@ export const useDesignerStore = defineStore('designer', {
       this.selectedElementId = null;
       this.selectedElementIds = [];
     },
+    alignSelectedElements(type: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') {
+      if (this.selectedElementIds.length === 0) return;
+      this.snapshot();
+
+      // Get all selected elements objects
+      const elements: PrintElement[] = [];
+      for (const id of this.selectedElementIds) {
+        for (const page of this.pages) {
+          const el = page.elements.find(e => e.id === id);
+          if (el) {
+            elements.push(el);
+            break;
+          }
+        }
+      }
+
+      if (elements.length === 0) return;
+
+      if (elements.length === 1) {
+        // Align to canvas
+        const el = elements[0];
+        const canvasW = this.canvasSize.width;
+        const canvasH = this.canvasSize.height;
+
+        switch (type) {
+          case 'left': el.x = 0; break;
+          case 'center': el.x = (canvasW - el.width) / 2; break;
+          case 'right': el.x = canvasW - el.width; break;
+          case 'top': el.y = 0; break;
+          case 'middle': el.y = (canvasH - el.height) / 2; break;
+          case 'bottom': el.y = canvasH - el.height; break;
+        }
+      } else {
+        // Align relative to selection bounds
+        const minX = Math.min(...elements.map(e => e.x));
+        const maxX = Math.max(...elements.map(e => e.x + e.width));
+        const minY = Math.min(...elements.map(e => e.y));
+        const maxY = Math.max(...elements.map(e => e.y + e.height));
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+
+        elements.forEach(el => {
+          switch (type) {
+            case 'left': el.x = minX; break;
+            case 'center': el.x = centerX - (el.width / 2); break;
+            case 'right': el.x = maxX - el.width; break;
+            case 'top': el.y = minY; break;
+            case 'middle': el.y = centerY - (el.height / 2); break;
+            case 'bottom': el.y = maxY - el.height; break;
+          }
+        });
+      }
+    },
     setZoom(zoom: number) {
       this.zoom = zoom;
     },

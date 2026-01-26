@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch } from 'vue';
 import { useDesignerStore } from '@/stores/designer';
-import { Printer, FileOutput, ZoomIn, ZoomOut, Settings, Save } from 'lucide-vue-next';
+import { 
+  Printer, FileOutput, ZoomIn, ZoomOut, Settings, Save,
+  Undo2, Redo2, Trash2, HelpCircle,
+  AlignLeft, AlignCenterHorizontal, AlignRight,
+  AlignStartVertical, AlignCenterVertical, AlignEndVertical,
+  X
+} from 'lucide-vue-next';
 import { PAPER_SIZES, type PaperSizeKey } from '@/constants/paper';
 import { usePrint } from '@/utils/print';
 import { pxToMm, mmToPx } from '@/utils/units';
@@ -14,6 +20,7 @@ const customWidth = ref(PAPER_SIZES.A4.width);
 const customHeight = ref(PAPER_SIZES.A4.height);
 const showPaperSettings = ref(false);
 const showZoomSettings = ref(false);
+const showHelp = ref(false);
 const zoomPercent = ref(Math.round(store.zoom * 100));
 
 const canvasBackground = computed({
@@ -121,6 +128,50 @@ const handleSave = () => {
     </div>
 
     <div class="flex items-center gap-4">
+      <!-- History & Edit -->
+      <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <button @click="store.undo()" :disabled="store.historyPast.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Undo (Ctrl+Z)">
+          <Undo2 class="w-4 h-4" />
+        </button>
+        <button @click="store.redo()" :disabled="store.historyFuture.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Redo (Ctrl+Y)">
+          <Redo2 class="w-4 h-4" />
+        </button>
+        <div class="w-px h-4 bg-gray-300 mx-1"></div>
+        <button @click="store.removeSelectedElements()" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed text-red-600" title="Delete (Del)">
+          <Trash2 class="w-4 h-4" />
+        </button>
+      </div>
+
+      <!-- Alignment -->
+      <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <button @click="store.alignSelectedElements('left')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Left">
+          <AlignLeft class="w-4 h-4" />
+        </button>
+        <button @click="store.alignSelectedElements('center')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Center">
+          <AlignCenterHorizontal class="w-4 h-4" />
+        </button>
+        <button @click="store.alignSelectedElements('right')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Right">
+          <AlignRight class="w-4 h-4" />
+        </button>
+        <div class="w-px h-4 bg-gray-300 mx-1"></div>
+        <button @click="store.alignSelectedElements('top')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Top">
+          <AlignStartVertical class="w-4 h-4" />
+        </button>
+        <button @click="store.alignSelectedElements('middle')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Middle">
+          <AlignCenterVertical class="w-4 h-4" />
+        </button>
+        <button @click="store.alignSelectedElements('bottom')" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" title="Align Bottom">
+          <AlignEndVertical class="w-4 h-4" />
+        </button>
+      </div>
+
+      <!-- Help -->
+      <button @click="showHelp = true" class="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" title="Help">
+        <HelpCircle class="w-5 h-5" />
+      </button>
+
+      <div class="h-6 w-px bg-gray-300"></div>
+
       <!-- Paper Settings -->
       <div class="relative">
         <button 
@@ -357,6 +408,52 @@ const handleSave = () => {
         <Save class="w-4 h-4" />
         <span>Save</span>
       </button>
+    </div>
+
+    <!-- Help Modal -->
+    <div v-if="showHelp" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+      <div class="bg-white rounded-lg shadow-xl w-[600px] max-w-full max-h-[80vh] flex flex-col">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-800">Keyboard Shortcuts & Help</h3>
+          <button @click="showHelp = false" class="text-gray-500 hover:text-gray-700">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+        <div class="p-6 overflow-y-auto">
+          <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+            <div>
+              <h4 class="font-medium text-gray-900 mb-2">General</h4>
+              <ul class="space-y-2 text-gray-600">
+                <li class="flex justify-between"><span>Undo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + Z</kbd></li>
+                <li class="flex justify-between"><span>Redo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + Y</kbd></li>
+                <li class="flex justify-between"><span>Save</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + S</kbd></li>
+                <li class="flex justify-between"><span>Print</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + P</kbd></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-medium text-gray-900 mb-2">Selection</h4>
+              <ul class="space-y-2 text-gray-600">
+                <li class="flex justify-between"><span>Multi-select</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Shift + Click</kbd></li>
+                <li class="flex justify-between"><span>Select All</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + A</kbd></li>
+                <li class="flex justify-between"><span>Delete</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Delete</kbd></li>
+              </ul>
+            </div>
+            <div class="col-span-2">
+              <h4 class="font-medium text-gray-900 mb-2">Movement</h4>
+              <ul class="space-y-2 text-gray-600">
+                <li class="flex justify-between"><span>Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Arrow Keys</kbd></li>
+                <li class="flex justify-between"><span>Fine Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Alt + Arrow Keys</kbd></li>
+                <li class="flex justify-between"><span>Fast Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Shift + Arrow Keys</kbd></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end rounded-b-lg">
+          <button @click="showHelp = false" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 </template>
