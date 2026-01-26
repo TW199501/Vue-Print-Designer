@@ -144,7 +144,7 @@ const handleDeleteSelected = () => {
               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
             />
           </div>
-          <div v-if="element.type !== ElementType.HEADER && element.type !== ElementType.FOOTER">
+          <div>
             <label class="block text-xs text-gray-500 mb-1">Height (PX)</label>
             <input
               type="number"

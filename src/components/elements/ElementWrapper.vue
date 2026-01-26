@@ -210,7 +210,7 @@ const handleResizeStart = (e: MouseEvent) => {
     <slot></slot>
 
     <!-- Resize Handles (only visible when selected and not multi-selected) -->
-    <template v-if="isSelected && store.selectedElementIds.length <= 1 && element.type !== ElementType.HEADER && element.type !== ElementType.FOOTER">
+    <template v-if="isSelected && store.selectedElementIds.length <= 1">
        <!-- Resize Handle -->
        <div
          class="resize-handle absolute bottom-0 right-0 w-3 h-3 bg-blue-600 cursor-se-resize z-50"
