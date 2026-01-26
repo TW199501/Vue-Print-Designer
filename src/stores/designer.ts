@@ -549,6 +549,12 @@ export const useDesignerStore = defineStore('designer', {
       // We need to wait for state update or just call it directly?
       // Calling directly is fine as we are modifying state synchronously.
       this.paginateTable(newElement.id);
+    },
+    groupSelectedElements() {
+      if (this.selectedElementIds.length < 2) return;
+      console.log('Group selected elements:', this.selectedElementIds);
+      // TODO: Implement grouping logic
+      alert('Grouping feature is under development');
     }
   },
   getters: {
