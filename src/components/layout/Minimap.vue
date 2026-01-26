@@ -103,7 +103,7 @@ const handleMouseDown = (e: MouseEvent) => {
 
 <template>
   <div 
-    class="bg-white border border-gray-200 shadow-lg rounded overflow-hidden relative select-none"
+    class="bg-white border border-gray-200 shadow-lg rounded overflow-hidden relative select-none box-content"
     :style="{ width: `${WIDTH}px`, height: `${height}px` }"
     @mousedown="handleMouseDown"
   >
