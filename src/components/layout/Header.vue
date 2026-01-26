@@ -4,6 +4,7 @@ import { useDesignerStore } from '@/stores/designer';
 import { Printer, FileOutput, ZoomIn, ZoomOut, Settings, Save } from 'lucide-vue-next';
 import { PAPER_SIZES, type PaperSizeKey } from '@/constants/paper';
 import { usePrint } from '@/utils/print';
+import { pxToMm, mmToPx } from '@/utils/units';
 
 const store = useDesignerStore();
 const { print, exportPdf } = usePrint();
@@ -142,7 +143,7 @@ const handleSave = () => {
                 class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
               >
                 <option v-for="(size, key) in PAPER_SIZES" :key="key" :value="key">
-                  {{ key }} ({{ size.width }}x{{ size.height }})
+                  {{ key }} ({{ pxToMm(size.width) }}mm x {{ pxToMm(size.height) }}mm)
                 </option>
                 <option value="CUSTOM">Custom</option>
               </select>
@@ -150,20 +151,20 @@ const handleSave = () => {
 
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-xs text-gray-500 mb-1">Width (PX)</label>
+                <label class="block text-xs text-gray-500 mb-1">Width (mm)</label>
                 <input 
                   type="number" 
-                  v-model.number="customWidth"
-                  @change="applyCustomSize"
+                  :value="pxToMm(customWidth)"
+                  @change="(e) => { customWidth = mmToPx(Number((e.target as HTMLInputElement).value)); applyCustomSize(); }"
                   class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
                 />
               </div>
               <div>
-                <label class="block text-xs text-gray-500 mb-1">Height (PX)</label>
+                <label class="block text-xs text-gray-500 mb-1">Height (mm)</label>
                 <input 
                   type="number" 
-                  v-model.number="customHeight"
-                  @change="applyCustomSize"
+                  :value="pxToMm(customHeight)"
+                  @change="(e) => { customHeight = mmToPx(Number((e.target as HTMLInputElement).value)); applyCustomSize(); }"
                   class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
                 />
               </div>
@@ -251,12 +252,12 @@ const handleSave = () => {
                 <div class="flex items-center gap-1">
                   <input 
                     type="number" 
-                    :value="store.headerHeight"
-                    @input="e => store.setHeaderHeight(Number((e.target as HTMLInputElement).value))"
+                    :value="pxToMm(store.headerHeight)"
+                    @change="e => store.setHeaderHeight(mmToPx(Number((e.target as HTMLInputElement).value)))"
                     class="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none text-right"
                     min="0"
                   />
-                  <span class="text-xs text-gray-500">px</span>
+                  <span class="text-xs text-gray-500">mm</span>
                 </div>
               </div>
 
@@ -280,12 +281,12 @@ const handleSave = () => {
                 <div class="flex items-center gap-1">
                   <input 
                     type="number" 
-                    :value="store.footerHeight"
-                    @input="e => store.setFooterHeight(Number((e.target as HTMLInputElement).value))"
+                    :value="pxToMm(store.footerHeight)"
+                    @change="e => store.setFooterHeight(mmToPx(Number((e.target as HTMLInputElement).value)))"
                     class="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none text-right"
                     min="0"
                   />
-                  <span class="text-xs text-gray-500">px</span>
+                  <span class="text-xs text-gray-500">mm</span>
                 </div>
               </div>
             </div>

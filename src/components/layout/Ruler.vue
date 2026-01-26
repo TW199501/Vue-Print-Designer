@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue';
+import { pxToMm, mmToPx, MM_TO_PX } from '@/utils/units';
 
 const props = defineProps<{
   type: 'horizontal' | 'vertical';
@@ -34,54 +35,50 @@ const draw = () => {
   ctx.font = '10px sans-serif';
   ctx.beginPath();
 
-  // Determine step size based on zoom
-  // We want the visual gap between steps to be around 10-20px
-  // logical step options: 1, 2, 5, 10, 20, 50, 100, etc.
-  
-  // Example:
-  // zoom = 1, want 10px visual gap -> logical gap 10
-  // zoom = 0.5, want 10px visual gap -> logical gap 20
-  // zoom = 2, want 10px visual gap -> logical gap 5
+  // Determine step size in MM
+  // Visual pixels per MM
+  const visualPxPerMm = MM_TO_PX * zoom;
   
   const targetVisualGap = 50; // px between major marks
-  const logicalGapRaw = targetVisualGap / zoom;
+  const targetMmGap = targetVisualGap / visualPxPerMm;
   
-  // Use a small epsilon to avoid jumping to next step due to floating point jitter
-  // e.g. if logicalGapRaw is 50.0001, we still want step 50, not 100
-  const effectiveGap = logicalGapRaw - 0.001;
-  
-  // Find closest nice number
+  // Find closest nice number (steps in MM)
   const steps = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
-  let step = steps[steps.length - 1];
+  let stepMm = steps[steps.length - 1];
   for (const s of steps) {
-    if (s >= effectiveGap) {
-      step = s;
+    if (s >= targetMmGap - 0.001) {
+      stepMm = s;
       break;
     }
   }
 
-  // Calculate start and end in logical coordinates
-  // Visual range: 0 to width (or height)
-  // Logic Start = (0 - offset + scroll) / zoom
-  // Actually:
-  // Visual Position = offset + (Logical Position * zoom) - scroll
-  // => Logical Position = (Visual Position - offset + scroll) / zoom
-  
+  // Calculate start and end in logical coordinates (mm)
   const length = type === 'horizontal' ? width : height;
-  const startLogical = (-offset + scroll) / zoom;
-  const endLogical = (length - offset + scroll) / zoom;
+  
+  // Logical Start (mm) = (-offset + scroll) / zoom
+  // Logical Start (mm) = Logical Start (mm) / MM_TO_PX
+  const startMmRaw = (-offset + scroll) / (zoom * MM_TO_PX);
+  const endMmRaw = (length - offset + scroll) / (zoom * MM_TO_PX);
   
   // Align start to step
-  const firstMark = Math.floor(startLogical / step) * step;
+  const firstMarkMm = Math.floor(startMmRaw / stepMm) * stepMm;
   
-  for (let val = firstMark; val <= endLogical; val += step) {
-    const pos = offset + (val * zoom) - scroll;
+  // Use a slightly larger end check to ensure we cover the screen
+  for (let valMm = firstMarkMm; valMm <= endMmRaw; valMm += stepMm) {
+    // Avoid precision issues: round valMm to 1 decimal place for display if needed
+    // But keep precise for calculation
+    
+    // Position in screen pixels
+    // valMm * MM_TO_PX = logical pixels
+    const pos = offset + (valMm * MM_TO_PX * zoom) - scroll;
     
     // Draw mark
+    const label = Number(valMm.toFixed(1)).toString(); // Clean label
+    
     if (type === 'horizontal') {
       ctx.moveTo(pos, 0);
       ctx.lineTo(pos, THICKNESS);
-      ctx.fillText(val.toString(), pos + 2, 10);
+      ctx.fillText(label, pos + 2, 10);
     } else {
       ctx.moveTo(0, pos);
       ctx.lineTo(THICKNESS, pos);
@@ -90,15 +87,15 @@ const draw = () => {
       ctx.save();
       ctx.translate(10, pos + 2);
       ctx.rotate(-Math.PI / 2);
-      ctx.fillText(val.toString(), 0, 0);
+      ctx.fillText(label, 0, 0);
       ctx.restore();
     }
     
-    // Subdivisions (optional, simple for now)
-    const subStep = step / 5; // 5 subdivisions
+    // Subdivisions
+    const subStepMm = stepMm / 5; // 5 subdivisions
     for(let i=1; i<5; i++) {
-        const subVal = val + subStep * i;
-        const subPos = offset + (subVal * zoom) - scroll;
+        const subValMm = valMm + subStepMm * i;
+        const subPos = offset + (subValMm * MM_TO_PX * zoom) - scroll;
         if (type === 'horizontal') {
             ctx.moveTo(subPos, THICKNESS - 5);
             ctx.lineTo(subPos, THICKNESS);

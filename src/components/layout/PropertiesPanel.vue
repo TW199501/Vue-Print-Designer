@@ -6,6 +6,7 @@ import { elementPropertiesSchema as TextSchema } from '@/components/elements/Tex
 import { elementPropertiesSchema as ImageSchema } from '@/components/elements/ImageElement.vue';
 import { elementPropertiesSchema as TableSchema } from '@/components/elements/TableElement.vue';
 import { elementPropertiesSchema as PagerSchema } from '@/components/elements/PageNumberElement.vue';
+import { pxToMm, mmToPx } from '@/utils/units';
 
 const store = useDesignerStore();
 const element = computed(() => store.selectedElement);
@@ -118,38 +119,38 @@ const handleDeleteSelected = () => {
         <h3 class="text-xs font-bold text-gray-500 uppercase">Position & Size</h3>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs text-gray-500 mb-1">X (PX)</label>
+            <label class="block text-xs text-gray-500 mb-1">X (mm)</label>
             <input
               type="number"
-              :value="element.x"
-              @input="(e) => handleChange('x', Number((e.target as HTMLInputElement).value))"
+              :value="pxToMm(element.x)"
+              @change="(e) => handleChange('x', mmToPx(Number((e.target as HTMLInputElement).value)))"
               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">Y (PX)</label>
+            <label class="block text-xs text-gray-500 mb-1">Y (mm)</label>
             <input
               type="number"
-              :value="element.y"
-              @input="(e) => handleChange('y', Number((e.target as HTMLInputElement).value))"
+              :value="pxToMm(element.y)"
+              @change="(e) => handleChange('y', mmToPx(Number((e.target as HTMLInputElement).value)))"
               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">Width (PX)</label>
+            <label class="block text-xs text-gray-500 mb-1">Width (mm)</label>
             <input
               type="number"
-              :value="element.width"
-              @input="(e) => handleChange('width', Number((e.target as HTMLInputElement).value))"
+              :value="pxToMm(element.width)"
+              @change="(e) => handleChange('width', mmToPx(Number((e.target as HTMLInputElement).value)))"
               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">Height (PX)</label>
+            <label class="block text-xs text-gray-500 mb-1">Height (mm)</label>
             <input
               type="number"
-              :value="element.height"
-              @input="(e) => handleChange('height', Number((e.target as HTMLInputElement).value))"
+              :value="pxToMm(element.height)"
+              @change="(e) => handleChange('height', mmToPx(Number((e.target as HTMLInputElement).value)))"
               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
             />
           </div>

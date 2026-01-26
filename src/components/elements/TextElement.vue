@@ -15,7 +15,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       fields: [
         { label: 'Content', type: 'textarea', target: 'element', key: 'content', placeholder: 'Enter text' },
         { label: 'Variable (@foobar)', type: 'text', target: 'element', key: 'variable', placeholder: '@foobar' },
-        { label: 'Font Size (PX)', type: 'number', target: 'style', key: 'fontSize', min: 8, max: 96, step: 1 },
+        { label: 'Font Size (px)', type: 'number', target: 'style', key: 'fontSize', min: 8, max: 96, step: 1 },
         { label: 'Color', type: 'color', target: 'style', key: 'color' },
         {
           label: 'Text Align',

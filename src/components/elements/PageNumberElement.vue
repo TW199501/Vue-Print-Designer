@@ -14,7 +14,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
     {
       title: 'Pager',
       fields: [
-        { label: 'Font Size (PX)', type: 'number', target: 'style', key: 'fontSize', min: 8, max: 96, step: 1 },
+        { label: 'Font Size (px)', type: 'number', target: 'style', key: 'fontSize', min: 8, max: 96, step: 1 },
         { label: 'Color', type: 'color', target: 'style', key: 'color' },
         { label: 'Text Align', type: 'select', target: 'style', key: 'textAlign', options: [
           { label: 'Default', value: '' },
@@ -46,7 +46,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
           { label: 'Before', value: 'before' },
           { label: 'After', value: 'after' }
         ] },
-        { label: 'Label Font Size (PX)', type: 'number', target: 'element', key: 'labelFontSize', min: 8, max: 96, step: 1 },
+        { label: 'Label Font Size (px)', type: 'number', target: 'element', key: 'labelFontSize', min: 8, max: 96, step: 1 },
         { label: 'Label Color', type: 'color', target: 'element', key: 'labelColor' },
         { label: 'Label Font Family', type: 'select', target: 'element', key: 'labelFontFamily', options: [
           { label: 'Default', value: '' },
@@ -74,7 +74,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
           { label: 'Dashed', value: 'dashed' },
           { label: 'Dotted', value: 'dotted' }
         ] },
-        { label: 'Border Width (PX)', type: 'number', target: 'element', key: 'frameBorderWidth', min: 0, max: 20, step: 1 },
+        { label: 'Border Width (px)', type: 'number', target: 'element', key: 'frameBorderWidth', min: 0, max: 20, step: 1 },
         { label: 'Border Color', type: 'color', target: 'element', key: 'frameBorderColor' },
         { label: 'Remove Border', type: 'action', target: 'element', actionName: 'removeBorder' },
       ]
