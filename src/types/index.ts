@@ -29,6 +29,7 @@ export interface ElementStyle {
   borderStyle?: string;
   padding?: number;
   zIndex?: number;
+  rotate?: number; // Rotation in degrees
   // Table specific
   borderColor?: string;
   borderWidth?: number;
