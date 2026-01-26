@@ -34,6 +34,7 @@ let startY = 0;
 let initialLeft = 0;
 let initialTop = 0;
 let isDragging = false;
+let hasSnapshot = false;
 
 const handleMouseDown = (e: MouseEvent) => {
   if (e.button !== 0) return; // Only left click
@@ -47,6 +48,7 @@ const handleMouseDown = (e: MouseEvent) => {
   store.selectElement(props.element.id, isMultiSelect);
 
   isDragging = true;
+  hasSnapshot = false;
   startX = e.clientX;
   startY = e.clientY;
   initialLeft = props.element.x;
@@ -62,7 +64,12 @@ const handleMouseMove = (e: MouseEvent) => {
   const dx = (e.clientX - startX) / props.zoom;
   const dy = (e.clientY - startY) / props.zoom;
   
-  store.moveElementWithSnap(props.element.id, initialLeft + dx, initialTop + dy);
+  if (!hasSnapshot) {
+    store.snapshot();
+    hasSnapshot = true;
+  }
+
+  store.moveElementWithSnap(props.element.id, initialLeft + dx, initialTop + dy, false);
 };
 
 const handleMouseUp = () => {
@@ -87,6 +94,7 @@ const handleRotateStart = (e: MouseEvent) => {
   
   isRotating.value = true;
   isSnapped.value = false;
+  hasSnapshot = false;
   currentRotationDisplay.value = props.element.style.rotate || 0;
 
   const rect = elementRef.value.getBoundingClientRect();
@@ -131,12 +139,17 @@ const handleRotateStart = (e: MouseEvent) => {
     
     currentRotationDisplay.value = newRotation;
 
+    if (!hasSnapshot) {
+      store.snapshot();
+      hasSnapshot = true;
+    }
+
     store.updateElement(props.element.id, {
       style: {
         ...props.element.style,
         rotate: newRotation
       }
-    });
+    }, false);
   };
 
   const handleRotateUp = () => {
@@ -157,15 +170,21 @@ const handleResizeStart = (e: MouseEvent) => {
   const startY = e.clientY;
   const initialWidth = props.element.width;
   const initialHeight = props.element.height;
+  hasSnapshot = false;
   
   const handleResizeMove = (moveEvent: MouseEvent) => {
     const dx = (moveEvent.clientX - startX) / props.zoom;
     const dy = (moveEvent.clientY - startY) / props.zoom;
     
+    if (!hasSnapshot) {
+      store.snapshot();
+      hasSnapshot = true;
+    }
+
     store.updateElement(props.element.id, {
       width: Math.max(10, initialWidth + dx),
       height: Math.max(10, initialHeight + dy)
-    });
+    }, false);
   };
   
   const handleResizeUp = () => {

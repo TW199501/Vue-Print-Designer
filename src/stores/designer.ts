@@ -179,7 +179,7 @@ export const useDesignerStore = defineStore('designer', {
 
       return { x, y, highlightedGuideId, highlightedEdge };
     },
-    moveElementWithSnap(id: string, x: number, y: number) {
+    moveElementWithSnap(id: string, x: number, y: number, createSnapshot: boolean = true) {
       for (const page of this.pages) {
         const index = page.elements.findIndex(e => e.id === id);
         if (index !== -1) {
@@ -187,13 +187,16 @@ export const useDesignerStore = defineStore('designer', {
           const snapped = this.getSnapPosition(el, x, y);
           this.setHighlightedGuide(snapped.highlightedGuideId || null);
           this.setHighlightedEdge(snapped.highlightedEdge || null);
-          this.updateElement(id, { x: snapped.x, y: snapped.y });
+          this.updateElement(id, { x: snapped.x, y: snapped.y }, createSnapshot);
           return;
         }
       }
     },
     nudgeSelectedElements(dx: number, dy: number) {
       if (this.selectedElementIds.length === 0) return;
+      
+      this.snapshot(); // Snapshot once for the group move
+
       // Move each selected element
       for (const id of this.selectedElementIds) {
         for (const page of this.pages) {
@@ -205,7 +208,7 @@ export const useDesignerStore = defineStore('designer', {
             const snapped = this.getSnapPosition(el, targetX, targetY, true);
             this.setHighlightedGuide(snapped.highlightedGuideId || null);
             this.setHighlightedEdge(snapped.highlightedEdge || null);
-            this.updateElement(id, { x: snapped.x, y: snapped.y });
+            this.updateElement(id, { x: snapped.x, y: snapped.y }, false);
             break;
           }
         }
@@ -217,8 +220,10 @@ export const useDesignerStore = defineStore('designer', {
       this.pages[this.currentPageIndex].elements.push(newElement);
       this.selectedElementId = newElement.id;
     },
-    updateElement(id: string, updates: Partial<PrintElement>) {
-      this.snapshot();
+    updateElement(id: string, updates: Partial<PrintElement>, createSnapshot: boolean = true) {
+      if (createSnapshot) {
+        this.snapshot();
+      }
       for (const page of this.pages) {
         const index = page.elements.findIndex(e => e.id === id);
         if (index !== -1) {
