@@ -16,6 +16,7 @@ export const useDesignerStore = defineStore('designer', {
     zoom: 1,
     isDragging: false,
     showGrid: true,
+    showCornerMarkers: true,
     guides: [],
     historyPast: [],
     historyFuture: [],
@@ -104,6 +105,9 @@ export const useDesignerStore = defineStore('designer', {
     },
     setHighlightedEdge(edge: 'left' | 'top' | 'right' | 'bottom' | null) {
       this.highlightedEdge = edge;
+    },
+    setShowCornerMarkers(show: boolean) {
+      this.showCornerMarkers = show;
     },
     getSnapPosition(el: PrintElement, nx: number, ny: number) {
       const threshold = 5;

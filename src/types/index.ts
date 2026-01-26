@@ -86,6 +86,7 @@ export interface DesignerState {
   zoom: number;
   isDragging: boolean;
   showGrid: boolean;
+  showCornerMarkers: boolean;
   guides: Guide[];
   historyPast: Page[][];
   historyFuture: Page[][];
