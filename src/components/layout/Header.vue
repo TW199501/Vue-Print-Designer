@@ -86,7 +86,11 @@ const handleSave = () => {
     canvasSize: store.canvasSize,
     guides: store.guides,
     zoom: store.zoom,
-    showGrid: store.showGrid
+    showGrid: store.showGrid,
+    headerHeight: store.headerHeight,
+    footerHeight: store.footerHeight,
+    showHeaderLine: store.showHeaderLine,
+    showFooterLine: store.showFooterLine
   };
 
   try {

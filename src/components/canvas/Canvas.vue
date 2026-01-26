@@ -255,19 +255,31 @@ const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
       <!-- Header & Footer Lines -->
       <template v-if="store.showHeaderLine && store.headerHeight > 0">
         <div 
-          class="absolute left-0 w-full border-b border-dashed border-gray-400 pointer-events-none z-10"
-          :style="{ top: `${store.headerHeight}px` }"
+          class="absolute left-0 w-full pointer-events-none z-10"
+          :style="{ 
+            top: `${store.headerHeight}px`, 
+            height: '1px',
+            backgroundImage: 'linear-gradient(to right, #f87171 60%, transparent 40%)',
+            backgroundSize: '20px 1px',
+            backgroundRepeat: 'repeat-x'
+          }"
         >
-          <div class="absolute right-0 -top-4 text-xs text-gray-400 bg-white/80 px-1">Header</div>
+          <div class="absolute right-0 -top-4 text-xs text-red-400 bg-white/80 px-1">Header</div>
         </div>
       </template>
 
       <template v-if="store.showFooterLine && store.footerHeight > 0">
         <div 
-          class="absolute left-0 w-full border-t border-dashed border-gray-400 pointer-events-none z-10"
-          :style="{ bottom: `${store.footerHeight}px` }"
+          class="absolute left-0 w-full pointer-events-none z-10"
+          :style="{ 
+            bottom: `${store.footerHeight}px`,
+            height: '1px',
+            backgroundImage: 'linear-gradient(to right, #f87171 60%, transparent 40%)',
+            backgroundSize: '20px 1px',
+            backgroundRepeat: 'repeat-x'
+          }"
         >
-          <div class="absolute right-0 -bottom-4 text-xs text-gray-400 bg-white/80 px-1">Footer</div>
+          <div class="absolute right-0 -bottom-4 text-xs text-red-400 bg-white/80 px-1">Footer</div>
         </div>
       </template>
 
