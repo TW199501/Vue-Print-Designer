@@ -30,7 +30,8 @@ const style = computed(() => {
     baseStyle.border = '2px solid #3b82f6';
   } else {
     // Handle structured border properties
-    if (props.element.style.borderStyle && props.element.style.borderStyle !== 'none') {
+    // Skip border for Table element as it handles its own borders internally
+    if (props.element.type !== ElementType.TABLE && props.element.style.borderStyle && props.element.style.borderStyle !== 'none') {
       baseStyle.borderStyle = props.element.style.borderStyle;
       baseStyle.borderWidth = `${props.element.style.borderWidth || 1}px`;
       baseStyle.borderColor = props.element.style.borderColor || '#000';
@@ -38,7 +39,7 @@ const style = computed(() => {
       delete baseStyle.border;
     } 
     // Handle legacy string border
-    else if (props.element.style.border) {
+    else if (props.element.type !== ElementType.TABLE && props.element.style.border) {
       baseStyle.border = props.element.style.border;
     } 
     // Default invisible border

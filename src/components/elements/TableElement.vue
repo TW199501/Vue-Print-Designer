@@ -1,9 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { PrintElement } from '@/types';
 
-defineProps<{
+const props = defineProps<{
   element: PrintElement;
 }>();
+
+const cellStyle = computed(() => ({
+  borderStyle: props.element.style.borderStyle || 'solid',
+  borderWidth: props.element.style.borderWidth !== undefined ? `${props.element.style.borderWidth}px` : '1px',
+  borderColor: props.element.style.borderColor || '#e5e7eb'
+}));
 </script>
 
 <script lang="ts">
@@ -15,6 +22,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       tab: 'properties',
       fields: [
         { label: 'Auto Paginate', type: 'switch', target: 'element', key: 'autoPaginate' },
+        { label: 'Variable (@foobar)', type: 'text', target: 'element', key: 'variable', placeholder: '@foobar' },
         { label: 'Data (JSON)', type: 'textarea', target: 'element', key: 'data', placeholder: '[{...}]' }
       ]
     },
@@ -30,6 +38,13 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       title: 'Border',
       tab: 'style',
       fields: [
+        { label: 'Border Style', type: 'select', target: 'style', key: 'borderStyle', options: [
+            { label: 'None', value: 'none' },
+            { label: 'Solid', value: 'solid' },
+            { label: 'Dashed', value: 'dashed' },
+            { label: 'Dotted', value: 'dotted' }
+          ]
+        },
         { label: 'Border Width (px)', type: 'number', target: 'style', key: 'borderWidth', min: 0, max: 20, step: 1 },
         { label: 'Border Color', type: 'color', target: 'style', key: 'borderColor' }
       ]
@@ -46,8 +61,8 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
           <th 
             v-for="col in element.columns" 
             :key="col.field"
-            class="border p-1 text-left bg-gray-100 font-bold text-sm"
-            :style="{ width: `${col.width}px` }"
+            class="p-1 text-left bg-gray-100 font-bold text-sm"
+            :style="{ ...cellStyle, width: `${col.width}px` }"
           >
             {{ col.header }}
           </th>
@@ -58,7 +73,8 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
           <td 
             v-for="col in element.columns" 
             :key="col.field"
-            class="border p-1 text-sm"
+            class="p-1 text-sm"
+            :style="cellStyle"
           >
             {{ row[col.field] }}
           </td>
