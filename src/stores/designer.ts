@@ -229,90 +229,78 @@ export const useDesignerStore = defineStore('designer', {
         this.snapshot();
       }
 
-      // 1. Find the primary element to calculate delta
+      // 1. Gather all necessary data in ONE pass
       let primaryElement: PrintElement | null = null;
-      let pageWithElements: Page | null = null;
+      const movableElements: { pageIndex: number; elementIndex: number; element: PrintElement }[] = [];
 
-      for (const page of this.pages) {
-        const found = page.elements.find(e => e.id === primaryId);
-        if (found) {
-          primaryElement = found;
-          pageWithElements = page;
-          break;
-        }
-      }
+      // Create a Set for O(1) lookup
+      const selectedSet = new Set(this.selectedElementIds);
+
+      // Iterate once to find primary element and all movable elements
+      this.pages.forEach((page, pIndex) => {
+        page.elements.forEach((el, eIndex) => {
+          if (el.id === primaryId) {
+            primaryElement = el;
+          }
+          if (selectedSet.has(el.id) && !el.locked) {
+            movableElements.push({ pageIndex: pIndex, elementIndex: eIndex, element: el });
+          }
+        });
+      });
 
       if (!primaryElement || primaryElement.locked) return;
 
       // 2. Calculate snap for primary element
       const snapped = this.getSnapPosition(primaryElement, x, y);
       
+      this.setHighlightedGuide(snapped.highlightedGuideId || null);
+      this.setHighlightedEdge(snapped.highlightedEdge || null);
+
       // 3. Calculate actual delta
       let dx = snapped.x - primaryElement.x;
       let dy = snapped.y - primaryElement.y;
 
       if (dx === 0 && dy === 0) return;
 
-      this.setHighlightedGuide(snapped.highlightedGuideId || null);
-      this.setHighlightedEdge(snapped.highlightedEdge || null);
+      // 4. Constrain delta to ensure no element leaves the canvas
+      for (const item of movableElements) {
+         const el = item.element;
+         // Constrain X
+         if (dx > 0) {
+           const maxRight = this.canvasSize.width - el.width;
+           if (el.x + dx > maxRight) {
+             dx = maxRight - el.x;
+           }
+         } else if (dx < 0) {
+           if (el.x + dx < 0) {
+             dx = -el.x;
+           }
+         }
 
-      // 4. Update all selected (movable) elements by delta
-      const targetIds = this.selectedElementIds.filter(id => {
-        for (const page of this.pages) {
-          const el = page.elements.find(e => e.id === id);
-          if (el && !el.locked) return true;
-        }
-        return false;
-      });
-
-      // 4.1 Constrain delta to ensure no element leaves the canvas
-      for (const id of targetIds) {
-        for (const page of this.pages) {
-          const el = page.elements.find(e => e.id === id);
-          if (el) {
-             // Constrain X
-             if (dx > 0) {
-               const maxRight = this.canvasSize.width - el.width;
-               if (el.x + dx > maxRight) {
-                 dx = maxRight - el.x;
-               }
-             } else if (dx < 0) {
-               if (el.x + dx < 0) {
-                 dx = -el.x;
-               }
-             }
-
-             // Constrain Y
-             if (dy > 0) {
-               const maxBottom = this.canvasSize.height - el.height;
-               if (el.y + dy > maxBottom) {
-                 dy = maxBottom - el.y;
-               }
-             } else if (dy < 0) {
-               if (el.y + dy < 0) {
-                 dy = -el.y;
-               }
-             }
-          }
-        }
+         // Constrain Y
+         if (dy > 0) {
+           const maxBottom = this.canvasSize.height - el.height;
+           if (el.y + dy > maxBottom) {
+             dy = maxBottom - el.y;
+           }
+         } else if (dy < 0) {
+           if (el.y + dy < 0) {
+             dy = -el.y;
+           }
+         }
       }
 
       if (dx === 0 && dy === 0) return;
 
-      // 4.2 Apply constrained delta
-      for (const id of targetIds) {
-        for (const page of this.pages) {
-          const index = page.elements.findIndex(e => e.id === id);
-          if (index !== -1) {
-            const el = page.elements[index];
-            page.elements[index] = {
-              ...el,
-              x: el.x + dx,
-              y: el.y + dy
-            };
-            break;
-          }
-        }
+      // 5. Apply constrained delta
+      for (const item of movableElements) {
+        const { pageIndex, elementIndex, element } = item;
+        // Direct update to store state
+        this.pages[pageIndex].elements[elementIndex] = {
+          ...element,
+          x: element.x + dx,
+          y: element.y + dy
+        };
       }
     },
     nudgeSelectedElements(dx: number, dy: number) {
