@@ -8,7 +8,8 @@ import {
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
   X, Bold, Italic, RotateCcw,
   Copy, ClipboardPaste,
-  Group, Lock, Unlock
+  Group, Lock, Unlock,
+  ChevronDown
 } from 'lucide-vue-next';
 import { PAPER_SIZES, type PaperSizeKey } from '@/constants/paper';
 import { usePrint } from '@/utils/print';
@@ -201,7 +202,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50 relative shadow-sm">
+  <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-[2000] relative shadow-sm">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">P</div>
       <h1 class="font-semibold text-gray-700">Print Designer</h1>
@@ -333,17 +334,31 @@ onUnmounted(() => {
 
       <!-- Paper Settings -->
       <div class="relative">
-        <div class="flex items-center bg-gray-100 rounded-lg p-1 px-2">
+        <div class="flex items-center bg-gray-100 rounded-lg p-1">
           <button 
             @click="showPaperSettings = !showPaperSettings"
-            class="flex items-center gap-2 text-sm text-gray-700 hover:bg-gray-200 rounded px-1 py-0.5 transition-colors"
+            class="p-1 hover:bg-gray-200 rounded transition-colors"
+            title="Paper Settings"
           >
             <Settings class="w-4 h-4" />
-            <span>{{ selectedPaper === 'CUSTOM' ? 'Custom' : selectedPaper }}</span>
+          </button>
+          <button 
+            @click="showPaperSettings = !showPaperSettings"
+            class="flex items-center justify-center text-xs text-gray-700 hover:bg-gray-200 rounded px-1 py-0.5 transition-colors w-16 text-center"
+            title="Paper Settings"
+          >
+            <span class="truncate">{{ selectedPaper === 'CUSTOM' ? 'Custom' : selectedPaper }}</span>
+          </button>
+          <button 
+            @click="showPaperSettings = !showPaperSettings"
+            class="p-1 hover:bg-gray-200 rounded transition-colors"
+            title="Paper Settings"
+          >
+            <ChevronDown class="w-4 h-4" />
           </button>
         </div>
 
-        <div v-if="showPaperSettings" class="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 z-50">
+        <div v-if="showPaperSettings" class="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 z-[1000]">
           <h3 class="text-sm font-semibold text-gray-700 mb-3">Paper Settings</h3>
           
           <div class="space-y-3">
@@ -529,7 +544,7 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <div v-if="showZoomSettings" class="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 z-50">
+        <div v-if="showZoomSettings" class="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 z-[1000]">
           <h3 class="text-sm font-semibold text-gray-700 mb-3">Zoom</h3>
           <div class="space-y-3">
             <div>
