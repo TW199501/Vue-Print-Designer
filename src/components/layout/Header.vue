@@ -203,6 +203,13 @@ const handleSave = () => {
 };
 
 const handleKeydown = (e: KeyboardEvent) => {
+  const target = e.target as Element | null;
+  if (target && target.closest('input, textarea, select, [contenteditable="true"]')) return;
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+    e.preventDefault();
+    showHelp.value = true;
+    return;
+  }
   if (showHelp.value && e.key === 'Escape') {
     showHelp.value = false;
   }
@@ -627,6 +634,7 @@ onUnmounted(() => {
                   <li class="flex justify-between items-center"><span>Print</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + P</kbd></li>
                   <li class="flex justify-between items-center"><span>Undo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Z</kbd></li>
                   <li class="flex justify-between items-center"><span>Redo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Y</kbd></li>
+                  <li class="flex justify-between items-center"><span>Open Help</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + H</kbd></li>
                   <li class="flex justify-between items-center"><span>Close Help</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Esc</kbd></li>
                 </ul>
               </div>

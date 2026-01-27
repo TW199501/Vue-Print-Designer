@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import { useDesignerStore } from '@/stores/designer';
+import { pxToMm } from '@/utils/units';
 import Header from './layout/Header.vue';
 import Sidebar from './layout/Sidebar.vue';
 import PropertiesPanel from './layout/PropertiesPanel.vue';
@@ -253,9 +254,9 @@ const handleMinimapScroll = (pos: { left: number, top: number }) => {
                           :style="{ top: `${offsetY + guide.position * store.zoom}px` }"
                           @mousedown.stop="(e) => { store.selectGuide(guide.id); handleGuideDragStart(e, 'horizontal', guide.id); }"
                        >
-                          <div :class="['w-full', store.highlightedGuideId === guide.id ? 'border-t-2 border-pink-500' : 'border-t border-cyan-500', 'group-hover:border-cyan-400']"></div>
+                        <div :class="['w-full', store.highlightedGuideId === guide.id ? 'border-t-2 border-pink-500' : 'border-t border-cyan-500', 'group-hover:border-cyan-400']"></div>
                           <div class="absolute left-2 -top-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
-                             {{ Math.round(guide.position) }}
+                             {{ pxToMm(guide.position) }}mm
                           </div>
                        </div>
                        <div 
@@ -266,7 +267,7 @@ const handleMinimapScroll = (pos: { left: number, top: number }) => {
                        >
                            <div :class="['h-full', store.highlightedGuideId === guide.id ? 'border-l-2 border-pink-500' : 'border-l border-cyan-500', 'group-hover:border-cyan-400']"></div>
                            <div class="absolute top-2 -left-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
-                             {{ Math.round(guide.position) }}
+                             {{ pxToMm(guide.position) }}mm
                           </div>
                        </div>
                     </template>
@@ -287,7 +288,7 @@ const handleMinimapScroll = (pos: { left: number, top: number }) => {
                            'absolute bg-cyan-500 text-white text-[10px] px-1 rounded',
                            draggingGuideType === 'horizontal' ? 'left-2 -top-4' : 'top-2 -left-4'
                        ]">
-                          {{ Math.round(draggingGuidePos) }}
+                          {{ pxToMm(draggingGuidePos) }}mm
                        </div>
                     </div>
                     
