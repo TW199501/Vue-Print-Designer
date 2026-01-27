@@ -331,18 +331,80 @@ export const useDesignerStore = defineStore('designer', {
 
       this.snapshot(); // Snapshot once for the group move
 
-      // Move each movable element
+      // 1. Identify primary element for snap calculation
+      // Prefer the explicitly selected element if it's movable
+      let primaryId = this.selectedElementId;
+      if (!primaryId || !movableIds.includes(primaryId)) {
+        primaryId = movableIds[0];
+      }
+
+      let primaryElement: PrintElement | null = null;
+      for (const page of this.pages) {
+        const found = page.elements.find(e => e.id === primaryId);
+        if (found) {
+          primaryElement = found;
+          break;
+        }
+      }
+
+      if (!primaryElement) return;
+
+      // 2. Calculate delta based on primary element's snapping
+      const targetX = primaryElement.x + dx;
+      const targetY = primaryElement.y + dy;
+      const snapped = this.getSnapPosition(primaryElement, targetX, targetY, true);
+      
+      this.setHighlightedGuide(snapped.highlightedGuideId || null);
+      this.setHighlightedEdge(snapped.highlightedEdge || null);
+
+      let actualDx = snapped.x - primaryElement.x;
+      let actualDy = snapped.y - primaryElement.y;
+
+      // 3. Constrain delta to ensure no element leaves the canvas (similar to moveSelectedElements)
+      for (const id of movableIds) {
+        for (const page of this.pages) {
+          const el = page.elements.find(e => e.id === id);
+          if (el) {
+             // Constrain X
+             if (actualDx > 0) {
+               const maxRight = this.canvasSize.width - el.width;
+               if (el.x + actualDx > maxRight) {
+                 actualDx = maxRight - el.x;
+               }
+             } else if (actualDx < 0) {
+               if (el.x + actualDx < 0) {
+                 actualDx = -el.x;
+               }
+             }
+
+             // Constrain Y
+             if (actualDy > 0) {
+               const maxBottom = this.canvasSize.height - el.height;
+               if (el.y + actualDy > maxBottom) {
+                 actualDy = maxBottom - el.y;
+               }
+             } else if (actualDy < 0) {
+               if (el.y + actualDy < 0) {
+                 actualDy = -el.y;
+               }
+             }
+          }
+        }
+      }
+
+      if (actualDx === 0 && actualDy === 0) return;
+
+      // 4. Move all movable elements by the constrained delta (Rigid Body)
       for (const id of movableIds) {
         for (const page of this.pages) {
           const index = page.elements.findIndex(e => e.id === id);
           if (index !== -1) {
             const el = page.elements[index];
-            const targetX = el.x + dx;
-            const targetY = el.y + dy;
-            const snapped = this.getSnapPosition(el, targetX, targetY, true);
-            this.setHighlightedGuide(snapped.highlightedGuideId || null);
-            this.setHighlightedEdge(snapped.highlightedEdge || null);
-            this.updateElement(id, { x: snapped.x, y: snapped.y }, false);
+            page.elements[index] = {
+              ...el,
+              x: el.x + actualDx,
+              y: el.y + actualDy
+            };
             break;
           }
         }

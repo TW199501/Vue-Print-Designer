@@ -585,35 +585,44 @@ onUnmounted(() => {
             </button>
           </div>
           <div class="p-6 overflow-y-auto">
-            <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+            <div class="grid grid-cols-2 gap-x-8 gap-y-6 text-sm">
+              <!-- General Section -->
               <div>
-                <h4 class="font-medium text-gray-900 mb-2">General</h4>
+                <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">General</h4>
                 <ul class="space-y-2 text-gray-600">
-                  <li class="flex justify-between"><span>Undo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + Z</kbd></li>
-                  <li class="flex justify-between"><span>Redo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + Y</kbd></li>
-                  <li class="flex justify-between"><span>Copy</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + C</kbd></li>
-                  <li class="flex justify-between"><span>Paste</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + V</kbd></li>
-                  <li class="flex justify-between"><span>Save</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + S</kbd></li>
-                  <li class="flex justify-between"><span>Print</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + P</kbd></li>
-                  <li class="flex justify-between"><span>Lock/Unlock</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + L</kbd></li>
-                  <li class="flex justify-between"><span>Close Help</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Esc</kbd></li>
+                  <li class="flex justify-between items-center"><span>Save</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + S</kbd></li>
+                  <li class="flex justify-between items-center"><span>Print</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + P</kbd></li>
+                  <li class="flex justify-between items-center"><span>Undo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Z</kbd></li>
+                  <li class="flex justify-between items-center"><span>Redo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Y</kbd></li>
+                  <li class="flex justify-between items-center"><span>Close Help</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Esc</kbd></li>
                 </ul>
               </div>
+              
+              <!-- Editing Section -->
               <div>
-                <h4 class="font-medium text-gray-900 mb-2">Selection</h4>
+                <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">Editing</h4>
                 <ul class="space-y-2 text-gray-600">
-                  <li class="flex justify-between"><span>Multi-select</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + Click</kbd></li>
-                  <li class="flex justify-between"><span>Select All</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Ctrl + A</kbd></li>
-                  <li class="flex justify-between"><span>Delete</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Delete</kbd></li>
+                  <li class="flex justify-between items-center"><span>Copy</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + C</kbd></li>
+                  <li class="flex justify-between items-center"><span>Paste</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + V</kbd></li>
+                  <li class="flex justify-between items-center"><span>Delete</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Delete</kbd></li>
+                  <li class="flex justify-between items-center"><span>Select All</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + A</kbd></li>
+                  <li class="flex justify-between items-center"><span>Multi-select</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Click</kbd></li>
+                  <li class="flex justify-between items-center"><span>Lock/Unlock</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + L</kbd></li>
                 </ul>
               </div>
+
+              <!-- Manipulation Section -->
               <div class="col-span-2">
-                <h4 class="font-medium text-gray-900 mb-2">Movement & Sizing</h4>
-                <ul class="space-y-2 text-gray-600">
-                  <li class="flex justify-between"><span>Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Arrow Keys</kbd></li>
-                  <li class="flex justify-between"><span>Fast Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Shift + Arrow Keys</kbd></li>
-                  <li class="flex justify-between"><span>Snap Rotation</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border">Shift + Rotate</kbd></li>
-                </ul>
+                <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">Manipulation</h4>
+                <div class="grid grid-cols-2 gap-x-8">
+                  <ul class="space-y-2 text-gray-600">
+                    <li class="flex justify-between items-center"><span>Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Arrow Keys</kbd></li>
+                    <li class="flex justify-between items-center"><span>Fast Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + Arrow</kbd></li>
+                  </ul>
+                  <ul class="space-y-2 text-gray-600">
+                    <li class="flex justify-between items-center"><span>Snap Rotate</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + Drag</kbd></li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
