@@ -15,13 +15,32 @@ const handleKeydown = (e: KeyboardEvent) => {
   // ignore when typing in inputs
   const target = e.target as Element | null;
   if (target && (target.closest('input, textarea, select, [contenteditable="true"]'))) return;
-  // Arrow move or resize
   if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
-    if (store.selectedElementIds.length > 0) {
+    const step = e.shiftKey ? 10 : 1;
+
+    if (store.selectedGuideId) {
+      const guide = store.guides.find(g => g.id === store.selectedGuideId);
+      if (guide) {
+        e.preventDefault();
+        const prev = guide.position;
+        let pos = prev;
+        if (guide.type === 'vertical') {
+          if (e.key === 'ArrowLeft') pos -= step;
+          else if (e.key === 'ArrowRight') pos += step;
+          else return;
+        } else {
+          if (e.key === 'ArrowUp') pos -= step;
+          else if (e.key === 'ArrowDown') pos += step;
+          else return;
+        }
+        if ((prev > 0 && pos < 0) || (prev < 0 && pos > 0) || pos === 0) {
+          pos = 0;
+        }
+        store.updateGuide(guide.id, pos);
+        store.setHighlightedGuide(guide.id);
+      }
+    } else if (store.selectedElementIds.length > 0) {
       e.preventDefault();
-      const step = e.shiftKey ? 10 : 1;
-      
-      // Move
       const dx = e.key === 'ArrowLeft' ? -step : (e.key === 'ArrowRight' ? step : 0);
       const dy = e.key === 'ArrowUp' ? -step : (e.key === 'ArrowDown' ? step : 0);
       store.nudgeSelectedElements(dx, dy);
