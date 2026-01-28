@@ -97,6 +97,7 @@ export interface DesignerState {
   showHeaderLine: boolean;
   showFooterLine: boolean;
   showMinimap: boolean;
+  showHelp: boolean;
   canvasBackground: string;
   guides: Guide[];
   historyPast: Page[][];

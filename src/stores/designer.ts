@@ -22,6 +22,7 @@ export const useDesignerStore = defineStore('designer', {
     showHeaderLine: false,
     showFooterLine: false,
     showMinimap: false,
+    showHelp: false,
     canvasBackground: '#ffffff',
     guides: [],
     historyPast: [],
@@ -44,6 +45,7 @@ export const useDesignerStore = defineStore('designer', {
           if (parsed.showHeaderLine !== undefined) this.showHeaderLine = parsed.showHeaderLine;
           if (parsed.showFooterLine !== undefined) this.showFooterLine = parsed.showFooterLine;
           if (parsed.showMinimap !== undefined) this.showMinimap = parsed.showMinimap;
+          if (parsed.showHelp !== undefined) this.showHelp = parsed.showHelp;
           if (parsed.canvasBackground !== undefined) this.canvasBackground = parsed.canvasBackground;
           this.selectedElementId = null;
           this.selectedGuideId = null;
@@ -69,6 +71,9 @@ export const useDesignerStore = defineStore('designer', {
     },
     setShowMinimap(show: boolean) {
       this.showMinimap = show;
+    },
+    setShowHelp(show: boolean) {
+      this.showHelp = show;
     },
     setCanvasBackground(color: string) {
       this.canvasBackground = color;

@@ -98,6 +98,20 @@ const handleKeydown = (e: KeyboardEvent) => {
     return;
   }
 
+  // Help (Ctrl/Cmd + H)
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+    e.preventDefault();
+    store.setShowHelp(true);
+    return;
+  }
+  
+  // Close Help (Escape)
+  if (store.showHelp && e.key === 'Escape') {
+    e.preventDefault();
+    store.setShowHelp(false);
+    return;
+  }
+
   // Undo (Ctrl/Cmd + Z)
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
     e.preventDefault();

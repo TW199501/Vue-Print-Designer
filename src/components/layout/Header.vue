@@ -1,30 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { useDesignerStore } from '@/stores/designer';
 import HeaderToolbar from './toolbar/HeaderToolbar.vue';
 import HelpModal from './help/HelpModal.vue';
 
-const showHelp = ref(false);
-
-const handleKeydown = (e: KeyboardEvent) => {
-  const target = e.target as Element | null;
-  if (target && target.closest('input, textarea, select, [contenteditable="true"]')) return;
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
-    e.preventDefault();
-    showHelp.value = true;
-    return;
-  }
-  if (showHelp.value && e.key === 'Escape') {
-    showHelp.value = false;
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
-});
+const store = useDesignerStore();
 </script>
 
 <template>
@@ -34,8 +13,11 @@ onUnmounted(() => {
       <h1 class="font-semibold text-gray-700">Print Designer</h1>
     </div>
 
-    <HeaderToolbar @toggle-help="showHelp = true" />
+    <HeaderToolbar @toggle-help="store.setShowHelp(true)" />
 
-    <HelpModal v-model:show="showHelp" />
+    <HelpModal 
+      :show="store.showHelp" 
+      @update:show="store.setShowHelp($event)"
+    />
   </header>
 </template>
