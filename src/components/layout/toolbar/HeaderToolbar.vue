@@ -20,8 +20,11 @@ import AlignCenterVertical from '~icons/material-symbols/vertical-align-center';
 import AlignEndVertical from '~icons/material-symbols/vertical-align-bottom';
 import Bold from '~icons/material-symbols/format-bold';
 import Italic from '~icons/material-symbols/format-italic';
+import TextRotateVertical from '~icons/material-symbols/text-rotate-vertical';
 import RotateCcw from '~icons/material-symbols/rotate-left';
 import Copy from '~icons/material-symbols/content-copy';
+import FormatColorText from '~icons/material-symbols/format-color-text';
+import FormatColorFill from '~icons/material-symbols/format-color-fill';
 import ClipboardPaste from '~icons/material-symbols/content-paste';
 import Group from '~icons/material-symbols/group-work';
 import Lock from '~icons/material-symbols/lock';
@@ -32,6 +35,7 @@ import { usePrint } from '@/utils/print';
 import { pxToMm, mmToPx } from '@/utils/units';
 import { ElementType } from '@/types';
 import PreviewModal from '../PreviewModal.vue';
+import ColorPicker from '@/components/common/ColorPicker.vue';
 
 const emit = defineEmits<{
   (e: 'toggleHelp'): void
@@ -84,6 +88,34 @@ const isItalic = computed(() => {
   return store.selectedElement?.style.fontStyle === 'italic';
 });
 
+const isVertical = computed(() => {
+  return store.selectedElement?.style.writingMode === 'vertical-rl';
+});
+
+const selectedColor = computed({
+  get: () => {
+    if (store.selectedElement) {
+      return store.selectedElement.style.color;
+    }
+    return undefined;
+  },
+  set: (val) => {
+    store.updateSelectedElementsStyle({ color: val });
+  }
+});
+
+const selectedBackgroundColor = computed({
+  get: () => {
+    if (store.selectedElement) {
+      return store.selectedElement.style.backgroundColor;
+    }
+    return undefined;
+  },
+  set: (val) => {
+    store.updateSelectedElementsStyle({ backgroundColor: val });
+  }
+});
+
 const isLocked = computed(() => {
   if (store.selectedElementIds.length === 0) return false;
   return store.selectedElement?.locked || false;
@@ -99,6 +131,10 @@ const toggleBold = () => {
 
 const toggleItalic = () => {
   store.updateSelectedElementsStyle({ fontStyle: isItalic.value ? 'normal' : 'italic' });
+};
+
+const toggleVertical = () => {
+  store.updateSelectedElementsStyle({ writingMode: isVertical.value ? 'horizontal-tb' : 'vertical-rl' });
 };
 
 const resetRotation = () => {
@@ -288,6 +324,48 @@ const handleSave = () => {
       >
         <Italic class="w-4 h-4" />
       </button>
+
+      <button 
+        @click="toggleVertical" 
+        :disabled="isFontControlsDisabled"
+        class="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        :class="{ 'bg-gray-300 text-blue-700': isVertical }"
+        title="Vertical Text"
+      >
+        <TextRotateVertical class="w-4 h-4" />
+      </button>
+
+      <ColorPicker 
+        v-model="selectedColor" 
+        :disabled="isFontControlsDisabled"
+        default-color="#000000"
+      >
+        <template #trigger="{ color }">
+          <div class="relative flex items-center justify-center p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer" 
+               :class="{'opacity-50 cursor-not-allowed': isFontControlsDisabled}"
+               title="Text Color">
+            <FormatColorText class="w-4 h-4" :style="{ color: isFontControlsDisabled ? '' : color, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.2))' }" />
+          </div>
+        </template>
+      </ColorPicker>
+
+      <ColorPicker 
+        v-model="selectedBackgroundColor" 
+        :disabled="isFontControlsDisabled"
+        :allow-transparent="true"
+        default-color="transparent"
+      >
+        <template #trigger="{ color }">
+          <div class="relative flex items-center justify-center p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer"
+               :class="{'opacity-50 cursor-not-allowed': isFontControlsDisabled}"
+               title="Background Color">
+            <FormatColorFill class="w-4 h-4" :style="{ color: isFontControlsDisabled || color === 'transparent' ? '' : color, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.2))' }" />
+            <div v-if="color === 'transparent' && !isFontControlsDisabled" class="absolute bottom-1 right-1 w-1.5 h-1.5 border border-gray-400 bg-white">
+               <div class="w-full h-[1px] bg-red-500 rotate-45 absolute top-1/2 -translate-y-1/2"></div>
+            </div>
+          </div>
+        </template>
+      </ColorPicker>
 
       <div class="w-px h-4 bg-gray-300"></div>
       

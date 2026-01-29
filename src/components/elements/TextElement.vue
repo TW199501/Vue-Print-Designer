@@ -22,6 +22,11 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       title: 'Typography',
       tab: 'style',
       fields: [
+        { label: 'Writing Mode', type: 'select', target: 'style', key: 'writingMode', options: [
+            { label: 'Horizontal', value: 'horizontal-tb' },
+            { label: 'Vertical', value: 'vertical-rl' }
+          ] 
+        },
         { label: 'Font Size (px)', type: 'number', target: 'style', key: 'fontSize', min: 8, max: 96, step: 1 },
         { label: 'Color', type: 'color', target: 'style', key: 'color' },
         {
@@ -92,6 +97,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
     textAlign: element.style.textAlign,
     color: element.style.color,
     padding: `${element.style.padding}px`,
+    writingMode: element.style.writingMode as any || 'horizontal-tb',
   }">
     {{ element.variable || element.content || 'Double click to edit' }}
   </div>

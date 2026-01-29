@@ -34,6 +34,7 @@ export interface ElementStyle {
   rowHeight?: number; // Table row height
   headerHeight?: number; // Table header height
   footerHeight?: number; // Table footer height
+  writingMode?: 'horizontal-tb' | 'vertical-rl';
 }
 
 export interface TableColumn {
