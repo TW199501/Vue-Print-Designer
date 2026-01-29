@@ -1,6 +1,6 @@
 import { nextTick } from 'vue';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image-more';
 import { Canvg } from 'canvg';
 import cloneDeep from 'lodash/cloneDeep';
 import { v4 as uuidv4 } from 'uuid';
@@ -139,14 +139,6 @@ export const usePrint = () => {
   const getPrintHtml = async (): Promise<string> => {
     const restore = await prepareEnvironment();
     
-    // Create a temporary wrapper to simulate the workspace for processContentForImage
-    const wrapper = document.createElement('div');
-    wrapper.className = 'design-workspace';
-    const pages = document.querySelectorAll('.print-page');
-    pages.forEach(page => {
-        wrapper.appendChild(page.cloneNode(true));
-    });
-
     const width = store.canvasSize.width;
     const height = store.canvasSize.height;
 
@@ -154,8 +146,11 @@ export const usePrint = () => {
     let tempWrapper: HTMLElement | null = null;
     
     try {
+        // Use real DOM elements to ensure computed styles are captured correctly
+        const pages = Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
+        
         // Use the shared processing logic (handles pagination, SVG, etc.)
-        const result = await processContentForImage(wrapper, width, height);
+        const result = await processContentForImage(pages, width, height);
         resultContainer = result.container;
         tempWrapper = result.tempWrapper;
 
@@ -168,7 +163,7 @@ export const usePrint = () => {
         // previewContainer.style.padding = '20px';
         // previewContainer.style.backgroundColor = '#f3f4f6';
 
-        const paginatedPages = Array.from(resultContainer.children) as HTMLElement[];
+        const paginatedPages = Array.from(resultContainer.children).filter(el => !['STYLE', 'LINK', 'SCRIPT'].includes(el.tagName)) as HTMLElement[];
         
         paginatedPages.forEach((page, index) => {
             const clone = page.cloneNode(true) as HTMLElement;
@@ -239,7 +234,7 @@ export const usePrint = () => {
   };
 
   const updatePageNumbers = (container: HTMLElement, totalPages: number) => {
-    const pages = Array.from(container.children) as HTMLElement[];
+    const pages = Array.from(container.children).filter(el => !['STYLE', 'LINK', 'SCRIPT'].includes(el.tagName)) as HTMLElement[];
     pages.forEach((page, pageIndex) => {
       const pageNumberElements = page.querySelectorAll('[data-print-type="page-number"]');
       pageNumberElements.forEach(el => {
@@ -276,7 +271,7 @@ export const usePrint = () => {
   };
 
   const handleTablePagination = (container: HTMLElement, pageHeight: number, headerHeight: number, footerHeight: number) => {
-    let pages = Array.from(container.children) as HTMLElement[];
+    let pages = Array.from(container.children).filter(el => !['STYLE', 'LINK', 'SCRIPT'].includes(el.tagName)) as HTMLElement[];
     
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
@@ -289,9 +284,12 @@ export const usePrint = () => {
              if (!wrapper) return;
 
              // UNLOCK HEIGHT: Allow the wrapper to expand to fit the table
-             wrapper.style.height = 'auto';
-             
-             // UNLOCK OVERFLOW: Remove constraints from TableElement root div
+            wrapper.style.height = 'auto';
+            table.style.height = 'auto';
+            const tbodyEl = table.querySelector('tbody');
+            if (tbodyEl) (tbodyEl as HTMLElement).style.height = 'auto';
+            
+            // UNLOCK OVERFLOW: Remove constraints from TableElement root div
              // The table is usually inside a div with h-full overflow-hidden
              const tableRoot = table.parentElement as HTMLElement;
              if (tableRoot) {
@@ -355,7 +353,7 @@ export const usePrint = () => {
                  }
                  
                  // Re-fetch pages to update array reference for next loop
-                 pages = Array.from(container.children) as HTMLElement[];
+                 pages = Array.from(container.children).filter(el => !['STYLE', 'LINK', 'SCRIPT'].includes(el.tagName)) as HTMLElement[];
                  
                  // Clone wrapper for new page
                  const newWrapper = wrapper.cloneNode(true) as HTMLElement;
@@ -380,9 +378,11 @@ export const usePrint = () => {
                  if (oldTfoot) oldTfoot.remove();
                  
                  // Clean up NEW table (remove rows before splitIndex)
-                 const newTable = newWrapper.querySelector('table') as HTMLElement;
-                 const newTbody = newTable.querySelector('tbody') as HTMLElement;
-                 const newRowsList = Array.from(newTbody.querySelectorAll('tr'));
+                const newTable = newWrapper.querySelector('table') as HTMLElement;
+                newTable.style.height = 'auto';
+                const newTbody = newTable.querySelector('tbody') as HTMLElement;
+                if (newTbody) newTbody.style.height = 'auto';
+                const newRowsList = Array.from(newTbody.querySelectorAll('tr'));
                  
                  for (let k = 0; k < splitIndex; k++) {
                      newRowsList[k].remove();
@@ -394,7 +394,7 @@ export const usePrint = () => {
     }
     
     // Update all page positions
-    pages = Array.from(container.children) as HTMLElement[];
+    pages = Array.from(container.children).filter(el => !['STYLE', 'LINK', 'SCRIPT'].includes(el.tagName)) as HTMLElement[];
     pages.forEach((p, idx) => {
         p.style.top = `${idx * pageHeight}px`;
     });
@@ -402,7 +402,35 @@ export const usePrint = () => {
     return pages.length;
   };
 
-  const processContentForImage = async (content: HTMLElement | string, width: number, height: number) => {
+  const cloneElementWithStyles = (element: HTMLElement): HTMLElement => {
+    const clone = element.cloneNode(true) as HTMLElement;
+    const queue: [HTMLElement, HTMLElement][] = [[element, clone]];
+    
+    while (queue.length > 0) {
+        const [source, target] = queue.shift()!;
+        
+        if (source instanceof HTMLElement || source instanceof SVGElement) {
+            const computed = window.getComputedStyle(source);
+            const style = target.style;
+            
+            // Copy all styles
+            for (let i = 0; i < computed.length; i++) {
+                const prop = computed[i];
+                style.setProperty(prop, computed.getPropertyValue(prop), computed.getPropertyPriority(prop));
+            }
+        }
+        
+        for (let i = 0; i < source.children.length; i++) {
+             // Ensure we have matching children (cloneNode(true) ensures this)
+             if (target.children[i]) {
+                queue.push([source.children[i] as HTMLElement, target.children[i] as HTMLElement]);
+             }
+        }
+    }
+    return clone;
+  };
+
+  const processContentForImage = async (content: HTMLElement | string | HTMLElement[], width: number, height: number) => {
     // Create hidden container
     const container = document.createElement('div');
     container.style.position = 'fixed';
@@ -416,10 +444,18 @@ export const usePrint = () => {
     container.className = 'hiprint_temp_Container';
     document.body.appendChild(container);
 
+    // Copy all styles from head to the container to ensure proper rendering
+    const styles = document.head.querySelectorAll('style, link[rel="stylesheet"]');
+    styles.forEach(style => {
+        container.appendChild(style.cloneNode(true));
+    });
+
     let pages: HTMLElement[] = [];
     if (typeof content === 'string') {
         container.innerHTML = content;
-        pages = Array.from(container.children) as HTMLElement[];
+        pages = Array.from(container.children).filter(el => !['STYLE', 'LINK', 'SCRIPT'].includes(el.tagName)) as HTMLElement[];
+    } else if (Array.isArray(content)) {
+        pages = content;
     } else {
         // Clone the element to avoid modifying the original
         // If content is the designer workspace, it might contain multiple pages or just one canvas
@@ -430,9 +466,10 @@ export const usePrint = () => {
         } else {
              pages = [content];
         }
+    }
         
-        pages.forEach((page, idx) => {
-            const clone = page.cloneNode(true) as HTMLElement;
+    pages.forEach((page, idx) => {
+        const clone = cloneElementWithStyles(page);
             clone.style.position = 'absolute';
             clone.style.left = '0';
             clone.style.top = `${idx * height}px`;
@@ -463,7 +500,6 @@ export const usePrint = () => {
 
             container.appendChild(clone);
         });
-    }
 
     // Wait for DOM updates (images, fonts, etc)
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -486,12 +522,8 @@ export const usePrint = () => {
   const exportPdf = async (filename = 'print-design.pdf') => {
     const restore = await prepareEnvironment();
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'design-workspace';
-    const pages = document.querySelectorAll('.print-page');
-    pages.forEach(page => {
-        wrapper.appendChild(page.cloneNode(true));
-    });
+    // Use real DOM elements to ensure computed styles are captured correctly
+    const pages = Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
 
     const width = store.canvasSize.width;
     const height = store.canvasSize.height;
@@ -500,7 +532,7 @@ export const usePrint = () => {
     const widthMm = pxToMm(width);
     const heightMm = pxToMm(height);
 
-    const { container, tempWrapper, pagesCount } = await processContentForImage(wrapper, width, height);
+    const { container, tempWrapper, pagesCount } = await processContentForImage(pages, width, height);
 
     try {
         const pdf = new jsPDF({
@@ -510,7 +542,7 @@ export const usePrint = () => {
             hotfixes: ['px_scaling']
         });
 
-        const pages = Array.from(container.children) as HTMLElement[];
+        const pages = Array.from(container.children).filter(el => !['STYLE', 'LINK', 'SCRIPT'].includes(el.tagName)) as HTMLElement[];
         
         for (let i = 0; i < pages.length; i++) {
             const page = pages[i];
@@ -521,23 +553,32 @@ export const usePrint = () => {
             page.style.top = '0px';
 
             // Capture each page individually
-            const canvas = await html2canvas(page, {
+            const canvas = await domtoimage.toCanvas(page, {
                 scale: 2,
                 width: width,
                 height: height,
                 useCORS: true,
-                backgroundColor: store.canvasBackground,
+                bgcolor: store.canvasBackground,
             });
+
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                (ctx as any).mozImageSmoothingEnabled = false;
+                (ctx as any).webkitImageSmoothingEnabled = false;
+                (ctx as any).msImageSmoothingEnabled = false;
+                ctx.imageSmoothingEnabled = false;
+            }
 
             // Restore top
             page.style.top = originalTop;
             
-            const imgData = canvas.toDataURL('image/png');
+            // Use JPEG with 0.8 quality to reduce file size (PNG is lossless and very large)
+            const imgData = canvas.toDataURL('image/jpeg', 0.8);
             
             if (i > 0) pdf.addPage([widthMm, heightMm]);
             
             // Add image filling the PDF page
-            pdf.addImage(imgData, 'PNG', 0, 0, widthMm, heightMm);
+            pdf.addImage(imgData, 'JPEG', 0, 0, widthMm, heightMm);
         }
         
         pdf.save(filename);
@@ -559,13 +600,21 @@ export const usePrint = () => {
     const { container, tempWrapper, pagesCount } = await processContentForImage(content, width, height);
 
     try {
-        const canvas = await html2canvas(container, {
+        const canvas = await domtoimage.toCanvas(container, {
             scale: 2, // Higher quality for print
             width: width,
             height: height * pagesCount,
             useCORS: true,
-            backgroundColor: store.canvasBackground
+            bgcolor: store.canvasBackground
         });
+
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            (ctx as any).mozImageSmoothingEnabled = false;
+            (ctx as any).webkitImageSmoothingEnabled = false;
+            (ctx as any).msImageSmoothingEnabled = false;
+            ctx.imageSmoothingEnabled = false;
+        }
         
         const imgData = canvas.toDataURL('image/png');
         

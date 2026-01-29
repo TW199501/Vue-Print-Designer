@@ -55,7 +55,7 @@ This project is version-controlled with Git.
 - Vue 3
 - Pinia
 - Tailwind CSS
-- html2canvas
+- dom-to-image-more
 - jspdf
 - lucide-vue-next
 - uuid

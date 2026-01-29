@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "canvg": "^4.0.3",
-    "html2canvas": "^1.4.1",
+    "dom-to-image-more": "^3.7.2",
     "jspdf": "^2.5.2",
     "lodash": "^4.17.21",
     "pinia": "^2.3.0",
@@ -19,7 +19,6 @@
   },
   "devDependencies": {
     "@iconify-json/material-symbols": "^1.2.53",
-    "@types/html2canvas": "^0.5.35",
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.10.2",
     "@types/uuid": "^10.0.0",
