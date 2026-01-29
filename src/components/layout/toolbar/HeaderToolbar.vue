@@ -23,7 +23,7 @@ import Italic from '~icons/material-symbols/format-italic';
 import TextRotateVertical from '~icons/material-symbols/text-rotate-vertical';
 import RotateCcw from '~icons/material-symbols/rotate-left';
 import Copy from '~icons/material-symbols/content-copy';
-import FormatColorText from '~icons/material-symbols/format-color-text';
+import FontDownload from '~icons/material-symbols/font-download';
 import FormatColorFill from '~icons/material-symbols/format-color-fill';
 import ClipboardPaste from '~icons/material-symbols/content-paste';
 import Group from '~icons/material-symbols/group-work';
@@ -341,10 +341,11 @@ const handleSave = () => {
         default-color="#000000"
       >
         <template #trigger="{ color }">
-          <div class="relative flex items-center justify-center p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer" 
+          <div class="flex flex-col items-center justify-center p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer gap-0.5" 
                :class="{'opacity-50 cursor-not-allowed': isFontControlsDisabled}"
                title="Text Color">
-            <FormatColorText class="w-4 h-4" />
+            <FontDownload class="w-3.5 h-3.5" />
+            <div class="w-3.5 h-1 rounded-[1px] border border-gray-300" :style="{ backgroundColor: color }"></div>
           </div>
         </template>
       </ColorPicker>
@@ -356,12 +357,18 @@ const handleSave = () => {
         default-color="transparent"
       >
         <template #trigger="{ color }">
-          <div class="relative flex items-center justify-center p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer"
+          <div class="flex flex-col items-center justify-center p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer gap-0.5"
                :class="{'opacity-50 cursor-not-allowed': isFontControlsDisabled}"
                title="Background Color">
-            <FormatColorFill class="w-4 h-4" />
-            <div v-if="color === 'transparent' && !isFontControlsDisabled" class="absolute bottom-1 right-1 w-1.5 h-1.5 border border-gray-400 bg-white">
-               <div class="w-full h-[1px] bg-red-500 rotate-45 absolute top-1/2 -translate-y-1/2"></div>
+            <div class="h-[11px] overflow-hidden flex items-start justify-center">
+              <FormatColorFill class="w-3.5 h-3.5" />
+            </div>
+            <div class="w-3.5 h-1 rounded-[1px] border border-gray-300 relative overflow-hidden bg-white">
+               <div v-if="color === 'transparent'" class="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] opacity-50 bg-repeat bg-[length:6px_6px]"></div>
+               <div class="absolute inset-0" :style="{ backgroundColor: color === 'transparent' ? 'transparent' : color }"></div>
+               <div v-if="color === 'transparent'" class="absolute inset-0 flex items-center justify-center">
+                  <div class="w-full h-[1px] bg-red-500 rotate-12 transform scale-110"></div>
+               </div>
             </div>
           </div>
         </template>
