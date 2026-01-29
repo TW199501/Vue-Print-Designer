@@ -344,7 +344,7 @@ const handleSave = () => {
           <div class="relative flex items-center justify-center p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer" 
                :class="{'opacity-50 cursor-not-allowed': isFontControlsDisabled}"
                title="Text Color">
-            <FormatColorText class="w-4 h-4" :style="{ color: isFontControlsDisabled ? '' : color, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.2))' }" />
+            <FormatColorText class="w-4 h-4" />
           </div>
         </template>
       </ColorPicker>
@@ -359,7 +359,7 @@ const handleSave = () => {
           <div class="relative flex items-center justify-center p-1 hover:bg-gray-200 rounded transition-colors cursor-pointer"
                :class="{'opacity-50 cursor-not-allowed': isFontControlsDisabled}"
                title="Background Color">
-            <FormatColorFill class="w-4 h-4" :style="{ color: isFontControlsDisabled || color === 'transparent' ? '' : color, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.2))' }" />
+            <FormatColorFill class="w-4 h-4" />
             <div v-if="color === 'transparent' && !isFontControlsDisabled" class="absolute bottom-1 right-1 w-1.5 h-1.5 border border-gray-400 bg-white">
                <div class="w-full h-[1px] bg-red-500 rotate-45 absolute top-1/2 -translate-y-1/2"></div>
             </div>
