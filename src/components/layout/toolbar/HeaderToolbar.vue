@@ -42,6 +42,7 @@ const { getPrintHtml, print, exportPdf } = usePrint();
 
 const showPreview = ref(false);
 const previewContent = ref('');
+const showExportMenu = ref(false);
 
 const selectedPaper = ref<PaperSizeKey>('A4');
 const customWidth = ref(PAPER_SIZES.A4.width);
@@ -588,20 +589,37 @@ const handleSave = () => {
 
     <div class="h-6 w-px bg-gray-300"></div>
 
-    <button @click="handlePreview" class="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm">
-      <Preview class="w-4 h-4" />
-      <span>Preview</span>
-    </button>
+    <!-- Preview / Export Dropdown -->
+    <div class="relative">
+      <div class="flex items-center shadow-sm">
+        <button 
+          @click="handlePreview" 
+          class="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white rounded-l-md hover:bg-indigo-700 transition-colors text-sm border-r border-indigo-500"
+        >
+          <Preview class="w-4 h-4" />
+          <span>Preview</span>
+        </button>
+        <button 
+          @click="showExportMenu = !showExportMenu"
+          class="px-2 py-1.5 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700 transition-colors text-sm flex items-center"
+        >
+          <ChevronDown class="w-5 h-5" />
+        </button>
+      </div>
 
-    <button @click="handlePrint" class="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
-      <Printer class="w-4 h-4" />
-      <span>Print</span>
-    </button>
-
-    <button @click="handleExport" class="flex items-center gap-2 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm">
-      <FileOutput class="w-4 h-4" />
-      <span>Export PDF</span>
-    </button>
+      <div v-if="showExportMenu" class="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-200 shadow-xl rounded-lg p-1 z-[1000] flex flex-col gap-1">
+        <button @click="handlePrint(); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
+          <Printer class="w-4 h-4 text-gray-500" />
+          <span>Print</span>
+        </button>
+        <button @click="handleExport(); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
+          <FileOutput class="w-4 h-4 text-gray-500" />
+          <span>Export PDF</span>
+        </button>
+      </div>
+      
+      <div v-if="showExportMenu" class="fixed inset-0 z-[999]" @click="showExportMenu = false"></div>
+    </div>
 
     <button @click="handleSave" class="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
       <Save class="w-4 h-4" />
