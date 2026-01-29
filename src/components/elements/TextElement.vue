@@ -95,6 +95,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
     fontWeight: element.style.fontWeight,
     fontStyle: element.style.fontStyle,
     textAlign: element.style.textAlign,
+    textDecoration: element.style.textDecoration,
     color: element.style.color,
     padding: `${element.style.padding}px`,
     writingMode: element.style.writingMode as any || 'horizontal-tb',

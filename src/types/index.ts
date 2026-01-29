@@ -21,6 +21,7 @@ export interface ElementStyle {
   fontWeight?: string;
   fontStyle?: string;
   textAlign?: 'left' | 'center' | 'right';
+  textDecoration?: 'none' | 'underline' | 'line-through' | 'overline';
   color?: string;
   backgroundColor?: string;
   border?: string;

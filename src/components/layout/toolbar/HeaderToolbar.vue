@@ -20,6 +20,7 @@ import AlignCenterVertical from '~icons/material-symbols/vertical-align-center';
 import AlignEndVertical from '~icons/material-symbols/vertical-align-bottom';
 import Bold from '~icons/material-symbols/format-bold';
 import Italic from '~icons/material-symbols/format-italic';
+import FormatUnderlined from '~icons/material-symbols/format-underlined';
 import TextRotateVertical from '~icons/material-symbols/text-rotate-vertical';
 import RotateCcw from '~icons/material-symbols/rotate-left';
 import Copy from '~icons/material-symbols/content-copy';
@@ -88,6 +89,10 @@ const isItalic = computed(() => {
   return store.selectedElement?.style.fontStyle === 'italic';
 });
 
+const isUnderline = computed(() => {
+  return store.selectedElement?.style.textDecoration === 'underline';
+});
+
 const isVertical = computed(() => {
   return store.selectedElement?.style.writingMode === 'vertical-rl';
 });
@@ -131,6 +136,10 @@ const toggleBold = () => {
 
 const toggleItalic = () => {
   store.updateSelectedElementsStyle({ fontStyle: isItalic.value ? 'normal' : 'italic' });
+};
+
+const toggleUnderline = () => {
+  store.updateSelectedElementsStyle({ textDecoration: isUnderline.value ? 'none' : 'underline' });
 };
 
 const toggleVertical = () => {
@@ -323,6 +332,15 @@ const handleSave = () => {
         title="Italic"
       >
         <Italic class="w-4 h-4" />
+      </button>
+      <button 
+        @click="toggleUnderline" 
+        :disabled="isFontControlsDisabled"
+        class="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        :class="{ 'bg-gray-300 text-blue-700': isUnderline }"
+        title="Underline"
+      >
+        <FormatUnderlined class="w-4 h-4" />
       </button>
 
       <button 
