@@ -581,11 +581,25 @@ const handleSave = () => {
 
         <div class="mt-3 flex items-center justify-between">
           <span class="text-sm text-gray-700 font-medium">Background Color</span>
-          <input 
-            type="color" 
-            v-model="canvasBackground"
-            class="h-8 w-14 p-1 border border-gray-300 rounded cursor-pointer"
-          />
+          <ColorPicker 
+            v-model="canvasBackground" 
+            :allow-transparent="true"
+            default-color="#ffffff"
+            placement="bottom-end"
+          >
+            <template #trigger="{ color, open }">
+              <div 
+                class="w-8 h-6 rounded border border-gray-300 cursor-pointer relative overflow-hidden hover:border-blue-500 transition-colors"
+                :class="{ 'ring-2 ring-blue-500 ring-offset-1': open }"
+              >
+                <div class="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] opacity-50"></div>
+                <div class="absolute inset-0" :style="{ backgroundColor: color === 'transparent' ? 'transparent' : color }"></div>
+                <div v-if="color === 'transparent'" class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-full h-[1px] bg-red-500 rotate-45"></div>
+                </div>
+              </div>
+            </template>
+          </ColorPicker>
         </div>
 
         <div class="border-t border-gray-200 my-4 pt-3">

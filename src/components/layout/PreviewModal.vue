@@ -29,9 +29,7 @@ const handlePrint = () => {
 };
 
 const handlePdf = () => {
-  if (previewContainer.value) {
-    exportPdfHtml(previewContainer.value);
-  }
+  exportPdfHtml();
 };
 
 const handleKeydown = (e: KeyboardEvent) => {
