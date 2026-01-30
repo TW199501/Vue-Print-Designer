@@ -18,17 +18,25 @@ function isCellSelected(rowIndex: number, colField: string) {
 const resizingColIndex = ref<number | null>(null);
 const startResizeX = ref(0);
 const startResizeWidth = ref(0);
+const startResizeWidthNext = ref(0);
 const tempColumnWidths = ref<Record<string, number>>({});
 
 const handleResizeStart = (e: MouseEvent, index: number) => {
   if (store.selectedElementId !== props.element.id) return;
+  
+  const columns = processedData.value.columns;
+  if (index >= columns.length - 1) return; // Prevent last column resize as it has no right neighbor
+
   e.preventDefault();
   e.stopPropagation();
   
-  const col = processedData.value.columns[index];
+  const col = columns[index];
+  const nextCol = columns[index + 1];
+
   resizingColIndex.value = index;
   startResizeX.value = e.clientX;
   startResizeWidth.value = col.width || 100;
+  startResizeWidthNext.value = nextCol.width || 100;
   
   window.addEventListener('mousemove', handleResizeMove);
   window.addEventListener('mouseup', handleResizeEnd);
@@ -37,21 +45,35 @@ const handleResizeStart = (e: MouseEvent, index: number) => {
 const handleResizeMove = (e: MouseEvent) => {
   if (resizingColIndex.value === null) return;
   
-  const dx = e.clientX - startResizeX.value;
-  const newWidth = Math.max(20, startResizeWidth.value + dx); // Min width 20px
+  const columns = processedData.value.columns;
+  const col = columns[resizingColIndex.value];
+  const nextCol = columns[resizingColIndex.value + 1];
   
-  const col = processedData.value.columns[resizingColIndex.value];
-  tempColumnWidths.value[col.field] = newWidth;
+  if (!col || !nextCol) return;
+
+  const rawDx = e.clientX - startResizeX.value;
+  const MIN_WIDTH = 20;
+  
+  // Constrain dx
+  const minDx = MIN_WIDTH - startResizeWidth.value;
+  const maxDx = startResizeWidthNext.value - MIN_WIDTH;
+  
+  const dx = Math.max(minDx, Math.min(maxDx, rawDx));
+  
+  tempColumnWidths.value[col.field] = startResizeWidth.value + dx;
+  tempColumnWidths.value[nextCol.field] = startResizeWidthNext.value - dx;
 };
 
 const handleResizeEnd = () => {
   if (resizingColIndex.value === null) return;
   
   // Commit changes to store
-  const newColumns = processedData.value.columns.map(col => ({
-    ...col,
-    width: tempColumnWidths.value[col.field] || col.width
-  }));
+  const newColumns = processedData.value.columns.map(col => {
+    if (tempColumnWidths.value[col.field] !== undefined) {
+      return { ...col, width: tempColumnWidths.value[col.field] };
+    }
+    return col;
+  });
   
   store.updateElement(props.element.id, { columns: newColumns });
   
@@ -347,7 +369,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
             
             <!-- Resize Handle -->
             <div 
-              v-if="store.selectedElementId === element.id"
+              v-if="store.selectedElementId === element.id && index < processedData.columns.length - 1"
               class="absolute -right-1 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-400 opacity-0 hover:opacity-100 z-10 transition-opacity"
               :class="{ 'bg-blue-400 opacity-100': resizingColIndex === index }"
               @mousedown="(e) => handleResizeStart(e, index)"
