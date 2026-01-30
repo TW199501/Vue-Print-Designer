@@ -371,56 +371,7 @@ const rulerIndicators = computed(() => {
                        </div>
                     </div>
                     
-                    <!-- Dragging Distance Guides -->
-                    <template v-if="dragProjection">
-                      <!-- Left Distance -->
-                      <div class="absolute border-t border-dashed border-cyan-500 flex items-center justify-center pointer-events-none"
-                        :style="{
-                          left: `${offsetX}px`,
-                          top: `${offsetY + dragProjection.centerY * store.zoom}px`,
-                          width: `${dragProjection.minX * store.zoom}px`,
-                          height: '1px'
-                        }"
-                      >
-                         <div class="bg-cyan-500 text-white text-[10px] px-1 rounded -mt-6">{{ pxToMm(dragProjection.minX) }}mm</div>
-                      </div>
 
-                      <!-- Right Distance -->
-                      <div class="absolute border-t border-dashed border-cyan-500 flex items-center justify-center pointer-events-none"
-                        :style="{
-                          left: `${offsetX + dragProjection.maxX * store.zoom}px`,
-                          top: `${offsetY + dragProjection.centerY * store.zoom}px`,
-                          width: `${(store.canvasSize.width - dragProjection.maxX) * store.zoom}px`,
-                          height: '1px'
-                        }"
-                      >
-                        <div class="bg-cyan-500 text-white text-[10px] px-1 rounded -mt-6">{{ pxToMm(store.canvasSize.width - dragProjection.maxX) }}mm</div>
-                      </div>
-
-                      <!-- Top Distance -->
-                      <div class="absolute border-l border-dashed border-cyan-500 flex items-center justify-center pointer-events-none"
-                        :style="{
-                          left: `${offsetX + dragProjection.centerX * store.zoom}px`,
-                          top: `${offsetY}px`,
-                          height: `${dragProjection.minY * store.zoom}px`,
-                          width: '1px'
-                        }"
-                      >
-                        <div class="bg-cyan-500 text-white text-[10px] px-1 rounded -ml-2">{{ pxToMm(dragProjection.minY) }}mm</div>
-                      </div>
-
-                      <!-- Bottom Distance -->
-                      <div class="absolute border-l border-dashed border-cyan-500 flex items-center justify-center pointer-events-none"
-                        :style="{
-                          left: `${offsetX + dragProjection.centerX * store.zoom}px`,
-                          top: `${offsetY + dragProjection.maxY * store.zoom}px`,
-                          height: `${(store.canvasSize.height - dragProjection.maxY) * store.zoom}px`,
-                          width: '1px'
-                        }"
-                      >
-                        <div class="bg-cyan-500 text-white text-[10px] px-1 rounded -ml-2">{{ pxToMm(store.canvasSize.height - dragProjection.maxY) }}mm</div>
-                      </div>
-                    </template>
                     
                     <!-- Edge Highlight -->
                     <div v-if="store.highlightedEdge" class="absolute pointer-events-none">
