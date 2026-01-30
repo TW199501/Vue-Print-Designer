@@ -28,12 +28,30 @@ const style = computed(() => {
     ...props.element.style,
   };
 
+  // Handle structured border properties
+  // Skip border/background for self-bordered elements (Table, Line, Rect, Circle)
+  const selfBorderedTypes = [ElementType.TABLE, ElementType.LINE, ElementType.RECT, ElementType.CIRCLE];
+  
+  if (selfBorderedTypes.includes(props.element.type)) {
+    // For these elements, background and borders are handled internally
+    // We must remove them from the wrapper to avoid double rendering or artifacts (e.g. square background behind circle)
+    delete baseStyle.backgroundColor;
+    
+    // Borders are already handled by not adding them below, but we also need to ensure
+    // any border props in element.style don't leak through via the spread above if they match standard CSS names
+    // (though usually they are structured properties like borderWidth, which don't affect CSS directly unless mapped)
+    // However, 'border' shorthand might be there.
+    delete baseStyle.border;
+    delete baseStyle.borderWidth;
+    delete baseStyle.borderStyle;
+    delete baseStyle.borderColor;
+    delete baseStyle.borderRadius; // Rect handles its own radius
+  }
+
   if (actualIsSelected) {
     baseStyle.border = props.element.locked ? '2px solid #ef4444' : '2px solid #3b82f6';
   } else {
-    // Handle structured border properties
-    // Skip border for Table element as it handles its own borders internally
-    if (props.element.type !== ElementType.TABLE && props.element.style.borderStyle && props.element.style.borderStyle !== 'none') {
+    if (!selfBorderedTypes.includes(props.element.type) && props.element.style.borderStyle && props.element.style.borderStyle !== 'none') {
       baseStyle.borderStyle = props.element.style.borderStyle;
       baseStyle.borderWidth = `${props.element.style.borderWidth || 1}px`;
       baseStyle.borderColor = props.element.style.borderColor || '#000';
@@ -41,7 +59,7 @@ const style = computed(() => {
       delete baseStyle.border;
     } 
     // Handle legacy string border
-    else if (props.element.type !== ElementType.TABLE && props.element.style.border) {
+    else if (!selfBorderedTypes.includes(props.element.type) && props.element.style.border) {
       baseStyle.border = props.element.style.border;
     } 
     // Default invisible border

@@ -9,6 +9,9 @@ import TableElement from '../elements/TableElement.vue';
 import PageNumberElement from '../elements/PageNumberElement.vue';
 import BarcodeElement from '../elements/BarcodeElement.vue';
 import QRCodeElement from '../elements/QRCodeElement.vue';
+import LineElement from '../elements/LineElement.vue';
+import RectElement from '../elements/RectElement.vue';
+import CircleElement from '../elements/CircleElement.vue';
 
 const store = useDesignerStore();
 
@@ -108,6 +111,9 @@ const getComponent = (type: ElementType) => {
     case ElementType.PAGE_NUMBER: return PageNumberElement;
     case ElementType.BARCODE: return BarcodeElement;
     case ElementType.QRCODE: return QRCodeElement;
+    case ElementType.LINE: return LineElement;
+    case ElementType.RECT: return RectElement;
+    case ElementType.CIRCLE: return CircleElement;
     default: return TextElement;
   }
 };
@@ -126,6 +132,9 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     [ElementType.PAGE_NUMBER]: 52,
     [ElementType.BARCODE]: 200,
     [ElementType.QRCODE]: 100,
+    [ElementType.LINE]: 200,
+    [ElementType.RECT]: 100,
+    [ElementType.CIRCLE]: 100,
   };
 
   const heightMap: Partial<Record<ElementType, number>> = {
@@ -133,6 +142,9 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     [ElementType.BARCODE]: 80,
     [ElementType.QRCODE]: 100,
     [ElementType.TABLE]: 150,
+    [ElementType.LINE]: 20,
+    [ElementType.RECT]: 100,
+    [ElementType.CIRCLE]: 100,
   };
 
   const newElement = {

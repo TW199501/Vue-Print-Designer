@@ -14,7 +14,10 @@ export enum ElementType {
   TABLE = 'table',
   PAGE_NUMBER = 'pageNumber',
   BARCODE = 'barcode',
-  QRCODE = 'qrcode'
+  QRCODE = 'qrcode',
+  LINE = 'line',
+  RECT = 'rect',
+  CIRCLE = 'circle'
 }
 
 export interface ElementStyle {

@@ -4,6 +4,9 @@ import Image from '~icons/material-symbols/image';
 import Table from '~icons/material-symbols/table-chart';
 import Barcode from '~icons/material-symbols/barcode';
 import QrCode from '~icons/material-symbols/qr-code';
+import HorizontalRule from '~icons/material-symbols/horizontal-rule';
+import CheckBoxOutlineBlank from '~icons/material-symbols/check-box-outline-blank';
+import Circle from '~icons/material-symbols/circle';
 import { ElementType } from '@/types';
 
 const draggableItems = [
@@ -13,6 +16,9 @@ const draggableItems = [
   { type: ElementType.BARCODE, label: 'Barcode', icon: Barcode },
   { type: ElementType.QRCODE, label: 'QR Code', icon: QrCode },
   { type: ElementType.PAGE_NUMBER, label: 'Pager', icon: Type },
+  { type: ElementType.LINE, label: 'Line', icon: HorizontalRule },
+  { type: ElementType.RECT, label: 'Rect', icon: CheckBoxOutlineBlank },
+  { type: ElementType.CIRCLE, label: 'Circle', icon: Circle },
 ];
 
 const handleDragStart = (event: DragEvent, type: ElementType) => {

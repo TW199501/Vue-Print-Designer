@@ -8,6 +8,9 @@ import { elementPropertiesSchema as TableSchema } from '@/components/elements/Ta
 import { elementPropertiesSchema as PagerSchema } from '@/components/elements/PageNumberElement.vue';
 import { elementPropertiesSchema as BarcodeSchema } from '@/components/elements/BarcodeElement.vue';
 import { elementPropertiesSchema as QrCodeSchema } from '@/components/elements/QRCodeElement.vue';
+import { elementPropertiesSchema as LineSchema } from '@/components/elements/LineElement.vue';
+import { elementPropertiesSchema as RectSchema } from '@/components/elements/RectElement.vue';
+import { elementPropertiesSchema as CircleSchema } from '@/components/elements/CircleElement.vue';
 import { pxToMm, mmToPx } from '@/utils/units';
 import PropertyInput from '@/components/properties/PropertyInput.vue';
 import PropertySelect from '@/components/properties/PropertySelect.vue';
@@ -18,6 +21,10 @@ const store = useDesignerStore();
 const element = computed(() => store.selectedElement);
 const isMultiSelected = computed(() => store.selectedElementIds.length > 1);
 const isLocked = computed(() => element.value?.locked || false);
+const isSelfStyled = computed(() => {
+  if (!element.value) return false;
+  return [ElementType.LINE, ElementType.RECT, ElementType.CIRCLE].includes(element.value.type);
+});
 const activeTab = ref<'properties' | 'style' | 'advanced'>('properties');
 
 const handleChange = (key: string, value: any) => {
@@ -51,6 +58,9 @@ const getSchema = (type: ElementType): ElementPropertiesSchema | null => {
     case ElementType.PAGE_NUMBER: return PagerSchema;
     case ElementType.BARCODE: return BarcodeSchema;
     case ElementType.QRCODE: return QrCodeSchema;
+    case ElementType.LINE: return LineSchema;
+    case ElementType.RECT: return RectSchema;
+    case ElementType.CIRCLE: return CircleSchema;
     default: return null;
   }
 };
@@ -244,7 +254,7 @@ const handleDeleteSelected = () => {
         </template>
 
         <!-- Style Tab: Generic Appearance -->
-        <div v-if="activeTab === 'style'" class="space-y-3 pt-2 border-t border-gray-100">
+        <div v-if="activeTab === 'style' && !isSelfStyled" class="space-y-3 pt-2 border-t border-gray-100">
           <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Appearance</h3>
           <PropertyColor 
             label="Background Color" 
