@@ -7,38 +7,29 @@ const props = defineProps<{
   element: PrintElement;
 }>();
 
-const barcodeRef = ref<SVGSVGElement | null>(null);
+const barcodeRef = ref<HTMLImageElement | null>(null);
 
 const renderBarcode = () => {
   if (!barcodeRef.value) return;
   try {
     const content = props.element.variable || props.element.content || '12345678';
-    
-    // Clear previous
-    while (barcodeRef.value.lastChild) {
-      barcodeRef.value.removeChild(barcodeRef.value.lastChild);
-    }
+    const style = props.element.style as any;
 
     JsBarcode(barcodeRef.value, content, {
-      format: (props.element.style as any).barcodeFormat || 'CODE128',
-      lineColor: props.element.style.color || '#000000',
-      width: 2,
-      height: 40,
-      displayValue: (props.element.style as any).showText !== false,
+      format: style.barcodeFormat || 'CODE128',
+      lineColor: style.color || '#000000',
+      width: Number(style.barcodeWidth) || 2,
+      height: Number(style.barcodeHeight) || 40,
+      displayValue: style.showText !== false && style.showText !== 'false',
+      fontOptions: style.fontOptions || '',
+      font: style.font || 'monospace',
+      textAlign: style.textAlign || 'center',
+      textPosition: style.textPosition || 'bottom',
+      textMargin: Number(style.textMargin) || 2,
+      fontSize: Number(style.fontSize) || 20,
       background: 'transparent',
-      margin: 0
+      margin: Number(style.margin) || 0
     });
-    
-    // Make it responsive: use the generated dimensions as viewBox
-    const wStr = barcodeRef.value.getAttribute('width');
-    const hStr = barcodeRef.value.getAttribute('height');
-    if (wStr && hStr) {
-        const w = parseFloat(wStr);
-        const h = parseFloat(hStr);
-        barcodeRef.value.setAttribute('viewBox', `0 0 ${w} ${h}`);
-        barcodeRef.value.removeAttribute('width');
-        barcodeRef.value.removeAttribute('height');
-    }
   } catch (e) {
     console.error('Barcode render error', e);
   }
@@ -62,7 +53,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       tab: 'properties',
       fields: [
         { label: 'Value', type: 'text', target: 'element', key: 'content', placeholder: 'Barcode value' },
-        { label: 'Variable (@foo)', type: 'text', target: 'element', key: 'variable', placeholder: '@variable' }
+        { label: 'Variable (@foobar)', type: 'text', target: 'element', key: 'variable', placeholder: '@variable' }
       ]
     },
     {
@@ -85,7 +76,32 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
           ] 
         },
         { label: 'Show Text', type: 'select', target: 'style', key: 'showText', options: [{label: 'Yes', value: true}, {label: 'No', value: false}] },
-        { label: 'Color', type: 'color', target: 'style', key: 'color' }
+        { label: 'Color', type: 'color', target: 'style', key: 'color' },
+        { label: 'Line Width (px)', type: 'number', target: 'style', key: 'barcodeWidth', placeholder: '2' },
+        { label: 'Height (px)', type: 'number', target: 'style', key: 'barcodeHeight', placeholder: '40' },
+        { label: 'Margin (px)', type: 'number', target: 'style', key: 'margin', placeholder: '0' },
+        { label: 'Font Size (px)', type: 'number', target: 'style', key: 'fontSize', placeholder: '20' },
+        { 
+          label: 'Text Position', 
+          type: 'select', 
+          target: 'style', 
+          key: 'textPosition', 
+          options: [
+            { label: 'Bottom', value: 'bottom' },
+            { label: 'Top', value: 'top' }
+          ] 
+        },
+        { 
+          label: 'Text Align', 
+          type: 'select', 
+          target: 'style', 
+          key: 'textAlign', 
+          options: [
+            { label: 'Left', value: 'left' },
+            { label: 'Center', value: 'center' },
+            { label: 'Right', value: 'right' }
+          ] 
+        }
       ]
     }
   ]

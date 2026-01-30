@@ -39,7 +39,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       tab: 'properties',
       fields: [
         { label: 'Value', type: 'text', target: 'element', key: 'content', placeholder: 'QR value' },
-        { label: 'Variable (@foo)', type: 'text', target: 'element', key: 'variable', placeholder: '@variable' }
+        { label: 'Variable (@foobar)', type: 'text', target: 'element', key: 'variable', placeholder: '@variable' }
       ]
     },
     {
