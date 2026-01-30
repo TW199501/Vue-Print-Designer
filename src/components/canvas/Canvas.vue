@@ -157,6 +157,7 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     style: {
       fontSize: 14,
       color: '#000000',
+      ...(type === ElementType.RECT || type === ElementType.CIRCLE ? { backgroundColor: 'transparent' } : {}),
     },
     content: type === ElementType.TEXT ? 'New Text' 
       : type === ElementType.BARCODE ? '12345678'

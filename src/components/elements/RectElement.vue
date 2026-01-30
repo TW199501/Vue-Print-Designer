@@ -14,10 +14,10 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       title: 'Appearance',
       tab: 'style',
       fields: [
-        { label: 'Background', type: 'color', target: 'style', key: 'backgroundColor' },
-        { label: 'Border Color', type: 'color', target: 'style', key: 'borderColor' },
-        { label: 'Border Width (px)', type: 'number', target: 'style', key: 'borderWidth', min: 0, max: 100 },
-        { label: 'Border Style', type: 'select', target: 'style', key: 'borderStyle', options: [
+        { label: 'Background', type: 'color', target: 'style', key: 'backgroundColor', defaultValue: 'transparent' },
+        { label: 'Border Color', type: 'color', target: 'style', key: 'borderColor', defaultValue: '#000000' },
+        { label: 'Border Width (px)', type: 'number', target: 'style', key: 'borderWidth', min: 0, max: 100, defaultValue: 1 },
+        { label: 'Border Style', type: 'select', target: 'style', key: 'borderStyle', defaultValue: 'solid', options: [
             { label: 'None', value: 'none' },
             { label: 'Solid', value: 'solid' },
             { label: 'Dashed', value: 'dashed' },

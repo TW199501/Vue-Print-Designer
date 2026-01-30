@@ -14,9 +14,9 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       title: 'Line Style',
       tab: 'style',
       fields: [
-        { label: 'Color', type: 'color', target: 'style', key: 'borderColor' },
-        { label: 'Thickness (px)', type: 'number', target: 'style', key: 'borderWidth', min: 1, max: 100, step: 1 },
-        { label: 'Style', type: 'select', target: 'style', key: 'borderStyle', options: [
+        { label: 'Color', type: 'color', target: 'style', key: 'borderColor', defaultValue: '#000000' },
+        { label: 'Thickness (px)', type: 'number', target: 'style', key: 'borderWidth', min: 1, max: 100, step: 1, defaultValue: 1 },
+        { label: 'Style', type: 'select', target: 'style', key: 'borderStyle', defaultValue: 'solid', options: [
             { label: 'Solid', value: 'solid' },
             { label: 'Dashed', value: 'dashed' },
             { label: 'Dotted', value: 'dotted' }

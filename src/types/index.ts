@@ -141,6 +141,7 @@ export interface PropertyField {
   step?: number;
   actionName?: string;
   options?: PropertyFieldOption[];
+  defaultValue?: any;
 }
 
 export interface PropertySection {

@@ -72,6 +72,13 @@ const visibleSections = computed(() => {
   return currentSchema.value.sections.filter(s => (s.tab || 'properties') === activeTab.value);
 });
 
+const getFieldValue = (field: PropertyField) => {
+  if (!element.value) return field.defaultValue;
+  const target = field.target === 'style' ? element.value.style : element.value;
+  const value = (target as any)[field.key!];
+  return value ?? field.defaultValue;
+};
+
 const handleFieldChange = (field: PropertyField, value: any) => {
   if (!element.value) return;
   if (field.target === 'style' && field.key) {
@@ -214,7 +221,7 @@ const handleDeleteSelected = () => {
                   :step="field.step"
                   :disabled="isLocked"
                   :placeholder="field.placeholder"
-                  :value="field.target === 'style' ? (element.style as any)[field.key!] : (element as any)[field.key!]"
+                  :value="getFieldValue(field)"
                   @update:value="(v) => handleFieldChange(field, v)"
                 />
 
@@ -224,7 +231,7 @@ const handleDeleteSelected = () => {
                   :label="field.label"
                   :options="field.options || []"
                   :disabled="isLocked"
-                  :value="field.target === 'style' ? (element.style as any)[field.key!] : (element as any)[field.key!]"
+                  :value="getFieldValue(field)"
                   @update:value="(v) => handleFieldChange(field, v)"
                 />
 
@@ -233,7 +240,7 @@ const handleDeleteSelected = () => {
                   v-else-if="field.type === 'color'"
                   :label="field.label"
                   :disabled="isLocked"
-                  :value="field.target === 'style' ? (element.style as any)[field.key!] : (element as any)[field.key!]"
+                  :value="getFieldValue(field)"
                   @update:value="(v) => handleFieldChange(field, v)"
                 />
 
@@ -243,7 +250,7 @@ const handleDeleteSelected = () => {
                   <textarea
                     :placeholder="field.placeholder"
                     :disabled="isLocked"
-                    :value="field.key === 'data' ? JSON.stringify(element.data, null, 2) : (field.target === 'style' ? (element.style as any)[field.key!] : (element as any)[field.key!])"
+                    :value="field.key === 'data' ? JSON.stringify(element.data, null, 2) : getFieldValue(field)"
                     @change="field.key === 'data' ? handleDataJsonChange(field.key!, $event) : handleFieldChange(field, ( $event.target as HTMLTextAreaElement ).value)"
                     class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none h-24 resize-y font-mono disabled:bg-gray-100 disabled:text-gray-500"
                   ></textarea>
