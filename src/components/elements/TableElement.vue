@@ -10,9 +10,130 @@ const props = defineProps<{
 const store = useDesignerStore();
 
 function isCellSelected(rowIndex: number, colField: string) {
-  if (!store.tableSelection || store.tableSelection.elementId !== props.element.id) return false;
-  return store.tableSelection.cells.some(c => c.rowIndex === rowIndex && c.colField === colField);
+  if (store.tableSelection && store.tableSelection.elementId !== props.element.id) return false;
+  return store.tableSelection?.cells.some(c => c.rowIndex === rowIndex && c.colField === colField) ?? false;
 }
+
+// Column Resizing Logic
+const resizingColIndex = ref<number | null>(null);
+const startResizeX = ref(0);
+const startResizeWidth = ref(0);
+const tempColumnWidths = ref<Record<string, number>>({});
+
+const handleResizeStart = (e: MouseEvent, index: number) => {
+  if (store.selectedElementId !== props.element.id) return;
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const col = processedData.value.columns[index];
+  resizingColIndex.value = index;
+  startResizeX.value = e.clientX;
+  startResizeWidth.value = col.width || 100;
+  
+  window.addEventListener('mousemove', handleResizeMove);
+  window.addEventListener('mouseup', handleResizeEnd);
+};
+
+const handleResizeMove = (e: MouseEvent) => {
+  if (resizingColIndex.value === null) return;
+  
+  const dx = e.clientX - startResizeX.value;
+  const newWidth = Math.max(20, startResizeWidth.value + dx); // Min width 20px
+  
+  const col = processedData.value.columns[resizingColIndex.value];
+  tempColumnWidths.value[col.field] = newWidth;
+};
+
+const handleResizeEnd = () => {
+  if (resizingColIndex.value === null) return;
+  
+  // Commit changes to store
+  const newColumns = processedData.value.columns.map(col => ({
+    ...col,
+    width: tempColumnWidths.value[col.field] || col.width
+  }));
+  
+  store.updateElement(props.element.id, { columns: newColumns });
+  
+  // Cleanup
+  resizingColIndex.value = null;
+  tempColumnWidths.value = {};
+  window.removeEventListener('mousemove', handleResizeMove);
+  window.removeEventListener('mouseup', handleResizeEnd);
+};
+
+// Column Header Editing Logic
+const editingColIndex = ref<number | null>(null);
+const editForm = ref({ header: '', field: '' });
+const editFormPosition = ref({ top: 0, left: 0 });
+const editFormRef = ref<HTMLElement | null>(null);
+
+const handleHeaderDblClick = (e: MouseEvent, index: number) => {
+  console.log('Double click on header', index, store.selectedElementId, props.element.id);
+  if (store.selectedElementId !== props.element.id) {
+    console.warn('Element not selected, ignoring double click');
+    return;
+  }
+  
+  const col = processedData.value.columns[index];
+  console.log('Editing column:', col);
+  editingColIndex.value = index;
+  editForm.value = { header: col.header, field: col.field };
+  
+  // Position the form near the mouse cursor
+  editFormPosition.value = {
+    top: e.clientY + 10,
+    left: e.clientX + 10
+  };
+  
+  // Add click outside listener
+  setTimeout(() => {
+    window.addEventListener('click', handleClickOutside);
+  }, 100);
+};
+
+const handleClickOutside = (e: MouseEvent) => {
+  if (editFormRef.value && !editFormRef.value.contains(e.target as Node)) {
+    closeEditForm();
+  }
+};
+
+const closeEditForm = () => {
+  editingColIndex.value = null;
+  window.removeEventListener('click', handleClickOutside);
+};
+
+const saveHeaderEdit = () => {
+  if (editingColIndex.value === null) return;
+  
+  // Ensure we are updating the source of truth
+  const currentColumns = props.element.columns ? [...props.element.columns] : [];
+  
+  // If we have no columns stored but processedData has them (e.g. from script or defaults),
+  // we should initialize the stored columns with the processed ones so we can save edits.
+  if (currentColumns.length === 0 && processedData.value.columns.length > 0) {
+      const newCols = JSON.parse(JSON.stringify(processedData.value.columns));
+      if (newCols[editingColIndex.value]) {
+        newCols[editingColIndex.value].header = editForm.value.header;
+        newCols[editingColIndex.value].field = editForm.value.field;
+        store.updateElement(props.element.id, { columns: newCols });
+      }
+      closeEditForm();
+      return;
+  }
+
+  if (editingColIndex.value < currentColumns.length) {
+    currentColumns[editingColIndex.value] = {
+      ...currentColumns[editingColIndex.value],
+      header: editForm.value.header,
+      field: editForm.value.field
+    };
+    
+    store.updateElement(props.element.id, { columns: currentColumns });
+  }
+  
+  closeEditForm();
+};
 
 const isSelecting = ref(false);
 const startCell = ref<{ rowIndex: number; colField: string } | null>(null);
@@ -208,19 +329,30 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       <thead>
         <tr>
           <th 
-            v-for="col in processedData.columns" 
+            v-for="(col, index) in processedData.columns" 
             :key="col.field"
-            class="p-1 text-left font-bold text-sm"
+            class="p-1 text-left font-bold text-sm relative group select-none"
             :style="{ 
                ...cellStyle, 
-               width: `${col.width}px`, 
+               width: `${tempColumnWidths[col.field] || col.width}px`, 
                height: element.style.headerHeight ? `${element.style.headerHeight}px` : undefined,
                backgroundColor: element.style.headerBackgroundColor || '#f3f4f6',
               color: element.style.headerColor || '#000000',
-              fontSize: element.style.headerFontSize ? `${element.style.headerFontSize}px` : undefined
+              fontSize: element.style.headerFontSize ? `${element.style.headerFontSize}px` : undefined,
+              cursor: store.selectedElementId === element.id ? 'pointer' : 'default'
             }"
+            @dblclick="(e) => handleHeaderDblClick(e, index)"
           >
             {{ col.header }}
+            
+            <!-- Resize Handle -->
+            <div 
+              v-if="store.selectedElementId === element.id"
+              class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-400 opacity-0 hover:opacity-100 z-10 transition-opacity"
+              :class="{ 'bg-blue-400 opacity-100': resizingColIndex === index }"
+              @mousedown="(e) => handleResizeStart(e, index)"
+              @click.stop
+            ></div>
           </th>
         </tr>
       </thead>
@@ -267,5 +399,51 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
         </tr>
       </tfoot>
     </table>
+    
+    <!-- Header Edit Form -->
+    <Teleport to="body">
+      <div 
+        v-if="editingColIndex !== null" 
+        ref="editFormRef"
+        class="fixed z-[9999] bg-white shadow-xl border border-gray-200 rounded-lg p-4 w-64 flex flex-col gap-3"
+        :style="{ top: `${editFormPosition.top}px`, left: `${editFormPosition.left}px` }"
+        @click.stop
+      >
+        <h4 class="text-sm font-semibold text-gray-700">Edit Column</h4>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-gray-500">Header Text</label>
+          <input 
+            v-model="editForm.header"
+            class="border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+            placeholder="Header Name"
+            @keydown.enter="saveHeaderEdit"
+            autoFocus
+          />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-gray-500">Field Key</label>
+          <input 
+            v-model="editForm.field"
+            class="border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+            placeholder="Field Key"
+            @keydown.enter="saveHeaderEdit"
+          />
+        </div>
+        <div class="flex justify-end gap-2 mt-1">
+          <button 
+            @click="closeEditForm"
+            class="px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="saveHeaderEdit"
+            class="px-3 py-1 text-xs bg-blue-600 text-white hover:bg-blue-700 rounded"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
