@@ -6,7 +6,7 @@ import Barcode from '~icons/material-symbols/barcode';
 import QrCode from '~icons/material-symbols/qr-code';
 import HorizontalRule from '~icons/material-symbols/horizontal-rule';
 import CheckBoxOutlineBlank from '~icons/material-symbols/check-box-outline-blank';
-import Circle from '~icons/material-symbols/circle';
+import RadioButtonUnchecked from '~icons/material-symbols/radio-button-unchecked';
 import { ElementType } from '@/types';
 
 const draggableItems = [
@@ -18,7 +18,7 @@ const draggableItems = [
   { type: ElementType.PAGE_NUMBER, label: 'Pager', icon: Type },
   { type: ElementType.LINE, label: 'Line', icon: HorizontalRule },
   { type: ElementType.RECT, label: 'Rect', icon: CheckBoxOutlineBlank },
-  { type: ElementType.CIRCLE, label: 'Circle', icon: Circle },
+  { type: ElementType.CIRCLE, label: 'Circle', icon: RadioButtonUnchecked },
 ];
 
 const handleDragStart = (event: DragEvent, type: ElementType) => {

@@ -297,6 +297,9 @@ onUnmounted(() => {
         <div class="w-8 h-8 rounded border border-gray-200 overflow-hidden relative">
              <div class="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] opacity-50"></div>
              <div class="absolute inset-0" :style="{ backgroundColor: rgbaValue }"></div>
+             <div v-if="hsv.a === 0" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                 <div class="w-full h-[1px] bg-red-500 rotate-45"></div>
+             </div>
         </div>
       </div>
 
