@@ -28,11 +28,23 @@ const editFormPosition = ref({ top: 0, left: 0 });
 const editFormRef = ref<HTMLElement | null>(null);
 
 const handleHeaderDblClick = (e: MouseEvent, index: number) => {
-  // ...
+  if (store.selectedElementId !== props.element.id) return;
+
+  const col = processedData.value.columns[index];
+  if (!col) return;
+
   editingColIndex.value = index;
   editingFooterCell.value = null; // Clear footer edit
   editForm.value = { header: col.header, field: col.field, value: '' };
-  // ...
+  
+  editFormPosition.value = {
+    top: e.clientY + 10,
+    left: e.clientX + 10
+  };
+
+  setTimeout(() => {
+    window.addEventListener('click', handleClickOutside);
+  }, 100);
 };
 
 const handleFooterDblClick = (e: MouseEvent, rowIndex: number, colField: string) => {
