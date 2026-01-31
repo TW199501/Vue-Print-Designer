@@ -224,20 +224,18 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative inline-block" ref="containerRef">
+  <div class="relative flex" ref="containerRef" @click="toggleOpen">
     <!-- Trigger -->
-    <div @click="toggleOpen" class="inline-flex">
-      <slot name="trigger" :open="isOpen" :color="displayColor" :disabled="disabled">
-        <div 
-          class="w-6 h-6 rounded border border-gray-300 cursor-pointer flex items-center justify-center overflow-hidden transition-all hover:border-blue-500"
-          :class="{ 'opacity-50 cursor-not-allowed': disabled, 'ring-2 ring-blue-500 ring-offset-1': isOpen }"
-          :style="{ backgroundColor: isTransparent ? 'transparent' : displayColor }"
-        >
-          <div v-if="!modelValue" class="w-full h-[1px] bg-red-500 rotate-45 absolute"></div>
-          <div v-if="isTransparent" class="w-full h-full bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] opacity-50"></div>
-        </div>
-      </slot>
-    </div>
+    <slot name="trigger" :open="isOpen" :color="displayColor" :disabled="disabled">
+      <div 
+        class="w-6 h-6 rounded border border-gray-300 cursor-pointer flex items-center justify-center overflow-hidden transition-all hover:border-blue-500"
+        :class="{ 'opacity-50 cursor-not-allowed': disabled, 'ring-2 ring-blue-500 ring-offset-1': isOpen }"
+        :style="{ backgroundColor: isTransparent ? 'transparent' : displayColor }"
+      >
+        <div v-if="!modelValue" class="w-full h-[1px] bg-red-500 rotate-45 absolute"></div>
+        <div v-if="isTransparent" class="w-full h-full bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] opacity-50"></div>
+      </div>
+    </slot>
 
     <!-- Dropdown -->
     <div 
