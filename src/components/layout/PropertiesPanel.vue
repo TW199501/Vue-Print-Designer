@@ -163,7 +163,11 @@ const handleDeleteSelected = () => {
   }
 };
 
-const handleFocusIn = () => {
+const handleFocusIn = (e: FocusEvent) => {
+  // If focus comes from another element within the aside, do nothing
+  if (e.relatedTarget && (e.currentTarget as Element).contains(e.relatedTarget as Node)) {
+    return;
+  }
   store.setDisableGlobalShortcuts(true);
 };
 
