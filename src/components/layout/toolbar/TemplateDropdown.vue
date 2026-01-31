@@ -125,6 +125,10 @@ const handleCopy = (t: Template) => {
 const handleDelete = (t: Template) => {
   if (confirm(`Are you sure you want to delete "${t.name}"?`)) {
     store.deleteTemplate(t.id);
+    // Auto-select first template if current one was deleted
+    if (!store.currentTemplateId && store.templates.length > 0) {
+      store.loadTemplate(store.templates[0].id);
+    }
   }
   activeMenuId.value = null;
 };
