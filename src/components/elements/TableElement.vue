@@ -105,7 +105,7 @@ const saveHeaderEdit = () => {
       const row = currentFooterData[rowIndex];
       const val = row[colField];
       
-      if (val && typeof val === 'object' && 'value' in val) {
+      if (val && typeof val === 'object') {
           val.value = editForm.value.value;
       } else {
           row[colField] = editForm.value.value;
@@ -154,7 +154,7 @@ const cellStyle = computed(() => ({
 const getCellValue = (row: any, field: string) => {
   if (!row) return '';
   const val = row[field];
-  if (val && typeof val === 'object' && 'value' in val) {
+  if (val && typeof val === 'object') {
     return val.value;
   }
   return val;
@@ -497,7 +497,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
             <textarea 
               v-model="editForm.value"
               class="border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none min-h-[60px]"
-              placeholder="Value or {{variable}}"
+              placeholder="Value or {#variable}"
               @keydown.ctrl.enter="saveHeaderEdit"
               autoFocus
             ></textarea>
