@@ -105,7 +105,7 @@ onUnmounted(() => {
     <!-- Expanded Modal -->
     <Teleport to="body">
       <div v-if="isExpanded" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50" @click.self="toggleExpand">
-        <div class="bg-white rounded-lg shadow-xl w-[80vw] h-[80vh] flex flex-col overflow-hidden animate-fade-in">
+        <div class="bg-white rounded-lg shadow-xl w-[60vw] h-[80vh] flex flex-col overflow-hidden animate-fade-in">
           <!-- Header -->
           <div class="flex items-center justify-between p-4 border-b border-gray-200">
             <div class="flex items-center gap-2">
