@@ -187,9 +187,10 @@ export const useDesignerStore = defineStore('designer', {
             row[field].rowSpan = rowSpan;
             row[field].colSpan = colSpan;
           } else {
-            // Other cells: hide
+            // Other cells: hide and clear value
             row[field].rowSpan = 0;
             row[field].colSpan = 0;
+            row[field].value = '';
           }
         }
       }
