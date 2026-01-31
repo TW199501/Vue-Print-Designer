@@ -379,7 +379,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(row, i) in processedData.data" :key="i">
+        <tr v-for="(row, i) in (store.isExporting ? processedData.data : processedData.data.slice(0, 5))" :key="i">
           <template v-for="col in processedData.columns" :key="col.field">
              <td 
                v-if="shouldRenderCell(row, col.field)"
@@ -397,6 +397,18 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
                {{ getCellValue(row, col.field) }}
              </td>
           </template>
+        </tr>
+        <tr v-if="!store.isExporting && processedData.data.length > 5">
+          <td 
+            :colspan="processedData.columns.length" 
+            class="p-1 text-center text-gray-500 select-none"
+            :style="{
+               ...cellStyle,
+               height: element.style.rowHeight ? `${element.style.rowHeight}px` : undefined
+            }"
+          >
+            ...
+          </td>
         </tr>
       </tbody>
       <tfoot v-if="element.showFooter">
