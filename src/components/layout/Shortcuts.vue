@@ -2,6 +2,14 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useDesignerStore } from '@/stores/designer';
 import type { PrintElement } from '@/types';
+import DeleteIcon from '~icons/material-symbols/delete';
+import CutIcon from '~icons/material-symbols/content-cut';
+import CopyIcon from '~icons/material-symbols/content-copy';
+import PasteIcon from '~icons/material-symbols/content-paste';
+import LockIcon from '~icons/material-symbols/lock';
+import UnlockIcon from '~icons/material-symbols/lock-open';
+import UndoIcon from '~icons/material-symbols/undo';
+import RedoIcon from '~icons/material-symbols/redo';
 
 const store = useDesignerStore();
 const showMenu = ref(false);
@@ -254,7 +262,7 @@ onUnmounted(() => {
   <div v-if="showMenu" class="fixed z-[9999]" :style="{ left: `${menuX}px`, top: `${menuY}px` }">
     <div class="bg-white border border-gray-200 shadow-xl rounded-md min-w-[160px] py-1">
       <button
-        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
         :disabled="(store.selectedElementIds.length === 0 && !store.selectedGuideId) || (store.selectedElement?.locked)"
         @click="() => {
           if (store.selectedElementIds.length > 1) {
@@ -267,48 +275,55 @@ onUnmounted(() => {
           showMenu=false;
         }"
       >
-        Delete{{ store.selectedElementIds.length > 1 ? ` (${store.selectedElementIds.length})` : '' }}
+        <DeleteIcon class="w-4 h-4" />
+        <span>Delete{{ store.selectedElementIds.length > 1 ? ` (${store.selectedElementIds.length})` : '' }}</span>
       </button>
       <button
-        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
         :disabled="!store.selectedElementId || store.selectedElement?.locked"
         @click="() => { store.cut(); showMenu=false; }"
       >
-        Cut
+        <CutIcon class="w-4 h-4" />
+        <span>Cut</span>
       </button>
       <button
-        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
         :disabled="!store.selectedElementId || store.selectedElement?.locked"
         @click="() => { store.copy(); showMenu=false; }"
       >
-        Copy
+        <CopyIcon class="w-4 h-4" />
+        <span>Copy</span>
       </button>
       <button
-        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
         :disabled="store.clipboard.length === 0"
         @click="() => { store.paste(getPasteTarget(menuX, menuY)); showMenu=false; }"
       >
-        Paste
+        <PasteIcon class="w-4 h-4" />
+        <span>Paste</span>
       </button>
       <button
-        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
         :disabled="store.selectedElementIds.length === 0"
         @click="() => { store.toggleLock(); showMenu=false; }"
       >
-        {{ store.selectedElement?.locked ? 'Unlock' : 'Lock' }}
+        <component :is="store.selectedElement?.locked ? UnlockIcon : LockIcon" class="w-4 h-4" />
+        <span>{{ store.selectedElement?.locked ? 'Unlock' : 'Lock' }}</span>
       </button>
       <div class="border-t border-gray-200 my-1"></div>
       <button
-        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
         @click="store.undo(); showMenu=false;"
       >
-        Undo
+        <UndoIcon class="w-4 h-4" />
+        <span>Undo</span>
       </button>
       <button
-        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
         @click="store.redo(); showMenu=false;"
       >
-        Redo
+        <RedoIcon class="w-4 h-4" />
+        <span>Redo</span>
       </button>
     </div>
   </div>
