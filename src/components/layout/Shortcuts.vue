@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, nextTick } from 'vue';
 import { useDesignerStore } from '@/stores/designer';
 import type { PrintElement } from '@/types';
 import DeleteIcon from '~icons/material-symbols/delete';
@@ -15,6 +15,9 @@ const store = useDesignerStore();
 const showMenu = ref(false);
 const menuX = ref(0);
 const menuY = ref(0);
+const clickX = ref(0);
+const clickY = ref(0);
+const menuRef = ref<HTMLElement | null>(null);
 const canPasteHere = ref(false);
 const currentMouseX = ref(0);
 const currentMouseY = ref(0);
@@ -209,7 +212,7 @@ const handleKeyup = (e: KeyboardEvent) => {
   }
 };
 
-const handleContextMenu = (e: MouseEvent) => {
+const handleContextMenu = async (e: MouseEvent) => {
   // Check if the click is inside the designer area
   const target = e.target as Element;
   const designerArea = document.querySelector('.overflow-auto'); // The scroll container (canvas area)
@@ -224,6 +227,24 @@ const handleContextMenu = (e: MouseEvent) => {
   showMenu.value = true;
   menuX.value = e.clientX;
   menuY.value = e.clientY;
+  clickX.value = e.clientX;
+  clickY.value = e.clientY;
+  
+  // Adjust menu position if it overflows the screen
+  await nextTick();
+  if (menuRef.value) {
+    const rect = menuRef.value.getBoundingClientRect();
+    const winWidth = window.innerWidth;
+    const winHeight = window.innerHeight;
+
+    if (e.clientX + rect.width > winWidth) {
+      menuX.value = winWidth - rect.width - 5;
+    }
+    if (e.clientY + rect.height > winHeight) {
+      menuY.value = winHeight - rect.height - 5;
+    }
+  }
+
   // Only allow paste when right-click occurs within any print page (canvas)
   const pages = document.querySelectorAll('.print-page');
   let inside = false;
@@ -259,7 +280,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="showMenu" class="fixed z-[9999]" :style="{ left: `${menuX}px`, top: `${menuY}px` }">
+  <div v-if="showMenu" ref="menuRef" class="fixed z-[9999]" :style="{ left: `${menuX}px`, top: `${menuY}px` }">
     <div class="bg-white border border-gray-200 shadow-xl rounded-md min-w-[160px] py-1">
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
@@ -297,7 +318,7 @@ onUnmounted(() => {
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
         :disabled="store.clipboard.length === 0"
-        @click="() => { store.paste(getPasteTarget(menuX, menuY)); showMenu=false; }"
+        @click="() => { store.paste(getPasteTarget(clickX, clickY)); showMenu=false; }"
       >
         <PasteIcon class="w-4 h-4" />
         <span>Paste</span>
