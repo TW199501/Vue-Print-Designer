@@ -167,11 +167,20 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     columns: type === ElementType.TABLE ? [
       { field: 'id', header: 'ID', width: 50 },
       { field: 'name', header: 'Name', width: 100 },
+      { field: 'qty', header: 'Qty', width: 60 },
+      { field: 'price', header: 'Price', width: 80 },
+      { field: 'total', header: 'Total', width: 80 },
     ] : undefined,
     data: type === ElementType.TABLE ? [
-      { id: 1, name: 'Item 1' },
-      { id: 2, name: 'Item 2' },
-      { id: 3, name: 'Item 3' },
+      { id: 1, name: 'Item 1', qty: 2, price: 100, total: 200 },
+      { id: 2, name: 'Item 2', qty: 1, price: 50, total: 50 },
+      { id: 3, name: 'Item 3', qty: 5, price: 20, total: 100 },
+    ] : undefined,
+    showFooter: type === ElementType.TABLE ? true : undefined,
+    tfootRepeat: type === ElementType.TABLE ? true : undefined,
+    footerData: type === ElementType.TABLE ? [
+      { id: 'Page Sum', total: '{#pageSum}' },
+      { id: 'Total', total: '{#totalSum}' }
     ] : undefined
   };
 

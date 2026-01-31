@@ -414,6 +414,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
                }"
                :rowspan="getRowSpan(row, col.field)"
                :colspan="getColSpan(row, col.field)"
+               :data-field="col.field"
              >
                {{ getCellValue(row, col.field) }}
              </td>

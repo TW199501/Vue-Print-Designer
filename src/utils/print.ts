@@ -283,6 +283,41 @@ export const usePrint = () => {
     });
   };
 
+  const updatePageSums = (table: HTMLElement) => {
+    const tfoot = table.querySelector('tfoot');
+    if (!tfoot) return;
+
+    // Find all cells in tfoot that contain the placeholder
+    const cells = Array.from(tfoot.querySelectorAll('td'));
+    cells.forEach(cell => {
+      if (cell.textContent && cell.textContent.includes('{#pageSum}')) {
+        const field = cell.getAttribute('data-field');
+        if (!field) return;
+
+        // Find all data rows in this specific table
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        let sum = 0;
+
+        rows.forEach(row => {
+          // Find the cell corresponding to the field
+          const dataCell = row.querySelector(`td[data-field="${field}"]`);
+          if (dataCell && dataCell.textContent) {
+            const val = parseFloat(dataCell.textContent);
+            if (!isNaN(val)) {
+              sum += val;
+            }
+          }
+        });
+
+        // Replace placeholder
+        cell.textContent = cell.textContent.replace('{#pageSum}', sum.toString());
+      }
+    });
+  };
+
   const handleTablePagination = (container: HTMLElement, pageHeight: number, headerHeight: number, footerHeight: number) => {
     let pages = Array.from(container.children).filter(el => !['STYLE', 'LINK', 'SCRIPT'].includes(el.tagName)) as HTMLElement[];
     
@@ -394,8 +429,12 @@ export const usePrint = () => {
                 const oldTfoot = table.querySelector('tfoot');
                 const shouldRepeatFooter = table.getAttribute('data-tfoot-repeat') === 'true';
                 
-                if (oldTfoot && !shouldRepeatFooter) {
-                    oldTfoot.remove();
+                if (oldTfoot) {
+                    if (!shouldRepeatFooter) {
+                        oldTfoot.remove();
+                    } else {
+                        updatePageSums(table);
+                    }
                 }
                 
                 // Clean up NEW table (remove rows before splitIndex)
