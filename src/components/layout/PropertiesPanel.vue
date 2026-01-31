@@ -38,9 +38,14 @@ const canSplitCells = computed(() => {
   
   const cell = store.tableSelection.cells[0];
   const el = store.selectedElement;
-  if (!el || el.type !== ElementType.TABLE || !el.data) return false;
+  if (!el || el.type !== ElementType.TABLE) return false;
   
-  const row = el.data[cell.rowIndex];
+  const section = cell.section || 'body';
+  const targetData = section === 'footer' ? el.footerData : el.data;
+  
+  if (!targetData) return false;
+  
+  const row = targetData[cell.rowIndex];
   if (!row) return false;
   const val = row[cell.colField];
   if (val && typeof val === 'object') {

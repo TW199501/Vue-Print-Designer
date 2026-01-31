@@ -433,7 +433,8 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
                   height: element.style.footerHeight ? `${element.style.footerHeight}px` : undefined,
                   backgroundColor: element.style.footerBackgroundColor || '#f9fafb',
                  color: element.style.footerColor || '#000000',
-                 fontSize: element.style.footerFontSize ? `${element.style.footerFontSize}px` : undefined
+                 fontSize: element.style.footerFontSize ? `${element.style.footerFontSize}px` : undefined,
+                 cursor: store.selectedElementId === element.id ? 'pointer' : 'default'
                }"
                :rowspan="getRowSpan(row, col.field)"
                :colspan="getColSpan(row, col.field)"
