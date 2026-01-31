@@ -426,7 +426,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
              <td 
                v-if="shouldRenderCell(row, col.field)"
                class="p-1 text-sm font-bold select-none"
-               :class="{ 'bg-blue-100 ring-1 ring-blue-400': isCellSelected(i, col.field, 'footer') }"
+               :class="{ '!bg-blue-100 ring-1 ring-blue-400': isCellSelected(i, col.field, 'footer') }"
                 :style="{ 
                   ...cellStyle,
                   ...getCellStyle(row, col.field), 
