@@ -356,7 +356,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
 
 <template>
   <div class="w-full h-full overflow-hidden bg-white">
-    <table class="w-full border-collapse" :data-tfoot-repeat="element.tfootRepeat" :data-auto-paginate="element.autoPaginate">
+    <table class="w-full border-collapse" :class="{ 'h-full': !store.isExporting }" :data-tfoot-repeat="element.tfootRepeat" :data-auto-paginate="element.autoPaginate">
       <thead>
         <tr>
           <th 
@@ -419,6 +419,13 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
           >
             ...
           </td>
+        </tr>
+        <!-- Spacer Row to push footer to bottom in design mode -->
+        <tr v-if="!store.isExporting" class="h-full border-none bg-transparent">
+          <td 
+            :colspan="processedData.columns.length || 1" 
+            class="border-none p-0"
+          ></td>
         </tr>
       </tbody>
       <tfoot v-if="element.showFooter">
