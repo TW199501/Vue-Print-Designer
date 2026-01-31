@@ -289,6 +289,9 @@ export const useDesignerStore = defineStore('designer', {
       this.canvasBackground = color;
     },
     snapshot() {
+      if (this.historyPast.length >= 20) {
+        this.historyPast.shift();
+      }
       this.historyPast.push(cloneDeep(this.pages));
       this.historyFuture = [];
     },
