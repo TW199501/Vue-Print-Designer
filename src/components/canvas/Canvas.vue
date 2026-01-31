@@ -180,6 +180,7 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     })) : undefined,
     showFooter: type === ElementType.TABLE ? true : undefined,
     tfootRepeat: type === ElementType.TABLE ? true : undefined,
+    autoPaginate: type === ElementType.TABLE ? true : undefined,
     footerData: type === ElementType.TABLE ? [
       { id: 'Page Sum', total: '{#pageSum}' },
       { id: 'Total', qty: '{#totalQty}', total: '{#totalSum}' },
