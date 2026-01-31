@@ -395,6 +395,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
                class="p-1 text-sm select-none"
                :class="{ 'bg-blue-100 ring-1 ring-blue-400': isCellSelected(i, col.field) }"
                :style="{
+                 ...cellStyle,
                  ...getCellStyle(row, col.field),
                  height: element.style.rowHeight ? `${element.style.rowHeight}px` : undefined
                }"
