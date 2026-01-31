@@ -76,6 +76,21 @@ export const useDesignerStore = defineStore('designer', {
         console.error('Load from localStorage failed', error);
       }
     },
+    resetCanvas() {
+      this.pages = [{ id: uuidv4(), elements: [] }];
+      this.currentPageIndex = 0;
+      this.selectedElementId = null;
+      this.selectedElementIds = [];
+      this.selectedGuideId = null;
+      this.guides = [];
+      this.historyPast = [];
+      this.historyFuture = [];
+      this.headerHeight = 100;
+      this.footerHeight = 100;
+      this.showHeaderLine = false;
+      this.showFooterLine = false;
+      this.canvasBackground = '#ffffff';
+    },
     setTableSelection(elementId: string, cell: { rowIndex: number; colField: string; section?: 'body' | 'footer' }, multi: boolean) {
       // If switching elements, clear previous
       if (this.tableSelection && this.tableSelection.elementId !== elementId) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useTemplateStore, type Template } from '@/stores/templates';
+import { useDesignerStore } from '@/stores/designer';
 
 import ChevronDown from '~icons/material-symbols/expand-more';
 import MoreVert from '~icons/material-symbols/more-vert';
@@ -9,6 +10,7 @@ import Copy from '~icons/material-symbols/content-copy';
 import Trash2 from '~icons/material-symbols/delete';
 import Add from '~icons/material-symbols/add';
 import Check from '~icons/material-symbols/check'; // For selection indicator maybe?
+import Description from '~icons/material-symbols/description';
 
 import TemplateNameModal from './TemplateNameModal.vue';
 
@@ -95,6 +97,7 @@ const getActiveTemplate = () => {
 };
 
 const handleCreate = () => {
+  activeMenuId.value = null;
   modalMode.value = 'create';
   modalInitialName.value = '';
   showModal.value = true;
@@ -124,6 +127,9 @@ const handleDelete = (t: Template) => {
 
 const handleModalSave = (name: string) => {
   if (modalMode.value === 'create') {
+    // Reset canvas before creating new template
+    const designerStore = useDesignerStore(); // Ensure we have access to designer store
+    designerStore.resetCanvas();
     store.createTemplate(name);
   } else if (modalMode.value === 'rename' && targetTemplateId.value) {
     store.renameTemplate(targetTemplateId.value, name);
@@ -135,11 +141,12 @@ const handleModalSave = (name: string) => {
   <div class="relative" ref="containerRef">
     <button 
       @click="toggleDropdown"
-      class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
+      class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors w-40"
       title="Templates"
     >
-      <span class="max-w-[150px] truncate">{{ currentTemplateName }}</span>
-      <ChevronDown class="w-4 h-4 text-gray-500" />
+      <Description class="w-4 h-4 text-gray-500 flex-shrink-0" />
+      <span class="flex-1 truncate text-left">{{ currentTemplateName }}</span>
+      <ChevronDown class="w-4 h-4 text-gray-500 flex-shrink-0" />
     </button>
 
     <div v-if="isOpen" class="absolute top-full left-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-[100] flex flex-col max-h-[500px]">
