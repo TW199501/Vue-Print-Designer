@@ -708,7 +708,12 @@ export const usePrint = () => {
         const blobUrl = URL.createObjectURL(blob);
         
         const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
+        iframe.style.position = 'fixed';
+        iframe.style.left = '0';
+        iframe.style.top = '0';
+        iframe.style.width = '0px';
+        iframe.style.height = '0px';
+        iframe.style.border = 'none';
         iframe.src = blobUrl;
         document.body.appendChild(iframe);
         
