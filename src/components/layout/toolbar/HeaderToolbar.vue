@@ -37,12 +37,17 @@ import { pxToMm, mmToPx } from '@/utils/units';
 import { ElementType } from '@/types';
 import PreviewModal from '../PreviewModal.vue';
 import ColorPicker from '@/components/common/ColorPicker.vue';
+import TemplateDropdown from './TemplateDropdown.vue';
+import TemplateNameModal from './TemplateNameModal.vue';
+import { useTemplateStore } from '@/stores/templates';
 
 const emit = defineEmits<{
   (e: 'toggleHelp'): void
 }>();
 
 const store = useDesignerStore();
+const templateStore = useTemplateStore();
+const showSaveNameModal = ref(false);
 const { getPrintHtml, print, exportPdf } = usePrint();
 
 const showPreview = ref(false);
@@ -258,32 +263,33 @@ const handleExport = async () => {
 };
 
 const handleSave = () => {
-  const data = {
-    pages: store.pages,
-    canvasSize: store.canvasSize,
-    guides: store.guides,
-    zoom: store.zoom,
-    showGrid: store.showGrid,
-    headerHeight: store.headerHeight,
-    footerHeight: store.footerHeight,
-    showHeaderLine: store.showHeaderLine,
-    showFooterLine: store.showFooterLine,
-    showMinimap: store.showMinimap,
-    canvasBackground: store.canvasBackground
-  };
-
-  try {
-    localStorage.setItem('localdata', JSON.stringify(data));
-    alert('Save successful');
-  } catch (error) {
-    console.error('Save failed', error);
-    alert('Save failed');
+  if (templateStore.currentTemplateId) {
+    const t = templateStore.templates.find(t => t.id === templateStore.currentTemplateId);
+    if (t) {
+      templateStore.saveCurrentTemplate(t.name);
+      // Optional: feedback
+      return;
+    }
   }
+  showSaveNameModal.value = true;
+};
+
+const handleSaveConfirm = (name: string) => {
+  templateStore.saveCurrentTemplate(name);
+  showSaveNameModal.value = false;
 };
 </script>
 
 <template>
   <div class="flex items-center gap-4">
+    <TemplateDropdown />
+    <TemplateNameModal 
+      :show="showSaveNameModal" 
+      title="Save Template"
+      @close="showSaveNameModal = false"
+      @save="handleSaveConfirm"
+    />
+
     <!-- Font Controls -->
     <div class="flex items-center gap-2 bg-gray-100 rounded-lg p-1 px-2">
       <!-- Font Family -->
