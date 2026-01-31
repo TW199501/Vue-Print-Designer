@@ -244,7 +244,18 @@ try {
                if (v.includes('{#totalSum}')) return v.replace('{#totalSum}', totalAmount.toFixed(2));
                if (v.includes('{#totalQty}')) return v.replace('{#totalQty}', String(totalQty));
                if (v.includes('{#totalCap}')) return v.replace('{#totalCap}', digitUppercase(totalAmount));
-               // Skip {#pageSum} in global context so it remains a placeholder for pagination logic
+               
+               // For {#pageSum}, we want to show the Grand Total in the Designer (visual feedback),
+               // but pass the original {#pageSum} token to the Print logic (via data-value).
+               if (v.includes('{#pageSum}')) {
+                   const displayVal = v.replace('{#pageSum}', totalAmount.toFixed(2));
+                   // printValue keeps {#pageSum} but resolves other globals
+                   const printVal = v.replace('{#totalSum}', totalAmount.toFixed(2))
+                                   .replace('{#totalQty}', String(totalQty))
+                                   .replace('{#totalCap}', digitUppercase(totalAmount)); 
+                   
+                   return { value: displayVal, printValue: printVal };
+               }
            }
            
            // Page replacements (Page Sum)
@@ -261,7 +272,13 @@ try {
         // Handle object values (merged cells)
         else if (val && typeof val === 'object' && val.value) {
           if (typeof val.value === 'string') {
-            val.value = processValue(val.value);
+            const processed = processValue(val.value);
+            if (typeof processed === 'object') {
+                val.value = processed.value;
+                val.printValue = processed.printValue;
+            } else {
+                val.value = processed;
+            }
           }
         }
       });

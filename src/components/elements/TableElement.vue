@@ -163,6 +163,15 @@ const cellStyle = computed(() => ({
   borderStyle: props.element.style.borderStyle || 'solid',
 }));
 
+const getPrintValue = (row: any, field: string) => {
+  if (!row) return '';
+  const val = row[field];
+  if (val && typeof val === 'object') {
+    return val.printValue || val.value;
+  }
+  return val;
+};
+
 const getCellValue = (row: any, field: string) => {
   if (!row) return '';
   const val = row[field];
@@ -460,7 +469,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
                :rowspan="getRowSpan(row, col.field)"
                :colspan="getColSpan(row, col.field)"
                :data-field="col.field"
-               :data-value="getCellValue(row, col.field)"
+               :data-value="getPrintValue(row, col.field)"
                @mousedown="(e) => handleMouseDown(e, i, col.field, 'footer')"
                @mouseover="handleMouseOver(i, col.field, 'footer')"
                @dblclick="(e) => handleFooterDblClick(e, i, col.field)"
