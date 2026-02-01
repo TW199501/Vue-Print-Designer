@@ -150,8 +150,16 @@ const handleMouseUp = (e: MouseEvent) => {
         const pageId = pageElement.id; 
         const pageIndex = parseInt(pageId.replace('page-', ''), 10);
         
-        if (!isNaN(pageIndex) && pageIndex !== props.pageIndex) {
-           // Dropped on different page
+        // Check if element is in header/footer zone (global element)
+        // A global element is defined on page 0 but rendered on other pages (so props.pageIndex is 0)
+        // We define header/footer zone based on store config
+        const isGlobalElement = props.pageIndex === 0 && (
+           props.element.y < store.headerHeight || 
+           props.element.y >= store.canvasSize.height - store.footerHeight
+        );
+
+        if (!isNaN(pageIndex) && pageIndex !== props.pageIndex && !isGlobalElement) {
+           // Dropped on different page (and not a global element)
            const oldPageElement = document.getElementById(`page-${props.pageIndex}`);
            if (oldPageElement) {
               const oldRect = oldPageElement.getBoundingClientRect();
@@ -173,7 +181,7 @@ const handleMouseUp = (e: MouseEvent) => {
               });
            }
         } else {
-            // Same page, enforce constraint
+            // Same page or global element (prevent moving to other page), enforce constraint
             if (store.selectedElementIds.length > 1 && store.selectedElementIds.includes(props.element.id)) {
                  store.moveSelectedElements(props.element.id, props.element.x, props.element.y, false, true);
             } else {
