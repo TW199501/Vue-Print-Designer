@@ -49,6 +49,7 @@ export default {
     about: '关于',
     paperSettings: '页面设置',
     sizePreset: '纸张尺寸',
+    custom: '自定义',
     showCornerMarkers: '显示角标',
     showGrid: '显示网格',
     showMinimap: '显示缩略图',

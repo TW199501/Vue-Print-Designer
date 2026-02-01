@@ -49,6 +49,7 @@ export default {
     about: 'About',
     paperSettings: 'Paper Settings',
     sizePreset: 'Size Preset',
+    custom: 'Custom',
     showCornerMarkers: 'Show Corner Markers',
     showGrid: 'Show Grid',
     showMinimap: 'Show Minimap',
