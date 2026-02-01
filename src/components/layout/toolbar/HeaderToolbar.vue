@@ -8,6 +8,7 @@ import ZoomIn from '~icons/material-symbols/zoom-in';
 import ZoomOut from '~icons/material-symbols/zoom-out';
 import Settings from '~icons/material-symbols/settings';
 import Save from '~icons/material-symbols/save';
+import Loading from '~icons/material-symbols/sync';
 import Undo2 from '~icons/material-symbols/undo';
 import Redo2 from '~icons/material-symbols/redo';
 import Trash2 from '~icons/material-symbols/delete';
@@ -760,8 +761,9 @@ onUnmounted(() => {
       <div v-if="showExportMenu" class="fixed inset-0 z-[999]" @click="showExportMenu = false"></div>
     </div>
 
-    <button @click="handleSave" class="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
-      <Save class="w-4 h-4" />
+    <button @click="handleSave" :disabled="templateStore.isSaving" class="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+      <Loading v-if="templateStore.isSaving" class="w-4 h-4 animate-spin" />
+      <Save v-else class="w-4 h-4" />
       <span>Save</span>
     </button>
   </div>

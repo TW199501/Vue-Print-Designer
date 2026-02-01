@@ -64,6 +64,14 @@ const toggleDropdown = () => {
 };
 
 const selectTemplate = (t: Template) => {
+  // Auto-save current template if it exists
+  if (store.currentTemplateId) {
+    const currentTemplate = store.templates.find(tpl => tpl.id === store.currentTemplateId);
+    if (currentTemplate) {
+      store.saveCurrentTemplate(currentTemplate.name);
+    }
+  }
+  
   store.loadTemplate(t.id);
   isOpen.value = false;
 };

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
+import cloneDeep from 'lodash/cloneDeep';
 import { useDesignerStore } from './designer';
 
 export interface Template {
@@ -13,6 +14,7 @@ export const useTemplateStore = defineStore('templates', {
   state: () => ({
     templates: [] as Template[],
     currentTemplateId: null as string | null,
+    isSaving: false,
   }),
   actions: {
     loadTemplates() {
@@ -33,12 +35,15 @@ export const useTemplateStore = defineStore('templates', {
       localStorage.setItem('print-designer-templates', JSON.stringify(this.templates));
     },
 
-    saveCurrentTemplate(name: string) {
+    async saveCurrentTemplate(name: string) {
       const designerStore = useDesignerStore();
+      // Capture current ID synchronously to prevent race conditions if template changes during async save
+      const targetId = this.currentTemplateId;
+
       const data = {
-        pages: designerStore.pages,
-        canvasSize: designerStore.canvasSize,
-        guides: designerStore.guides,
+        pages: cloneDeep(designerStore.pages),
+        canvasSize: cloneDeep(designerStore.canvasSize),
+        guides: cloneDeep(designerStore.guides),
         zoom: designerStore.zoom,
         showGrid: designerStore.showGrid,
         headerHeight: designerStore.headerHeight,
@@ -50,22 +55,30 @@ export const useTemplateStore = defineStore('templates', {
         // Add other necessary state here
       };
 
-      if (this.currentTemplateId) {
-        // Update existing
-        const index = this.templates.findIndex(t => t.id === this.currentTemplateId);
-        if (index !== -1) {
-          this.templates[index].data = data;
-          this.templates[index].name = name; // Update name just in case
-          this.templates[index].updatedAt = Date.now();
+      this.isSaving = true;
+      // Simulate network request
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      try {
+        if (targetId) {
+          // Update existing
+          const index = this.templates.findIndex(t => t.id === targetId);
+          if (index !== -1) {
+            this.templates[index].data = data;
+            this.templates[index].name = name; // Update name just in case
+            this.templates[index].updatedAt = Date.now();
+          } else {
+            // ID exists but not found? Treat as new.
+            this.createTemplate(name, data);
+          }
         } else {
-          // ID exists but not found? Treat as new.
+          // Create new
           this.createTemplate(name, data);
         }
-      } else {
-        // Create new
-        this.createTemplate(name, data);
+        this.saveToLocalStorage();
+      } finally {
+        this.isSaving = false;
       }
-      this.saveToLocalStorage();
     },
 
     createTemplate(name: string, data?: any) {
