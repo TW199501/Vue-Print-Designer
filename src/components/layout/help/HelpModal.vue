@@ -64,8 +64,8 @@ const projectName = startCase(pkg.name);
             <h3 class="text-lg font-semibold text-gray-800">
               {{ activeTab === 'shortcuts' ? 'Keyboard Shortcuts' : `About ${projectName}` }}
             </h3>
-            <button @click="close" class="text-gray-500 hover:text-gray-700">
-              <X class="w-5 h-5" />
+            <button @click="close" class="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+              <X class="w-4 h-4" />
             </button>
           </div>
           
