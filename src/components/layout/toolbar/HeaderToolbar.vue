@@ -8,7 +8,7 @@ import ZoomIn from '~icons/material-symbols/zoom-in';
 import ZoomOut from '~icons/material-symbols/zoom-out';
 import Settings from '~icons/material-symbols/settings';
 import Save from '~icons/material-symbols/save';
-import Loading from '~icons/material-symbols/sync';
+import Loading from '~icons/material-symbols/progress-activity';
 import Undo2 from '~icons/material-symbols/undo';
 import Redo2 from '~icons/material-symbols/redo';
 import Trash2 from '~icons/material-symbols/delete';
