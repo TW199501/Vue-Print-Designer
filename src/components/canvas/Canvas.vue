@@ -12,6 +12,10 @@ import QRCodeElement from '../elements/QRCodeElement.vue';
 import LineElement from '../elements/LineElement.vue';
 import RectElement from '../elements/RectElement.vue';
 import CircleElement from '../elements/CircleElement.vue';
+import AddIcon from '~icons/material-symbols/add';
+import DeleteIcon from '~icons/material-symbols/delete';
+import CopyIcon from '~icons/material-symbols/content-copy';
+import PasteIcon from '~icons/material-symbols/content-paste';
 
 const store = useDesignerStore();
 
@@ -454,21 +458,53 @@ const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
 
 <template>
   <div class="flex flex-col gap-8" :style="{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: 'fit-content' }">
-    <div
-      v-for="(page, index) in pages"
-      :key="page.id"
-      :id="`page-${index}`"
-      class="print-page shadow-lg relative overflow-hidden transition-all"
-      :style="[pageStyle, { 
-        overflow: draggingPageIndex === index ? 'visible' : 'hidden', 
-        zIndex: draggingPageIndex === index ? 50 : 1 
-      }]"
-      @drop="(e) => handleDrop(e, index)"
-      @dragover="handleDragOver"
-      @mousedown="(e) => handlePageMouseDown(e, index)"
-      @contextmenu="(e) => handleContextMenu(e, index)"
-      @click.self="handleBackgroundClick"
-    >
+    <div v-for="(page, index) in pages" :key="page.id" class="relative group">
+      <div class="absolute top-0 -right-12 flex flex-col gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button 
+          class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow hover:bg-blue-50 hover:text-blue-600 text-gray-600 transition-colors"
+          title="Add Page"
+          @click="store.addPage()"
+        >
+          <AddIcon />
+        </button>
+        <button 
+          class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow hover:bg-green-50 hover:text-green-600 text-gray-600 transition-colors"
+          title="Copy Page"
+          @click="store.copyPage(index)"
+        >
+          <CopyIcon />
+        </button>
+        <button 
+          v-if="store.copiedPage"
+          class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow hover:bg-green-50 hover:text-green-600 text-gray-600 transition-colors"
+          title="Paste Page"
+          @click="store.pastePage(index)"
+        >
+          <PasteIcon />
+        </button>
+        <button 
+          v-if="index > 0"
+          class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow hover:bg-red-50 hover:text-red-600 text-gray-600 transition-colors"
+          title="Delete Page"
+          @click="store.removePage(index)"
+        >
+          <DeleteIcon />
+        </button>
+      </div>
+
+      <div
+        :id="`page-${index}`"
+        class="print-page shadow-lg relative overflow-hidden transition-all"
+        :style="[pageStyle, { 
+          overflow: draggingPageIndex === index ? 'visible' : 'hidden', 
+          zIndex: draggingPageIndex === index ? 50 : 1 
+        }]"
+        @drop="(e) => handleDrop(e, index)"
+        @dragover="handleDragOver"
+        @mousedown="(e) => handlePageMouseDown(e, index)"
+        @contextmenu="(e) => handleContextMenu(e, index)"
+        @click.self="handleBackgroundClick"
+      >
       <!-- Grid Background -->
       <div v-if="store.showGrid" class="absolute inset-0 pointer-events-none opacity-50"
            style="background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px); background-size: 20px 20px;">
@@ -547,4 +583,5 @@ const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
       </div>
     </div>
   </div>
+</div>
 </template>

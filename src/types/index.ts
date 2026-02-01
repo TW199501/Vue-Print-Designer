@@ -127,6 +127,7 @@ export interface DesignerState {
   historyPast: Page[][];
   historyFuture: Page[][];
   clipboard: PrintElement[];
+  copiedPage?: Page | null;
   isExporting?: boolean;
   disableGlobalShortcuts?: boolean;
   disableShortcutsCount?: number;

@@ -28,6 +28,7 @@ export const useDesignerStore = defineStore('designer', {
     historyPast: [],
     historyFuture: [],
     clipboard: [],
+    copiedPage: null,
     isExporting: false,
     disableGlobalShortcuts: false,
     disableShortcutsCount: 0,
@@ -69,11 +70,42 @@ export const useDesignerStore = defineStore('designer', {
       this.showCornerMarkers = true;
       this.showMinimap = false;
       this.showHelp = false;
+      this.copiedPage = null;
+    },
+    copyPage(index: number) {
+      const page = this.pages[index];
+      if (!page) return;
+      this.copiedPage = cloneDeep(page);
+    },
+    pastePage(targetIndex: number) {
+      if (!this.copiedPage) return;
+
+      this.snapshot();
+
+      const newPage = cloneDeep(this.copiedPage);
+      newPage.id = uuidv4();
+
+      // Regenerate IDs for all elements
+      newPage.elements.forEach(el => {
+        el.id = uuidv4();
+      });
+
+      // Insert after targetIndex
+      this.pages.splice(targetIndex + 1, 0, newPage);
+      this.currentPageIndex = targetIndex + 1;
     },
     addPage() {
       this.snapshot();
       this.pages.push({ id: uuidv4(), elements: [] });
       this.currentPageIndex = this.pages.length - 1;
+    },
+    removePage(index: number) {
+      if (this.pages.length <= 1) return;
+      this.snapshot();
+      this.pages.splice(index, 1);
+      if (this.currentPageIndex >= this.pages.length) {
+        this.currentPageIndex = this.pages.length - 1;
+      }
     },
     setTableSelection(elementId: string, cell: { rowIndex: number; colField: string; section?: 'body' | 'footer' }, multi: boolean) {
       // If switching elements, clear previous
