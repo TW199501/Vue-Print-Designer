@@ -282,7 +282,14 @@ export default {
       simSun: '宋体',
       simHei: '黑体',
       page1: '第 1 页',
-      oneTotal: '1/共几页'
+      oneTotal: '1/共几页',
+      code128: 'CODE128',
+      ean13: 'EAN-13',
+      upc: 'UPC',
+      code39: 'CODE39',
+      itf14: 'ITF-14',
+      msi: 'MSI',
+      pharmacode: 'Pharmacode'
     }
   },
   shortcuts: {

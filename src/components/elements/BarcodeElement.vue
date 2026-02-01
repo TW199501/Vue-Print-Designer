@@ -66,13 +66,13 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
           target: 'style', 
           key: 'barcodeFormat', 
           options: [
-            { label: 'CODE128', value: 'CODE128' },
-            { label: 'EAN-13', value: 'EAN13' },
-            { label: 'UPC', value: 'UPC' },
-            { label: 'CODE39', value: 'CODE39' },
-            { label: 'ITF-14', value: 'ITF14' },
-            { label: 'MSI', value: 'MSI' },
-            { label: 'Pharmacode', value: 'pharmacode' }
+            { label: 'properties.option.code128', value: 'CODE128' },
+            { label: 'properties.option.ean13', value: 'EAN13' },
+            { label: 'properties.option.upc', value: 'UPC' },
+            { label: 'properties.option.code39', value: 'CODE39' },
+            { label: 'properties.option.itf14', value: 'ITF14' },
+            { label: 'properties.option.msi', value: 'MSI' },
+            { label: 'properties.option.pharmacode', value: 'pharmacode' }
           ] 
         },
         { label: 'properties.label.showText', type: 'select', target: 'style', key: 'showText', options: [{label: 'properties.option.yes', value: true}, {label: 'properties.option.no', value: false}] },
