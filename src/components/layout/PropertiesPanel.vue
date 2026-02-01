@@ -17,6 +17,7 @@ import PropertySelect from '@/components/properties/PropertySelect.vue';
 import PropertyColor from '@/components/properties/PropertyColor.vue';
 import PropertyCode from '@/components/properties/PropertyCode.vue';
 import PropertyImage from '@/components/properties/PropertyImage.vue';
+import Lock from '~icons/material-symbols/lock';
 
 const store = useDesignerStore();
 const element = computed(() => store.selectedElement);
