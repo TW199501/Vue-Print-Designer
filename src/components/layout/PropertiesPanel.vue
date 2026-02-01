@@ -190,7 +190,10 @@ const handleFocusOut = (e: FocusEvent) => {
   >
     <!-- Header -->
     <div class="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-      <h2 class="font-semibold text-gray-700">Properties</h2>
+      <div>
+        <h2 class="font-semibold text-gray-700">Properties</h2>
+        <p class="text-xs text-gray-500 mt-1">Edit element properties</p>
+      </div>
       <div v-if="isLocked" class="flex items-center text-red-500 gap-1 text-xs font-medium bg-red-50 px-2 py-1 rounded border border-red-100">
         <Lock class="w-3 h-3" />
         <span>Locked</span>

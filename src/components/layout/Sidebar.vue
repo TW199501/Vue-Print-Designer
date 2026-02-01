@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import Type from '~icons/material-symbols/text-fields';
 import Image from '~icons/material-symbols/image';
 import Table from '~icons/material-symbols/table-chart';
@@ -8,6 +9,8 @@ import HorizontalRule from '~icons/material-symbols/horizontal-rule';
 import CheckBoxOutlineBlank from '~icons/material-symbols/check-box-outline-blank';
 import RadioButtonUnchecked from '~icons/material-symbols/radio-button-unchecked';
 import { ElementType } from '@/types';
+
+const activeTab = ref<'standard' | 'custom'>('standard');
 
 const categories = [
   {
@@ -46,27 +49,55 @@ const handleDragStart = (event: DragEvent, type: ElementType) => {
 
 <template>
   <aside class="w-64 bg-white border-r border-gray-200 flex flex-col h-full z-40">
-    <div class="p-4 border-b border-gray-200">
+    <div class="p-4 border-b border-gray-200 bg-gray-50">
       <h2 class="font-semibold text-gray-700">Elements</h2>
       <p class="text-xs text-gray-500 mt-1">Drag elements to the canvas</p>
     </div>
     
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-200 bg-white">
+      <button 
+        @click="activeTab = 'standard'"
+        :class="['flex-1 py-3 text-sm font-medium transition-colors relative', activeTab === 'standard' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50']"
+      >
+        Standard
+        <div v-if="activeTab === 'standard'" class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></div>
+      </button>
+      <button 
+        @click="activeTab = 'custom'"
+        :class="['flex-1 py-3 text-sm font-medium transition-colors relative', activeTab === 'custom' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50']"
+      >
+        Custom
+        <div v-if="activeTab === 'custom'" class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></div>
+      </button>
+    </div>
+
     <div class="flex-1 overflow-y-auto">
-      <div v-for="category in categories" :key="category.title" class="p-4 border-b border-gray-100 last:border-0">
-        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1">{{ category.title }}</h3>
-        <div class="grid grid-cols-2 gap-3">
-          <div 
-            v-for="item in category.items" 
-            :key="item.type"
-            class="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-move transition-all"
-            draggable="true"
-            @dragstart="(e) => handleDragStart(e, item.type)"
-          >
-            <component :is="item.icon" class="w-8 h-8 text-gray-600 mb-2" />
-            <span class="text-sm font-medium text-gray-700">{{ item.label }}</span>
+      <!-- Standard Elements Tab -->
+      <template v-if="activeTab === 'standard'">
+        <div v-for="category in categories" :key="category.title" class="p-4 border-b border-gray-100 last:border-0">
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1">{{ category.title }}</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div 
+              v-for="item in category.items" 
+              :key="item.type"
+              class="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-move transition-all"
+              draggable="true"
+              @dragstart="(e) => handleDragStart(e, item.type)"
+            >
+              <component :is="item.icon" class="w-8 h-8 text-gray-600 mb-2" />
+              <span class="text-sm font-medium text-gray-700">{{ item.label }}</span>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
+
+      <!-- Custom Elements Tab -->
+      <template v-if="activeTab === 'custom'">
+        <div class="p-6 text-center">
+          <p class="text-sm text-gray-500">Custom elements coming soon...</p>
+        </div>
+      </template>
     </div>
   </aside>
 </template>
