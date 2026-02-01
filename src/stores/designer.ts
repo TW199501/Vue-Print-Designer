@@ -357,7 +357,7 @@ export const useDesignerStore = defineStore('designer', {
     setShowCornerMarkers(show: boolean) {
       this.showCornerMarkers = show;
     },
-    getSnapPosition(el: PrintElement, nx: number, ny: number, isKeyboard: boolean = false, constrain: boolean = true) {
+    getSnapPosition(el: PrintElement, nx: number, ny: number, isKeyboard: boolean = false, constrain: boolean = true, pageIndex: number = -1) {
       const threshold = 5;
       let x = nx;
       let y = ny;
@@ -422,20 +422,63 @@ export const useDesignerStore = defineStore('designer', {
       }
 
       // Clamp to canvas
-      if (constrain) {
+      // Logic:
+      // 1. If constrain is true (e.g. keyboard, drop), use strict clamping.
+      // 2. If constrain is false (mouse drag):
+      //    a. If single page, force strict clamping (user request: "Only disable... when multiple pages exist").
+      //    b. If multiple pages, apply partial clamping:
+      //       - Always clamp X (keep on paper horizontally).
+      //       - Clamp Top ONLY if first page.
+      //       - Clamp Bottom ONLY if last page.
+      
+      let applyStrictX = constrain;
+      let applyStrictY = constrain;
+      let applyPartialTop = false;
+      let applyPartialBottom = false;
+      
+      if (!constrain) {
+         if (this.pages.length <= 1) {
+             // Single page -> strict constraint
+             applyStrictX = true;
+             applyStrictY = true;
+         } else {
+             // Multiple pages -> partial constraint
+             applyStrictX = true; // Keep horizontal constraint
+             
+             if (pageIndex === 0) {
+                 applyPartialTop = true;
+             }
+             if (pageIndex === this.pages.length - 1) {
+                 applyPartialBottom = true;
+             }
+         }
+      }
+
+      if (applyStrictX) {
         x = Math.min(Math.max(0, x), maxX);
+      }
+
+      if (applyStrictY) {
         y = Math.min(Math.max(0, y), maxY);
+      } else {
+         if (applyPartialTop) {
+             y = Math.max(0, y);
+         }
+         if (applyPartialBottom) {
+             y = Math.min(y, maxY);
+         }
       }
 
       return { x, y, highlightedGuideId, highlightedEdge };
     },
     moveElementWithSnap(id: string, x: number, y: number, createSnapshot: boolean = true, constrain: boolean = true) {
-      for (const page of this.pages) {
+      for (let i = 0; i < this.pages.length; i++) {
+        const page = this.pages[i];
         const index = page.elements.findIndex(e => e.id === id);
         if (index !== -1) {
           const el = page.elements[index];
           if (el.locked) return; // Prevent moving locked element
-          const snapped = this.getSnapPosition(el, x, y, false, constrain);
+          const snapped = this.getSnapPosition(el, x, y, false, constrain, i);
           this.setHighlightedGuide(snapped.highlightedGuideId || null);
           this.setHighlightedEdge(snapped.highlightedEdge || null);
           this.updateElement(id, { x: snapped.x, y: snapped.y }, createSnapshot);
@@ -450,6 +493,7 @@ export const useDesignerStore = defineStore('designer', {
 
       // 1. Gather all necessary data in ONE pass
       let primaryElement: PrintElement | null = null;
+      let primaryPageIndex: number = -1;
       const movableElements: { pageIndex: number; elementIndex: number; element: PrintElement }[] = [];
 
       // Create a Set for O(1) lookup
@@ -462,6 +506,7 @@ export const useDesignerStore = defineStore('designer', {
           const el = page.elements[eIndex];
           if (el.id === primaryId) {
             primaryElement = el;
+            primaryPageIndex = pIndex;
           }
           if (selectedSet.has(el.id) && !el.locked) {
             movableElements.push({ pageIndex: pIndex, elementIndex: eIndex, element: el });
@@ -472,7 +517,7 @@ export const useDesignerStore = defineStore('designer', {
       if (!primaryElement || primaryElement.locked) return;
 
       // 2. Calculate snap for primary element
-      const snapped = this.getSnapPosition(primaryElement, x, y, false, constrain);
+      const snapped = this.getSnapPosition(primaryElement, x, y, false, constrain, primaryPageIndex);
       
       this.setHighlightedGuide(snapped.highlightedGuideId || null);
       this.setHighlightedEdge(snapped.highlightedEdge || null);
@@ -484,30 +529,65 @@ export const useDesignerStore = defineStore('designer', {
       if (dx === 0 && dy === 0) return;
 
       // 4. Constrain delta to ensure no element leaves the canvas
-      if (constrain) {
+      let checkX = constrain;
+      let checkYStrict = constrain;
+      
+      if (!constrain) {
+          if (this.pages.length <= 1) {
+              checkX = true;
+              checkYStrict = true;
+          } else {
+              checkX = true;
+              checkYStrict = false;
+          }
+      }
+
+      if (checkX || checkYStrict || (!checkYStrict && this.pages.length > 1)) {
         for (const item of movableElements) {
            const el = item.element;
+           const pIndex = item.pageIndex;
+           
            // Constrain X
-           if (dx > 0) {
-             const maxRight = this.canvasSize.width - el.width;
-             if (el.x + dx > maxRight) {
-               dx = maxRight - el.x;
-             }
-           } else if (dx < 0) {
-             if (el.x + dx < 0) {
-               dx = -el.x;
+           if (checkX) {
+             if (dx > 0) {
+               const maxRight = this.canvasSize.width - el.width;
+               if (el.x + dx > maxRight) {
+                 dx = maxRight - el.x;
+               }
+             } else if (dx < 0) {
+               if (el.x + dx < 0) {
+                 dx = -el.x;
+               }
              }
            }
   
            // Constrain Y
-           if (dy > 0) {
-             const maxBottom = this.canvasSize.height - el.height;
-             if (el.y + dy > maxBottom) {
-               dy = maxBottom - el.y;
+           if (checkYStrict) {
+             if (dy > 0) {
+               const maxBottom = this.canvasSize.height - el.height;
+               if (el.y + dy > maxBottom) {
+                 dy = maxBottom - el.y;
+               }
+             } else if (dy < 0) {
+               if (el.y + dy < 0) {
+                 dy = -el.y;
+               }
              }
-           } else if (dy < 0) {
-             if (el.y + dy < 0) {
-               dy = -el.y;
+           } else {
+             // Partial Y constraint (Multi-page mode)
+             // Only constrain Top if pIndex == 0
+             if (pIndex === 0) {
+                 if (dy < 0) {
+                     if (el.y + dy < 0) dy = -el.y;
+                 }
+             }
+             
+             // Only constrain Bottom if pIndex == last
+             if (pIndex === this.pages.length - 1) {
+                 if (dy > 0) {
+                     const maxBottom = this.canvasSize.height - el.height;
+                     if (el.y + dy > maxBottom) dy = maxBottom - el.y;
+                 }
              }
            }
         }
