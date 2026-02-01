@@ -12,7 +12,7 @@ import Add from '~icons/material-symbols/add';
 import Check from '~icons/material-symbols/check'; // For selection indicator maybe?
 import Description from '~icons/material-symbols/description';
 
-import TemplateNameModal from './TemplateNameModal.vue';
+import InputModal from '@/components/common/InputModal.vue';
 
 const store = useTemplateStore();
 const isOpen = ref(false);
@@ -240,9 +240,9 @@ const handleModalSave = (name: string) => {
       </div>
     </Teleport>
 
-    <TemplateNameModal 
+    <InputModal 
       :show="showModal"
-      :initial-name="modalInitialName"
+      :initial-value="modalInitialName"
       :title="modalMode === 'create' ? 'New Template' : 'Rename Template'"
       @close="showModal = false"
       @save="handleModalSave"

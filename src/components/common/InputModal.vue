@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import Close from '~icons/material-symbols/close';
 
 const props = defineProps<{
   show: boolean;
-  initialName?: string;
+  initialValue?: string;
   title?: string;
   placeholder?: string;
 }>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'save', name: string): void;
+  (e: 'save', value: string): void;
 }>();
 
-const name = ref('');
+const value = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
 
 watch(() => props.show, (val) => {
   if (val) {
-    name.value = props.initialName || '';
+    value.value = props.initialValue || '';
     setTimeout(() => {
       inputRef.value?.focus();
     }, 100);
@@ -27,8 +27,8 @@ watch(() => props.show, (val) => {
 });
 
 const handleSave = () => {
-  if (!name.value.trim()) return;
-  emit('save', name.value.trim());
+  if (!value.value.trim()) return;
+  emit('save', value.value.trim());
   emit('close');
 };
 </script>
@@ -38,7 +38,7 @@ const handleSave = () => {
     <div v-if="show" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50">
       <div class="bg-white rounded-lg shadow-xl w-96 p-4 animate-in fade-in zoom-in duration-200">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-gray-800">{{ title || 'Save Template' }}</h3>
+          <h3 class="text-lg font-semibold text-gray-800">{{ title || 'Input' }}</h3>
           <button @click="emit('close')" class="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
             <Close class="w-5 h-5" />
           </button>
@@ -47,10 +47,10 @@ const handleSave = () => {
         <div class="mb-4">
           <input 
             ref="inputRef"
-            v-model="name"
+            v-model="value"
             type="text"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :placeholder="placeholder || 'Enter template name...'"
+            :placeholder="placeholder || 'Enter value...'"
             @keydown.enter="handleSave"
             @keydown.esc="emit('close')"
           />
@@ -65,7 +65,7 @@ const handleSave = () => {
           </button>
           <button 
             @click="handleSave"
-            :disabled="!name.trim()"
+            :disabled="!value.trim()"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Confirm

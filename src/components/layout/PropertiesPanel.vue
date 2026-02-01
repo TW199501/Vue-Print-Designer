@@ -21,7 +21,7 @@ import Lock from '~icons/material-symbols/lock';
 import ContentCopy from '~icons/material-symbols/content-copy';
 import Check from '~icons/material-symbols/check';
 import Save from '~icons/material-symbols/save';
-import TemplateNameModal from '@/components/layout/toolbar/TemplateNameModal.vue';
+import InputModal from '@/components/common/InputModal.vue';
 
 const store = useDesignerStore();
 const element = computed(() => store.selectedElement);
@@ -474,9 +474,9 @@ const handleFocusOut = (e: FocusEvent) => {
     </div>
   </aside>
 
-  <TemplateNameModal
+  <InputModal
     :show="showCustomElementModal"
-    :initial-name="customElementInitialName"
+    :initial-value="customElementInitialName"
     title="Save Custom Element"
     placeholder="Enter element name..."
     @close="showCustomElementModal = false"

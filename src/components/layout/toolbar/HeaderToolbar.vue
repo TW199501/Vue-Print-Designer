@@ -40,7 +40,7 @@ import { ElementType } from '@/types';
 import PreviewModal from '../PreviewModal.vue';
 import ColorPicker from '@/components/common/ColorPicker.vue';
 import TemplateDropdown from './TemplateDropdown.vue';
-import TemplateNameModal from './TemplateNameModal.vue';
+import InputModal from '@/components/common/InputModal.vue';
 import { useTemplateStore } from '@/stores/templates';
 import DataObject from '~icons/material-symbols/data-object';
 import CodeEditorModal from '@/components/common/CodeEditorModal.vue';
@@ -309,7 +309,7 @@ onUnmounted(() => {
 <template>
   <div class="flex items-center gap-4">
     <TemplateDropdown />
-    <TemplateNameModal 
+    <InputModal 
       :show="showSaveNameModal" 
       title="Save Template"
       @close="showSaveNameModal = false"

@@ -15,7 +15,7 @@ import MoreVert from '~icons/material-symbols/more-vert';
 import Edit from '~icons/material-symbols/edit';
 import Copy from '~icons/material-symbols/content-copy';
 import { ElementType, type CustomElementTemplate } from '@/types';
-import TemplateNameModal from '@/components/layout/toolbar/TemplateNameModal.vue';
+import InputModal from '@/components/common/InputModal.vue';
 
 const store = useDesignerStore();
 const activeTab = ref<'standard' | 'custom'>('standard');
@@ -245,9 +245,9 @@ onUnmounted(() => {
       </div>
     </Teleport>
 
-    <TemplateNameModal
+    <InputModal
       :show="showRenameModal"
-      :initial-name="renameInitialName"
+      :initial-value="renameInitialName"
       title="Rename Custom Element"
       placeholder="Enter element name..."
       @close="showRenameModal = false"
