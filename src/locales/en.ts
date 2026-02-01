@@ -113,7 +113,7 @@ export default {
     shapes: 'Shapes',
     text: 'Text',
     image: 'Image',
-    pager: 'Page Number',
+    pager: 'Pagination',
     table: 'Table',
     barcode: 'Barcode',
     qrcode: 'QR Code',
