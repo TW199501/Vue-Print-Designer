@@ -13,5 +13,19 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['vue', 'pinia', 'vue-i18n'],
+          'monaco': ['@guolao/vue-monaco-editor'],
+          'pdf': ['jspdf', 'dom-to-image-more'],
+          'canvg': ['canvg'],
+          'utils': ['lodash', 'uuid'],
+          'barcode': ['jsbarcode', 'qrcode']
+        }
+      }
+    }
   }
 })
