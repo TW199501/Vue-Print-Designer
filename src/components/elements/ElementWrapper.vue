@@ -10,6 +10,7 @@ const props = defineProps<{
   element: PrintElement;
   isSelected: boolean;
   zoom: number;
+  pageIndex: number;
 }>();
 
 const store = useDesignerStore();
@@ -133,14 +134,55 @@ const handleMouseMove = (e: MouseEvent) => {
     }
 
     if (store.selectedElementIds.length > 1 && store.selectedElementIds.includes(props.element.id)) {
-      store.moveSelectedElements(props.element.id, initialLeft + dx, initialTop + dy, false);
+      store.moveSelectedElements(props.element.id, initialLeft + dx, initialTop + dy, false, false);
     } else {
-      store.moveElementWithSnap(props.element.id, initialLeft + dx, initialTop + dy, false);
+      store.moveElementWithSnap(props.element.id, initialLeft + dx, initialTop + dy, false, false);
     }
   }
 };
 
 const handleMouseUp = (e: MouseEvent) => {
+  if (isDragging && hasSnapshot) {
+     const elementsFromPoint = document.elementsFromPoint(e.clientX, e.clientY);
+     const pageElement = elementsFromPoint.find(el => el.classList.contains('print-page')) as HTMLElement;
+     
+     if (pageElement) {
+        const pageId = pageElement.id; 
+        const pageIndex = parseInt(pageId.replace('page-', ''), 10);
+        
+        if (!isNaN(pageIndex) && pageIndex !== props.pageIndex) {
+           // Dropped on different page
+           const oldPageElement = document.getElementById(`page-${props.pageIndex}`);
+           if (oldPageElement) {
+              const oldRect = oldPageElement.getBoundingClientRect();
+              const newRect = pageElement.getBoundingClientRect();
+              
+              const dxPage = (oldRect.left - newRect.left) / props.zoom;
+              const dyPage = (oldRect.top - newRect.top) / props.zoom;
+
+              const idsToMove = (store.selectedElementIds.length > 1 && store.selectedElementIds.includes(props.element.id))
+                  ? [...store.selectedElementIds]
+                  : [props.element.id];
+
+              idsToMove.forEach(id => {
+                  const page = store.pages[props.pageIndex];
+                  const el = page.elements.find(e => e.id === id);
+                  if (el) {
+                      store.moveElementToPage(id, pageIndex, el.x + dxPage, el.y + dyPage);
+                  }
+              });
+           }
+        } else {
+            // Same page, enforce constraint
+            if (store.selectedElementIds.length > 1 && store.selectedElementIds.includes(props.element.id)) {
+                 store.moveSelectedElements(props.element.id, props.element.x, props.element.y, false, true);
+            } else {
+                 store.moveElementWithSnap(props.element.id, props.element.x, props.element.y, false, true);
+            }
+        }
+     }
+  }
+
   // If we didn't drag (was a click), and it wasn't a multi-select action,
   // we should now ensure this element is exclusively selected.
   // This handles the "Click to select single item from group" case.

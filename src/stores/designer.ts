@@ -357,7 +357,7 @@ export const useDesignerStore = defineStore('designer', {
     setShowCornerMarkers(show: boolean) {
       this.showCornerMarkers = show;
     },
-    getSnapPosition(el: PrintElement, nx: number, ny: number, isKeyboard: boolean = false) {
+    getSnapPosition(el: PrintElement, nx: number, ny: number, isKeyboard: boolean = false, constrain: boolean = true) {
       const threshold = 5;
       let x = nx;
       let y = ny;
@@ -422,18 +422,20 @@ export const useDesignerStore = defineStore('designer', {
       }
 
       // Clamp to canvas
-      x = Math.min(Math.max(0, x), maxX);
-      y = Math.min(Math.max(0, y), maxY);
+      if (constrain) {
+        x = Math.min(Math.max(0, x), maxX);
+        y = Math.min(Math.max(0, y), maxY);
+      }
 
       return { x, y, highlightedGuideId, highlightedEdge };
     },
-    moveElementWithSnap(id: string, x: number, y: number, createSnapshot: boolean = true) {
+    moveElementWithSnap(id: string, x: number, y: number, createSnapshot: boolean = true, constrain: boolean = true) {
       for (const page of this.pages) {
         const index = page.elements.findIndex(e => e.id === id);
         if (index !== -1) {
           const el = page.elements[index];
           if (el.locked) return; // Prevent moving locked element
-          const snapped = this.getSnapPosition(el, x, y);
+          const snapped = this.getSnapPosition(el, x, y, false, constrain);
           this.setHighlightedGuide(snapped.highlightedGuideId || null);
           this.setHighlightedEdge(snapped.highlightedEdge || null);
           this.updateElement(id, { x: snapped.x, y: snapped.y }, createSnapshot);
@@ -441,7 +443,7 @@ export const useDesignerStore = defineStore('designer', {
         }
       }
     },
-    moveSelectedElements(primaryId: string, x: number, y: number, createSnapshot: boolean = true) {
+    moveSelectedElements(primaryId: string, x: number, y: number, createSnapshot: boolean = true, constrain: boolean = true) {
       if (createSnapshot) {
         this.snapshot();
       }
@@ -470,7 +472,7 @@ export const useDesignerStore = defineStore('designer', {
       if (!primaryElement || primaryElement.locked) return;
 
       // 2. Calculate snap for primary element
-      const snapped = this.getSnapPosition(primaryElement, x, y);
+      const snapped = this.getSnapPosition(primaryElement, x, y, false, constrain);
       
       this.setHighlightedGuide(snapped.highlightedGuideId || null);
       this.setHighlightedEdge(snapped.highlightedEdge || null);
@@ -482,31 +484,33 @@ export const useDesignerStore = defineStore('designer', {
       if (dx === 0 && dy === 0) return;
 
       // 4. Constrain delta to ensure no element leaves the canvas
-      for (const item of movableElements) {
-         const el = item.element;
-         // Constrain X
-         if (dx > 0) {
-           const maxRight = this.canvasSize.width - el.width;
-           if (el.x + dx > maxRight) {
-             dx = maxRight - el.x;
+      if (constrain) {
+        for (const item of movableElements) {
+           const el = item.element;
+           // Constrain X
+           if (dx > 0) {
+             const maxRight = this.canvasSize.width - el.width;
+             if (el.x + dx > maxRight) {
+               dx = maxRight - el.x;
+             }
+           } else if (dx < 0) {
+             if (el.x + dx < 0) {
+               dx = -el.x;
+             }
            }
-         } else if (dx < 0) {
-           if (el.x + dx < 0) {
-             dx = -el.x;
+  
+           // Constrain Y
+           if (dy > 0) {
+             const maxBottom = this.canvasSize.height - el.height;
+             if (el.y + dy > maxBottom) {
+               dy = maxBottom - el.y;
+             }
+           } else if (dy < 0) {
+             if (el.y + dy < 0) {
+               dy = -el.y;
+             }
            }
-         }
-
-         // Constrain Y
-         if (dy > 0) {
-           const maxBottom = this.canvasSize.height - el.height;
-           if (el.y + dy > maxBottom) {
-             dy = maxBottom - el.y;
-           }
-         } else if (dy < 0) {
-           if (el.y + dy < 0) {
-             dy = -el.y;
-           }
-         }
+        }
       }
 
       if (dx === 0 && dy === 0) return;
@@ -617,11 +621,49 @@ export const useDesignerStore = defineStore('designer', {
         }
       }
     },
-    addElement(element: Omit<PrintElement, 'id'>) {
+    addElement(element: Omit<PrintElement, 'id'>, pageIndex?: number) {
       this.snapshot();
       const newElement = { ...element, id: uuidv4() };
-      this.pages[this.currentPageIndex].elements.push(newElement);
+      const targetPageIdx = pageIndex !== undefined && pageIndex >= 0 && pageIndex < this.pages.length 
+        ? pageIndex 
+        : this.currentPageIndex;
+      this.pages[targetPageIdx].elements.push(newElement);
       this.selectedElementId = newElement.id;
+      this.currentPageIndex = targetPageIdx;
+    },
+    moveElementToPage(id: string, targetPageIndex: number, x: number, y: number) {
+       this.snapshot();
+       let sourcePageIndex = -1;
+       let elementIndex = -1;
+       let element: PrintElement | undefined;
+       
+       for (let i = 0; i < this.pages.length; i++) {
+         const idx = this.pages[i].elements.findIndex(e => e.id === id);
+         if (idx !== -1) {
+           sourcePageIndex = i;
+           elementIndex = idx;
+           element = this.pages[i].elements[idx];
+           break;
+         }
+       }
+
+       if (!element || sourcePageIndex === -1) return;
+       
+       // Remove from source
+       this.pages[sourcePageIndex].elements.splice(elementIndex, 1);
+       
+       // Update position
+       element.x = x;
+       element.y = y;
+       
+       // Add to target
+       if (targetPageIndex >= 0 && targetPageIndex < this.pages.length) {
+         this.pages[targetPageIndex].elements.push(element);
+         this.currentPageIndex = targetPageIndex;
+       } else {
+         // Fallback: put it back
+         this.pages[sourcePageIndex].elements.push(element);
+       }
     },
     updateElement(id: string, updates: Partial<PrintElement>, createSnapshot: boolean = true) {
       if (createSnapshot) {

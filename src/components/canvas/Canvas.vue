@@ -75,6 +75,11 @@ const pageStyle = computed(() => ({
   backgroundColor: store.canvasBackground
 }));
 
+const draggingPageIndex = computed(() => {
+  if (!store.isDragging || !store.selectedElementId) return -1;
+  return store.pages.findIndex(p => p.elements.some(e => e.id === store.selectedElementId));
+});
+
 // Selection box state
 const isBoxSelecting = ref(false);
 const boxSelectionStart = ref({ x: 0, y: 0 });
@@ -307,7 +312,7 @@ try {
 }` : undefined
   };
 
-  store.addElement(newElement);
+  store.addElement(newElement, pageIndex);
 };
 
 const handleDragOver = (event: DragEvent) => {
@@ -454,7 +459,10 @@ const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
       :key="page.id"
       :id="`page-${index}`"
       class="print-page shadow-lg relative overflow-hidden transition-all"
-      :style="pageStyle"
+      :style="[pageStyle, { 
+        overflow: draggingPageIndex === index ? 'visible' : 'hidden', 
+        zIndex: draggingPageIndex === index ? 50 : 1 
+      }]"
       @drop="(e) => handleDrop(e, index)"
       @dragover="handleDragOver"
       @mousedown="(e) => handlePageMouseDown(e, index)"
@@ -521,6 +529,7 @@ const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
         :element="element"
         :is-selected="store.selectedElementId === element.id || store.selectedElementIds.includes(element.id)"
         :zoom="zoom"
+        :page-index="index"
       >
         <component :is="getComponent(element.type)" :element="element" :page-index="index" :total-pages="pages.length" />
       </ElementWrapper>
