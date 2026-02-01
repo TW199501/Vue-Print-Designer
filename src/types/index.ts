@@ -151,7 +151,7 @@ export interface PropertyFieldOption {
 
 export interface PropertyField {
   label: string;
-  type: 'number' | 'text' | 'textarea' | 'color' | 'action' | 'select' | 'switch' | 'code';
+  type: 'number' | 'text' | 'textarea' | 'color' | 'action' | 'select' | 'switch' | 'code' | 'image';
   target: 'element' | 'style' | 'data';
   key?: string;
   placeholder?: string;

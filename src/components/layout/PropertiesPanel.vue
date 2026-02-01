@@ -16,7 +16,7 @@ import PropertyInput from '@/components/properties/PropertyInput.vue';
 import PropertySelect from '@/components/properties/PropertySelect.vue';
 import PropertyColor from '@/components/properties/PropertyColor.vue';
 import PropertyCode from '@/components/properties/PropertyCode.vue';
-import Lock from '~icons/material-symbols/lock';
+import PropertyImage from '@/components/properties/PropertyImage.vue';
 
 const store = useDesignerStore();
 const element = computed(() => store.selectedElement);
@@ -332,6 +332,16 @@ const handleFocusOut = (e: FocusEvent) => {
                   v-else-if="field.type === 'color'"
                   :label="field.label"
                   :disabled="isLocked"
+                  :value="getFieldValue(field)"
+                  @update:value="(v) => handleFieldChange(field, v)"
+                />
+
+                <!-- Image Upload -->
+                <PropertyImage
+                  v-else-if="field.type === 'image'"
+                  :label="field.label"
+                  :disabled="isLocked"
+                  :placeholder="field.placeholder"
                   :value="getFieldValue(field)"
                   @update:value="(v) => handleFieldChange(field, v)"
                 />

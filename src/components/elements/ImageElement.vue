@@ -14,7 +14,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       title: 'Image Source',
       tab: 'properties',
       fields: [
-        { label: 'Image URL', type: 'text', target: 'element', key: 'content', placeholder: 'https://...' }
+        { label: 'Image Source', type: 'image', target: 'element', key: 'content', placeholder: 'https://... or upload image' }
       ]
     },
     {
