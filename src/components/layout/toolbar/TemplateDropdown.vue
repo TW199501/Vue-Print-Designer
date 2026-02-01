@@ -173,7 +173,7 @@ const handleModalSave = (name: string) => {
       <ChevronDown class="w-4 h-4 text-gray-500 flex-shrink-0" />
     </button>
 
-    <div v-if="isOpen" class="absolute top-full left-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-[100] flex flex-col max-h-[500px]">
+    <div v-if="isOpen" class="absolute top-full left-0 mt-2 w-[220px] bg-white rounded-lg shadow-xl border border-gray-200 z-[100] flex flex-col max-h-[500px]">
       <div class="flex-1 overflow-y-auto py-1">
         <div v-if="store.templates.length === 0" class="px-4 py-3 text-sm text-gray-500 text-center">
           No templates yet
@@ -182,7 +182,7 @@ const handleModalSave = (name: string) => {
         <div 
           v-for="t in store.templates" 
           :key="t.id"
-          class="relative group flex items-center justify-between px-3 py-2 hover:bg-gray-50 cursor-pointer"
+          class="relative group border-b border-gray-100 last:border-b-0 flex items-center justify-between px-3 py-2 hover:bg-gray-50 cursor-pointer"
           @click="selectTemplate(t)"
         >
           <div class="flex items-center gap-2 overflow-hidden flex-1">
@@ -208,7 +208,7 @@ const handleModalSave = (name: string) => {
           class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
         >
           <Add class="w-4 h-4" />
-          Create New Template
+          New Template
         </button>
       </div>
     </div>
