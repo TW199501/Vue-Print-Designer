@@ -478,6 +478,7 @@ const handleFocusOut = (e: FocusEvent) => {
     :show="showCustomElementModal"
     :initial-name="customElementInitialName"
     title="Save Custom Element"
+    placeholder="Enter element name..."
     @close="showCustomElementModal = false"
     @save="onSaveCustomElement"
   />

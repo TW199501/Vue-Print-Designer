@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useDesignerStore } from '@/stores/designer';
 import Type from '~icons/material-symbols/text-fields';
 import Image from '~icons/material-symbols/image';
@@ -11,11 +11,24 @@ import CheckBoxOutlineBlank from '~icons/material-symbols/check-box-outline-blan
 import RadioButtonUnchecked from '~icons/material-symbols/radio-button-unchecked';
 import Star from '~icons/material-symbols/star';
 import Delete from '~icons/material-symbols/delete';
+import MoreVert from '~icons/material-symbols/more-vert';
+import Edit from '~icons/material-symbols/edit';
+import Copy from '~icons/material-symbols/content-copy';
 import { ElementType, type CustomElementTemplate } from '@/types';
+import TemplateNameModal from '@/components/layout/toolbar/TemplateNameModal.vue';
 
 const store = useDesignerStore();
 const activeTab = ref<'standard' | 'custom'>('standard');
 const customElements = computed(() => store.customElements);
+
+// Menu state
+const activeMenuId = ref<string | null>(null);
+const menuPosition = ref({ top: 0, left: 0 });
+
+// Modal state
+const showRenameModal = ref(false);
+const renameTargetId = ref<string | null>(null);
+const renameInitialName = ref('');
 
 const categories = [
   {
@@ -75,6 +88,60 @@ const getIcon = (type: ElementType) => {
     default: return Star;
   }
 };
+
+const toggleMenu = (event: MouseEvent, id: string) => {
+  event.stopPropagation();
+  if (activeMenuId.value === id) {
+    activeMenuId.value = null;
+  } else {
+    const button = event.currentTarget as HTMLElement;
+    const rect = button.getBoundingClientRect();
+    menuPosition.value = {
+      top: rect.bottom + 5,
+      left: rect.right - 128 // Align right edge
+    };
+    activeMenuId.value = id;
+  }
+};
+
+const closeMenu = () => {
+  activeMenuId.value = null;
+};
+
+const handleRename = (item: CustomElementTemplate) => {
+  activeMenuId.value = null;
+  renameTargetId.value = item.id;
+  renameInitialName.value = item.name;
+  showRenameModal.value = true;
+};
+
+const onRenameSave = (newName: string) => {
+  if (renameTargetId.value && newName) {
+    store.renameCustomElement(renameTargetId.value, newName);
+  }
+};
+
+const handleCopy = (item: CustomElementTemplate) => {
+  activeMenuId.value = null;
+  // Create a copy with a new ID and appended name
+  store.addCustomElement(`${item.name} Copy`, item.element);
+};
+
+const handleDelete = (item: CustomElementTemplate) => {
+  activeMenuId.value = null;
+  if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+    store.removeCustomElement(item.id);
+  }
+};
+
+// Close menu when clicking outside
+onMounted(() => {
+  document.addEventListener('click', closeMenu);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeMenu);
+});
 </script>
 
 <template>
@@ -139,15 +206,52 @@ const getIcon = (type: ElementType) => {
             <span class="text-sm font-medium text-gray-700 truncate w-full text-center" :title="item.name">{{ item.name }}</span>
             
             <button 
-              @click.stop="store.removeCustomElement(item.id)"
-              class="absolute top-1 right-1 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-              title="Delete"
+              @click="toggleMenu($event, item.id)"
+              class="absolute top-1 right-1 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
+              :class="{'opacity-100 bg-gray-100 text-gray-600': activeMenuId === item.id}"
+              title="More options"
             >
-              <Delete class="w-4 h-4" />
+              <MoreVert class="w-4 h-4" />
             </button>
           </div>
         </div>
       </template>
     </div>
+
+    <!-- Context Menu Portal -->
+    <Teleport to="body">
+      <div 
+        v-if="activeMenuId"
+        class="fixed w-32 bg-white rounded shadow-lg border border-gray-100 z-[2001] py-1"
+        :style="{
+          top: `${menuPosition.top}px`,
+          left: `${menuPosition.left}px`
+        }"
+        @click.stop
+      >
+        <template v-for="item in customElements" :key="item.id">
+          <template v-if="item.id === activeMenuId">
+            <button @click="handleRename(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+              <Edit class="w-3.5 h-3.5" /> Rename
+            </button>
+            <button @click="handleCopy(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+              <Copy class="w-3.5 h-3.5" /> Copy
+            </button>
+            <button @click="handleDelete(item)" class="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2">
+              <Delete class="w-3.5 h-3.5" /> Delete
+            </button>
+          </template>
+        </template>
+      </div>
+    </Teleport>
+
+    <TemplateNameModal
+      :show="showRenameModal"
+      :initial-name="renameInitialName"
+      title="Rename Custom Element"
+      placeholder="Enter element name..."
+      @close="showRenameModal = false"
+      @save="onRenameSave"
+    />
   </aside>
 </template>

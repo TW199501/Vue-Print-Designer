@@ -1257,6 +1257,13 @@ export const useDesignerStore = defineStore('designer', {
         this.saveCustomElements();
       }
     },
+    renameCustomElement(id: string, newName: string) {
+      const template = this.customElements.find(el => el.id === id);
+      if (template) {
+        template.name = newName;
+        this.saveCustomElements();
+      }
+    },
     saveCustomElements() {
       localStorage.setItem('print-designer-custom-elements', JSON.stringify(this.customElements));
     }
