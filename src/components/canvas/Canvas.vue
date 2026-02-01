@@ -132,10 +132,19 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
   const data = event.dataTransfer?.getData('application/json');
   if (!data) return;
 
-  const { type } = JSON.parse(data);
+  const { type, payload } = JSON.parse(data);
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
   const x = (event.clientX - rect.left) / store.zoom;
   const y = (event.clientY - rect.top) / store.zoom;
+
+  if (payload) {
+    store.addElement({
+      ...payload,
+      x,
+      y
+    }, pageIndex);
+    return;
+  }
 
   const widthMap: Partial<Record<ElementType, number>> = {
     [ElementType.PAGE_NUMBER]: 52,

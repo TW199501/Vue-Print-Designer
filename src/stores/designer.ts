@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
 import cloneDeep from 'lodash/cloneDeep';
-import { type DesignerState, type PrintElement, type Page, type Guide, ElementType } from '@/types';
+import { type DesignerState, type PrintElement, type Page, type Guide, ElementType, type CustomElementTemplate } from '@/types';
 
 export const useDesignerStore = defineStore('designer', {
   state: (): DesignerState => ({
     pages: [{ id: uuidv4(), elements: [] }],
     currentPageIndex: 0,
+    customElements: JSON.parse(localStorage.getItem('print-designer-custom-elements') || '[]'),
     selectedElementId: null,
     selectedElementIds: [],
     selectedGuideId: null,
@@ -1239,6 +1240,25 @@ export const useDesignerStore = defineStore('designer', {
       console.log('Group selected elements:', this.selectedElementIds);
       // TODO: Implement grouping logic
       alert('Grouping feature is under development');
+    },
+    addCustomElement(name: string, element: PrintElement) {
+      const template: CustomElementTemplate = {
+        id: uuidv4(),
+        name,
+        element: cloneDeep(element)
+      };
+      this.customElements.push(template);
+      this.saveCustomElements();
+    },
+    removeCustomElement(id: string) {
+      const index = this.customElements.findIndex(el => el.id === id);
+      if (index !== -1) {
+        this.customElements.splice(index, 1);
+        this.saveCustomElements();
+      }
+    },
+    saveCustomElements() {
+      localStorage.setItem('print-designer-custom-elements', JSON.stringify(this.customElements));
     }
   },
   getters: {

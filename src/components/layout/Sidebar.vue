@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useDesignerStore } from '@/stores/designer';
 import Type from '~icons/material-symbols/text-fields';
 import Image from '~icons/material-symbols/image';
 import Table from '~icons/material-symbols/table-chart';
@@ -8,9 +9,13 @@ import QrCode from '~icons/material-symbols/qr-code';
 import HorizontalRule from '~icons/material-symbols/horizontal-rule';
 import CheckBoxOutlineBlank from '~icons/material-symbols/check-box-outline-blank';
 import RadioButtonUnchecked from '~icons/material-symbols/radio-button-unchecked';
-import { ElementType } from '@/types';
+import Star from '~icons/material-symbols/star';
+import Delete from '~icons/material-symbols/delete';
+import { ElementType, type CustomElementTemplate } from '@/types';
 
+const store = useDesignerStore();
 const activeTab = ref<'standard' | 'custom'>('standard');
+const customElements = computed(() => store.customElements);
 
 const categories = [
   {
@@ -43,6 +48,31 @@ const handleDragStart = (event: DragEvent, type: ElementType) => {
   if (event.dataTransfer) {
     event.dataTransfer.setData('application/json', JSON.stringify({ type }));
     event.dataTransfer.effectAllowed = 'copy';
+  }
+};
+
+const handleDragStartCustom = (event: DragEvent, template: CustomElementTemplate) => {
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('application/json', JSON.stringify({ 
+      type: template.element.type,
+      payload: template.element
+    }));
+    event.dataTransfer.effectAllowed = 'copy';
+  }
+};
+
+const getIcon = (type: ElementType) => {
+  switch (type) {
+    case ElementType.TEXT: return Type;
+    case ElementType.IMAGE: return Image;
+    case ElementType.TABLE: return Table;
+    case ElementType.PAGE_NUMBER: return Type;
+    case ElementType.BARCODE: return Barcode;
+    case ElementType.QRCODE: return QrCode;
+    case ElementType.LINE: return HorizontalRule;
+    case ElementType.RECT: return CheckBoxOutlineBlank;
+    case ElementType.CIRCLE: return RadioButtonUnchecked;
+    default: return Star;
   }
 };
 </script>
@@ -94,8 +124,28 @@ const handleDragStart = (event: DragEvent, type: ElementType) => {
 
       <!-- Custom Elements Tab -->
       <template v-if="activeTab === 'custom'">
-        <div class="p-6 text-center">
-          <p class="text-sm text-gray-500">Custom elements coming soon...</p>
+        <div v-if="customElements.length === 0" class="p-6 text-center">
+          <p class="text-sm text-gray-500">No custom elements saved yet.</p>
+        </div>
+        <div v-else class="p-4 grid grid-cols-2 gap-3">
+          <div 
+            v-for="item in customElements" 
+            :key="item.id"
+            class="group relative flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-move transition-all"
+            draggable="true"
+            @dragstart="(e) => handleDragStartCustom(e, item)"
+          >
+            <component :is="getIcon(item.element.type)" class="w-8 h-8 text-gray-600 mb-2" />
+            <span class="text-sm font-medium text-gray-700 truncate w-full text-center" :title="item.name">{{ item.name }}</span>
+            
+            <button 
+              @click.stop="store.removeCustomElement(item.id)"
+              class="absolute top-1 right-1 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              title="Delete"
+            >
+              <Delete class="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </template>
     </div>

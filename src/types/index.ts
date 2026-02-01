@@ -103,9 +103,16 @@ export interface Page {
   elements: PrintElement[];
 }
 
+export interface CustomElementTemplate {
+  id: string;
+  name: string;
+  element: PrintElement;
+}
+
 export interface DesignerState {
   pages: Page[];
   currentPageIndex: number;
+  customElements: CustomElementTemplate[];
   selectedElementId: string | null;
   selectedElementIds: string[];
   selectedGuideId: string | null;

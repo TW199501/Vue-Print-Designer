@@ -20,6 +20,7 @@ import PropertyImage from '@/components/properties/PropertyImage.vue';
 import Lock from '~icons/material-symbols/lock';
 import ContentCopy from '~icons/material-symbols/content-copy';
 import Check from '~icons/material-symbols/check';
+import Save from '~icons/material-symbols/save';
 
 const store = useDesignerStore();
 const element = computed(() => store.selectedElement);
@@ -67,6 +68,14 @@ const copyId = () => {
     setTimeout(() => {
       copied.value = false;
     }, 2000);
+  }
+};
+
+const handleSaveCustom = () => {
+  if (!element.value) return;
+  const name = prompt('Enter a name for this custom element:', element.value.type);
+  if (name) {
+    store.addCustomElement(name, element.value);
   }
 };
 
@@ -426,6 +435,15 @@ const handleFocusOut = (e: FocusEvent) => {
              </div>
           </div>
           
+          <button
+            @click="handleSaveCustom"
+            :disabled="isLocked"
+            class="w-full py-2 bg-white text-blue-600 rounded border border-blue-200 hover:bg-blue-50 transition-colors text-sm font-medium flex items-center justify-center gap-2 mb-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+          >
+            <Save class="w-4 h-4" />
+            Save as Custom Element
+          </button>
+
           <button
             @click="handleDeleteSelected"
             :disabled="isLocked"
