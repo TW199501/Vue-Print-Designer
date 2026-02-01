@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   label: string;
@@ -9,6 +10,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['update:value']);
+const { t } = useI18n();
 const fileInput = ref<HTMLInputElement | null>(null);
 const errorMessage = ref('');
 
@@ -27,7 +29,7 @@ const handleFileChange = (event: Event) => {
 
   // Check size (2MB = 2 * 1024 * 1024 bytes)
   if (file.size > 2 * 1024 * 1024) {
-    errorMessage.value = 'Image size must be less than 2MB';
+    errorMessage.value = t('properties.image.sizeError');
     // Clear input so same file can be selected again
     target.value = ''; 
     return;
@@ -39,7 +41,7 @@ const handleFileChange = (event: Event) => {
     emit('update:value', result);
   };
   reader.onerror = () => {
-    errorMessage.value = 'Failed to read file';
+    errorMessage.value = t('properties.image.readError');
   };
   reader.readAsDataURL(file);
   
@@ -63,7 +65,7 @@ const handleTextInput = (e: Event) => {
         type="text"
         :value="value || ''"
         :disabled="disabled"
-        :placeholder="placeholder || 'https://... or data:image/...'"
+        :placeholder="placeholder || t('properties.image.urlPlaceholder')"
         @input="handleTextInput"
         class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-500"
       />
@@ -79,9 +81,9 @@ const handleTextInput = (e: Event) => {
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
           </svg>
-          Upload Image
+          {{ t('properties.image.uploadBtn') }}
         </button>
-        <span class="text-[10px] text-gray-400 text-center">Max 2MB, converts to Base64</span>
+        <span class="text-[10px] text-gray-400 text-center">{{ t('properties.image.uploadTip') }}</span>
       </div>
 
       <!-- Error Message -->

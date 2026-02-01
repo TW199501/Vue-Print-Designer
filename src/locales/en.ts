@@ -277,6 +277,13 @@ export default {
       itf14: 'ITF-14',
       msi: 'MSI',
       pharmacode: 'Pharmacode'
+    },
+    image: {
+      urlPlaceholder: 'https://... or data:image/...',
+      uploadBtn: 'Upload Image',
+      uploadTip: 'Max 2MB, converts to Base64',
+      sizeError: 'Image size must be less than 2MB',
+      readError: 'Failed to read file'
     }
   },
   shortcuts: {

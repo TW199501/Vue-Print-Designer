@@ -290,6 +290,13 @@ export default {
       itf14: 'ITF-14',
       msi: 'MSI',
       pharmacode: 'Pharmacode'
+    },
+    image: {
+      urlPlaceholder: '请输入图片地址或 Base64...',
+      uploadBtn: '上传图片',
+      uploadTip: '最大 2MB，自动转换为 Base64',
+      sizeError: '图片大小不能超过 2MB',
+      readError: '读取文件失败'
     }
   },
   shortcuts: {
