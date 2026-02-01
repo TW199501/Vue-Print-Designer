@@ -141,7 +141,8 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     store.addElement({
       ...payload,
       x,
-      y
+      y,
+      locked: false
     }, pageIndex);
     return;
   }
