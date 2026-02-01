@@ -477,7 +477,7 @@ const getGlobalElements = () => {
           <AddIcon />
         </button>
         <button 
-          class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow hover:bg-green-50 hover:text-green-600 text-gray-600 transition-colors"
+          class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow hover:bg-blue-50 hover:text-blue-600 text-gray-600 transition-colors"
           title="Copy Page"
           @click="store.copyPage(index)"
         >
@@ -485,7 +485,7 @@ const getGlobalElements = () => {
         </button>
         <button 
           v-if="store.copiedPage"
-          class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow hover:bg-green-50 hover:text-green-600 text-gray-600 transition-colors"
+          class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow hover:bg-blue-50 hover:text-blue-600 text-gray-600 transition-colors"
           title="Paste Page"
           @click="store.pastePage(index)"
         >
