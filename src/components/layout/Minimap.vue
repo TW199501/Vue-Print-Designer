@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { ElementType } from '@/types';
 
 const props = defineProps<{
@@ -22,11 +22,26 @@ const emit = defineEmits<{
 }>();
 
 const WIDTH = 180;
+const MIN_WIDTH = 60;
+const MAX_HEIGHT = 300;
 const GAP = 32; // match the gap in PrintDesigner (gap-8)
 
 const ratio = computed(() => {
-  if (props.scrollWidth <= 0) return 0.1;
-  return WIDTH / props.scrollWidth;
+  if (props.scrollWidth <= 0 || props.scrollHeight <= 0) return 0.1;
+  
+  let r = WIDTH / props.scrollWidth;
+  
+  // First try to fit within max height
+  if (props.scrollHeight * r > MAX_HEIGHT) {
+    r = MAX_HEIGHT / props.scrollHeight;
+  }
+  
+  // Then enforce min width (overrides max height constraint)
+  if (props.scrollWidth * r < MIN_WIDTH) {
+    r = MIN_WIDTH / props.scrollWidth;
+  }
+  
+  return r;
 });
 
 const height = computed(() => {
@@ -41,9 +56,27 @@ const viewportStyle = computed(() => ({
 }));
 
 const isDragging = ref(false);
+const scrollContainer = ref<HTMLElement | null>(null);
+
+// Sync scroll container with viewport position
+watch(() => props.scrollTop, () => {
+  if (!scrollContainer.value || isDragging.value) return;
+  
+  const rectTop = props.scrollTop * ratio.value;
+  const rectHeight = props.viewportHeight * ratio.value;
+  const containerHeight = scrollContainer.value.clientHeight;
+  const currentScroll = scrollContainer.value.scrollTop;
+  
+  // If viewport rect is out of view, scroll to keep it visible
+  if (rectTop < currentScroll || rectTop + rectHeight > currentScroll + containerHeight) {
+    // Center the viewport rect in the container
+    scrollContainer.value.scrollTop = rectTop - containerHeight / 2 + rectHeight / 2;
+  }
+});
 
 const handleMouseDown = (e: MouseEvent) => {
   e.preventDefault();
+  // Ensure we are working with the content container, not the scroll wrapper
   const container = e.currentTarget as HTMLElement;
   const rect = container.getBoundingClientRect();
   const x = e.clientX - rect.left;
@@ -103,11 +136,22 @@ const handleMouseDown = (e: MouseEvent) => {
 
 <template>
   <div 
-    class="bg-white border border-gray-200 shadow-lg rounded overflow-hidden relative select-none box-content"
-    :style="{ width: `${WIDTH}px`, height: `${height}px` }"
-    @mousedown="handleMouseDown"
+    ref="scrollContainer"
+    class="bg-white border border-gray-200 shadow-lg rounded max-h-[300px] overflow-y-auto overflow-x-hidden box-content no-scrollbar"
+    :style="{  
+      width: `${props.scrollWidth * ratio}px`,
+      maxWidth: `${WIDTH}px`
+    }"
   >
-    <!-- Background -->
+    <div 
+      class="relative select-none box-content overflow-hidden"
+      :style="{ 
+        width: `${props.scrollWidth * ratio}px`, 
+        height: `${height}px`,
+      }"
+      @mousedown="handleMouseDown"
+    >
+      <!-- Background -->
     <div class="absolute inset-0 bg-gray-100"></div>
 
     <!-- Pages -->
@@ -180,5 +224,16 @@ const handleMouseDown = (e: MouseEvent) => {
       class="absolute border-2 border-blue-500 bg-blue-500/10 cursor-move z-[1000]"
       :style="viewportStyle"
     ></div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+</style>
