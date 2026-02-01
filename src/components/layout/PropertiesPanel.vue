@@ -18,6 +18,8 @@ import PropertyColor from '@/components/properties/PropertyColor.vue';
 import PropertyCode from '@/components/properties/PropertyCode.vue';
 import PropertyImage from '@/components/properties/PropertyImage.vue';
 import Lock from '~icons/material-symbols/lock';
+import ContentCopy from '~icons/material-symbols/content-copy';
+import Check from '~icons/material-symbols/check';
 
 const store = useDesignerStore();
 const element = computed(() => store.selectedElement);
@@ -56,6 +58,17 @@ const canSplitCells = computed(() => {
 });
 
 const activeTab = ref<'properties' | 'style' | 'advanced'>('properties');
+const copied = ref(false);
+
+const copyId = () => {
+  if (element.value) {
+    navigator.clipboard.writeText(element.value.id);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  }
+};
 
 const handleChange = (key: string, value: any) => {
   if (element.value) {
@@ -390,10 +403,26 @@ const handleFocusOut = (e: FocusEvent) => {
         <!-- Advanced Tab Content -->
         <div v-if="activeTab === 'advanced'" class="space-y-4">
           <div class="p-4 bg-gray-50 rounded border border-gray-200">
-             <h4 class="text-sm font-medium text-gray-700 mb-2">Element Info</h4>
-             <div class="text-xs text-gray-500 space-y-1">
-               <p>ID: <span class="font-mono">{{ element.id.slice(0, 8) }}...</span></p>
-               <p>Type: {{ element.type }}</p>
+             <h4 class="text-sm font-medium text-gray-700 mb-3">Element Info</h4>
+             <div class="space-y-3">
+               <div>
+                 <p class="text-xs text-gray-500 mb-1.5 font-medium">ID</p>
+                 <div class="flex items-center gap-2 bg-white border border-gray-200 rounded px-2 py-1.5 hover:border-blue-400 transition-colors">
+                   <span class="font-mono text-xs text-gray-600 flex-1 truncate select-all" :title="element.id">{{ element.id }}</span>
+                   <button 
+                     @click="copyId"
+                     class="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded hover:bg-gray-100 flex-shrink-0"
+                     :title="copied ? 'Copied!' : 'Copy ID'"
+                   >
+                     <Check v-if="copied" class="w-3.5 h-3.5 text-green-500" />
+                     <ContentCopy v-else class="w-3.5 h-3.5" />
+                   </button>
+                 </div>
+               </div>
+               <div class="text-xs text-gray-500 flex items-center justify-between border-t border-gray-100 pt-2">
+                 <span class="font-medium">Type</span> 
+                 <span class="px-2 py-0.5 bg-gray-100 rounded text-gray-600">{{ element.type }}</span>
+               </div>
              </div>
           </div>
           
