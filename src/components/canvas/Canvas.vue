@@ -191,7 +191,7 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     tfootRepeat: type === ElementType.TABLE ? true : undefined,
     autoPaginate: type === ElementType.TABLE ? true : undefined,
     footerData: type === ElementType.TABLE ? [
-      { id: { value: 'Page Sum' }, total: { value: '', field: '{#pageSum}' } },
+      { id: { value: 'Page Sum' }, qty: { value: '', field: '{#pageQty}' }, total: { value: '', field: '{#pageSum}' } },
       { id: { value: 'Total' }, qty: { value: '', field: '{#totalQty}' }, total: { value: '', field: '{#totalSum}' } },
       { id: { value: 'In Words' }, total: { value: '', field: '{#totalCap}' } }
     ] : undefined,
@@ -266,11 +266,23 @@ try {
                    
                    return { value: displayVal, printValue: printVal };
                }
+
+               // For {#pageQty}
+               if (v.includes('{#pageQty}')) {
+                   const displayVal = v.replace('{#pageQty}', String(totalQty));
+                   // printValue keeps {#pageQty} but resolves other globals
+                   const printVal = v.replace('{#totalSum}', totalAmount.toFixed(2))
+                                   .replace('{#totalQty}', String(totalQty))
+                                   .replace('{#totalCap}', digitUppercase(totalAmount)); 
+                   
+                   return { value: displayVal, printValue: printVal };
+               }
            }
            
            // Page replacements (Page Sum)
            if (typeof type !== 'undefined' && type === 'page') {
                if (v.includes('{#pageSum}')) return v.replace('{#pageSum}', totalAmount.toFixed(2));
+               if (v.includes('{#pageQty}')) return v.replace('{#pageQty}', String(totalQty));
            }
            return v;
         };
