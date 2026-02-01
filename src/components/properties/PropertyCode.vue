@@ -2,6 +2,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { Editor } from '@guolao/vue-monaco-editor';
 import { useDesignerStore } from '@/stores/designer';
+import CodeEditorModal from '@/components/common/CodeEditorModal.vue';
 import OpenInFull from '~icons/material-symbols/open-in-full';
 import Close from '~icons/material-symbols/close';
 
@@ -35,39 +36,21 @@ const editorOptions = {
   contextmenu: false,
 };
 
-const expandedEditorOptions = {
-  ...editorOptions,
-  minimap: { enabled: true },
-  fontSize: 14,
-  contextmenu: true,
-};
-
 const handleChange = (val: string | undefined) => {
   emit('update:value', val || '');
 };
 
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value;
-  store.setDisableGlobalShortcuts(isExpanded.value);
 };
 
-const handleKeydown = (e: KeyboardEvent) => {
-  if (isExpanded.value && e.key === 'Escape') {
-    toggleExpand();
-  }
+const handleModalClose = () => {
+  isExpanded.value = false;
 };
 
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
-  // Ensure we re-enable shortcuts if component is unmounted while modal is open
-  if (isExpanded.value) {
-    store.setDisableGlobalShortcuts(false);
-  }
-});
+const handleModalUpdate = (val: string) => {
+  emit('update:value', val);
+};
 </script>
 
 <template>
@@ -103,43 +86,15 @@ onUnmounted(() => {
     </div>
 
     <!-- Expanded Modal -->
-    <Teleport to="body">
-      <div v-if="isExpanded" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50" @click.self="toggleExpand">
-        <div class="bg-white rounded-lg shadow-xl w-[60vw] h-[80vh] flex flex-col overflow-hidden animate-fade-in">
-          <!-- Header -->
-          <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
-            <div class="flex items-center gap-2">
-              <h3 class="text-lg font-semibold text-gray-800">{{ label }}</h3>
-              <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-600 text-xs font-mono">{{ language }}</span>
-            </div>
-            <button @click="toggleExpand" class="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
-              <Close class="w-4 h-4" />
-            </button>
-          </div>
-
-          <!-- Content -->
-          <div class="flex-1 overflow-hidden relative">
-            <Editor
-              :value="value"
-              :language="language"
-              :options="{ ...expandedEditorOptions, readOnly: disabled }"
-              @update:value="handleChange"
-              class="w-full h-full"
-            />
-          </div>
-
-          <!-- Footer -->
-          <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end rounded-b-lg">
-            <button 
-              @click="toggleExpand"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <CodeEditorModal
+      v-model:visible="isExpanded"
+      :title="label"
+      :value="value"
+      :language="language"
+      :read-only="disabled"
+      @update:value="handleModalUpdate"
+      @close="handleModalClose"
+    />
   </div>
 </template>
 
@@ -147,14 +102,5 @@ onUnmounted(() => {
 /* Ensure the resize handle works */
 .resize-y {
   resize: vertical; 
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
 }
 </style>
