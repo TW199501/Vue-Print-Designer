@@ -150,15 +150,8 @@ const handleMouseUp = (e: MouseEvent) => {
         const pageId = pageElement.id; 
         const pageIndex = parseInt(pageId.replace('page-', ''), 10);
         
-        // Check if element is in header/footer zone (global element) based on its INITIAL position
-        // This prevents falsely identifying an element as global just because it was dragged to a position > canvas height (e.g. to next page)
-        const isGlobalElement = props.pageIndex === 0 && (
-           initialTop < store.headerHeight || 
-           initialTop >= store.canvasSize.height - store.footerHeight
-        );
-
-        if (!isNaN(pageIndex) && pageIndex !== props.pageIndex && !isGlobalElement) {
-           // Dropped on different page (and not a global element)
+        if (!isNaN(pageIndex) && pageIndex !== props.pageIndex) {
+           // Dropped on different page
            const oldPageElement = document.getElementById(`page-${props.pageIndex}`);
            if (oldPageElement) {
               const oldRect = oldPageElement.getBoundingClientRect();
