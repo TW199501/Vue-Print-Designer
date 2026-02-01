@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import X from '~icons/material-symbols/close';
+import KeyboardIcon from '~icons/material-symbols/keyboard';
+import InfoIcon from '~icons/material-symbols/info';
 
 defineProps<{
   show: boolean
@@ -9,73 +12,150 @@ const emit = defineEmits<{
   (e: 'update:show', value: boolean): void
 }>();
 
+const activeTab = ref<'shortcuts' | 'about'>('shortcuts');
+
 const close = () => {
   emit('update:show', false);
 };
+
+const dependencies = [
+  { name: '@guolao/vue-monaco-editor', version: '^1.6.0' },
+  { name: 'canvg', version: '^4.0.3' },
+  { name: 'dom-to-image-more', version: '^3.7.2' },
+  { name: 'jsbarcode', version: '^3.12.3' },
+  { name: 'jspdf', version: '^2.5.2' },
+  { name: 'lodash', version: '^4.17.21' },
+  { name: 'pinia', version: '^2.3.0' },
+  { name: 'qrcode', version: '^1.5.4' },
+  { name: 'uuid', version: '^11.0.3' },
+  { name: 'vue', version: '^3.5.13' }
+];
+
+const version = '0.0.0';
 </script>
 
 <template>
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50" @click.self="close">
-      <div class="bg-white rounded-lg shadow-xl w-[600px] max-w-full max-h-[80vh] flex flex-col">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-800">Keyboard Shortcuts & Help</h3>
-          <button @click="close" class="text-gray-500 hover:text-gray-700">
-            <X class="w-5 h-5" />
-          </button>
+      <div class="bg-white rounded-lg shadow-xl w-[700px] max-w-full h-[500px] flex overflow-hidden">
+        <!-- Sidebar Tabs -->
+        <div class="w-48 bg-gray-50 border-r border-gray-200 flex flex-col">
+          <div class="h-[60px] flex items-center px-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">Help Center</h3>
+          </div>
+          <div class="flex-1 py-2">
+            <button
+              @click="activeTab = 'shortcuts'"
+              class="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors text-sm"
+              :class="activeTab === 'shortcuts' ? 'bg-white text-blue-600 border-l-4 border-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-4 border-transparent'"
+            >
+              <KeyboardIcon class="w-5 h-5" />
+              Shortcuts
+            </button>
+            <button
+              @click="activeTab = 'about'"
+              class="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors text-sm"
+              :class="activeTab === 'about' ? 'bg-white text-blue-600 border-l-4 border-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-4 border-transparent'"
+            >
+              <InfoIcon class="w-5 h-5" />
+              About
+            </button>
+          </div>
         </div>
-        <div class="p-6 overflow-y-auto">
-          <div class="grid grid-cols-2 gap-x-8 gap-y-6 text-sm">
-            <!-- General Section -->
-            <div>
-              <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">General</h4>
-              <ul class="space-y-2 text-gray-600">
-                <li class="flex justify-between items-center"><span>Save</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + S</kbd></li>
-                <li class="flex justify-between items-center"><span>Print</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + P</kbd></li>
-                <li class="flex justify-between items-center"><span>Export PDF</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Shift + E</kbd></li>
-                <li class="flex justify-between items-center"><span>Preview</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Shift + P</kbd></li>
-                <li class="flex justify-between items-center"><span>View JSON</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Shift + J</kbd></li>
-                <li class="flex justify-between items-center"><span>Undo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Z</kbd></li>
-                <li class="flex justify-between items-center"><span>Redo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Y</kbd></li>
-                <li class="flex justify-between items-center"><span>Open Help</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + H</kbd></li>
-                <li class="flex justify-between items-center"><span>Close Modal</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Esc</kbd></li>
-              </ul>
-            </div>
-            
-            <!-- Editing Section -->
-            <div>
-              <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">Editing</h4>
-              <ul class="space-y-2 text-gray-600">
-                <li class="flex justify-between items-center"><span>Copy</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + C</kbd></li>
-                <li class="flex justify-between items-center"><span>Cut</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + X</kbd></li>
-                <li class="flex justify-between items-center"><span>Paste</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + V</kbd></li>
-                <li class="flex justify-between items-center"><span>Delete</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Delete</kbd></li>
-                <li class="flex justify-between items-center"><span>Select All</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + A</kbd></li>
-                <li class="flex justify-between items-center"><span>Multi-select</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Click</kbd></li>
-                <li class="flex justify-between items-center"><span>Lock/Unlock</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + L</kbd></li>
-              </ul>
+
+        <!-- Content Area -->
+        <div class="flex-1 flex flex-col min-w-0">
+          <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">
+              {{ activeTab === 'shortcuts' ? 'Keyboard Shortcuts' : 'About Vue Print Designer' }}
+            </h3>
+            <button @click="close" class="text-gray-500 hover:text-gray-700">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
+          
+          <div class="flex-1 overflow-y-auto p-6">
+            <!-- Shortcuts Tab -->
+            <div v-if="activeTab === 'shortcuts'" class="space-y-6">
+              <div class="grid grid-cols-1 gap-6 text-sm">
+                <!-- General Section -->
+                <div>
+                  <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">General</h4>
+                  <ul class="space-y-2 text-gray-600">
+                    <li class="flex justify-between items-center"><span>Save</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + S</kbd></li>
+                    <li class="flex justify-between items-center"><span>Print</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + P</kbd></li>
+                    <li class="flex justify-between items-center"><span>Export PDF</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Shift + E</kbd></li>
+                    <li class="flex justify-between items-center"><span>Preview</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Shift + P</kbd></li>
+                    <li class="flex justify-between items-center"><span>View JSON</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Shift + J</kbd></li>
+                    <li class="flex justify-between items-center"><span>Undo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Z</kbd></li>
+                    <li class="flex justify-between items-center"><span>Redo</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Y</kbd></li>
+                    <li class="flex justify-between items-center"><span>Open Help</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + H</kbd></li>
+                    <li class="flex justify-between items-center"><span>Close Modal</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Esc</kbd></li>
+                  </ul>
+                </div>
+                
+                <!-- Editing Section -->
+                <div>
+                  <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">Editing</h4>
+                  <ul class="space-y-2 text-gray-600">
+                    <li class="flex justify-between items-center"><span>Copy</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + C</kbd></li>
+                    <li class="flex justify-between items-center"><span>Cut</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + X</kbd></li>
+                    <li class="flex justify-between items-center"><span>Paste</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + V</kbd></li>
+                    <li class="flex justify-between items-center"><span>Delete</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Delete</kbd></li>
+                    <li class="flex justify-between items-center"><span>Select All</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + A</kbd></li>
+                    <li class="flex justify-between items-center"><span>Multi-select</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Click</kbd></li>
+                    <li class="flex justify-between items-center"><span>Lock/Unlock</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + L</kbd></li>
+                  </ul>
+                </div>
+
+                <!-- Manipulation Section -->
+                <div>
+                  <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">Manipulation</h4>
+                  <ul class="space-y-2 text-gray-600">
+                    <li class="flex justify-between items-center"><span>Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Arrow Keys</kbd></li>
+                    <li class="flex justify-between items-center"><span>Fast Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + Arrow</kbd></li>
+                    <li class="flex justify-between items-center"><span>Snap Rotate</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + Drag</kbd></li>
+                    <li class="flex justify-between items-center"><span>Proportional Resize</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + Resize</kbd></li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
-            <!-- Manipulation Section -->
-            <div class="col-span-2">
-              <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">Manipulation</h4>
-              <div class="grid grid-cols-2 gap-x-8">
-                <ul class="space-y-2 text-gray-600">
-                  <li class="flex justify-between items-center"><span>Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Arrow Keys</kbd></li>
-                  <li class="flex justify-between items-center"><span>Fast Move</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + Arrow</kbd></li>
-                </ul>
-                <ul class="space-y-2 text-gray-600">
-                  <li class="flex justify-between items-center"><span>Snap Rotate</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + Drag</kbd></li>
-                  <li class="flex justify-between items-center"><span>Proportional Resize</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + Resize</kbd></li>
-                </ul>
+            <!-- About Tab -->
+            <div v-if="activeTab === 'about'" class="space-y-6">
+              <div class="text-center mb-8">
+                <div class="text-4xl mb-2">🖨️</div>
+                <h2 class="text-xl font-bold text-gray-800">Vue Print Designer</h2>
+                <p class="text-gray-500 mt-1">Version {{ version }}</p>
+              </div>
+
+              <div>
+                <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">Open Source Dependencies</h4>
+                <div class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                  <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-700 font-medium">
+                      <tr>
+                        <th class="px-4 py-2 border-b">Package</th>
+                        <th class="px-4 py-2 border-b">Version</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                      <tr v-for="dep in dependencies" :key="dep.name" class="hover:bg-gray-50">
+                        <td class="px-4 py-2 text-gray-700 font-mono">{{ dep.name }}</td>
+                        <td class="px-4 py-2 text-gray-500">{{ dep.version }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end rounded-b-lg">
-          <button @click="close" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
-            Close
-          </button>
+          
+          <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end rounded-br-lg">
+            <button @click="close" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>
