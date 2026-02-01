@@ -114,9 +114,9 @@ const projectName = startCase(pkg.name);
                   <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">{{ t('shortcuts.manipulation') }}</h4>
                   <ul class="space-y-2 text-gray-600">
                     <li class="flex justify-between items-center"><span>{{ t('shortcuts.move') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ t('shortcuts.arrow') }}</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.fastMove') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + {{ t('shortcuts.arrow') }}</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.snapRotate') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + {{ t('shortcuts.drag') }}</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.resize') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Shift + {{ t('shortcuts.resize') }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.fastMove') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Shift', t('shortcuts.arrow')]) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.snapRotate') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Shift', t('shortcuts.drag')]) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.resize') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Shift', t('shortcuts.resize')]) }}</kbd></li>
                   </ul>
                 </div>
               </div>

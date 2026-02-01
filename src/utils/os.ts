@@ -1,12 +1,7 @@
 
 export const isMac = (): boolean => {
-  if (typeof window !== 'undefined' && window.navigator) {
-    // Check for Mac in platform or user agent
-    // @ts-ignore - navigator.userAgentData is experimental
-    const platform = window.navigator.platform || window.navigator.userAgentData?.platform || 'unknown';
-    return /Mac|iPod|iPhone|iPad/.test(platform) || /Mac/.test(window.navigator.userAgent);
-  }
-  return false;
+  if (typeof navigator === 'undefined') return false;
+  return /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 };
 
 export const getModifierKey = (): string => {
@@ -44,5 +39,5 @@ export const formatShortcut = (keys: string[]): string => {
       default:
         return key.toUpperCase();
     }
-  }).join(isMacOs ? '' : ' + ');
+  }).join(' + ');
 };
