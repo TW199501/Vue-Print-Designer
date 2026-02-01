@@ -123,6 +123,10 @@ export const useTemplateStore = defineStore('templates', {
       const t = this.templates.find(t => t.id === id);
       if (t) {
         const designerStore = useDesignerStore();
+        
+        // Reset canvas to defaults first to avoid inheriting settings from previous template
+        designerStore.resetCanvas();
+        
         const data = t.data;
         
         // Restore state
