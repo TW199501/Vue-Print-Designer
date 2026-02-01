@@ -22,7 +22,7 @@ const emit = defineEmits<{
 }>();
 
 const WIDTH = 180;
-const MIN_WIDTH = 90;
+const MIN_WIDTH = 120;
 const MAX_HEIGHT = 300;
 const GAP = 32; // match the gap in PrintDesigner (gap-8)
 
@@ -60,17 +60,18 @@ const scrollContainer = ref<HTMLElement | null>(null);
 
 // Sync scroll container with viewport position
 watch(() => props.scrollTop, () => {
-  if (!scrollContainer.value || isDragging.value) return;
+  if (!scrollContainer.value) return;
   
   const rectTop = props.scrollTop * ratio.value;
   const rectHeight = props.viewportHeight * ratio.value;
   const containerHeight = scrollContainer.value.clientHeight;
   const currentScroll = scrollContainer.value.scrollTop;
   
-  // If viewport rect is out of view, scroll to keep it visible
-  if (rectTop < currentScroll || rectTop + rectHeight > currentScroll + containerHeight) {
-    // Center the viewport rect in the container
-    scrollContainer.value.scrollTop = rectTop - containerHeight / 2 + rectHeight / 2;
+  // If viewport rect is out of view (or close to edge), scroll to keep it visible
+  if (rectTop < currentScroll) {
+    scrollContainer.value.scrollTop = rectTop;
+  } else if (rectTop + rectHeight > currentScroll + containerHeight) {
+    scrollContainer.value.scrollTop = rectTop + rectHeight - containerHeight;
   }
 });
 
