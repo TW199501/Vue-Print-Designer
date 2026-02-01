@@ -35,7 +35,7 @@ export const formatShortcut = (keys: string[]): string => {
         return isMacOs ? '⌦' : 'Del';
       case 'esc':
       case 'escape':
-        return isMacOs ? '⎋' : 'Esc';
+        return'Esc';
       default:
         return key.toUpperCase();
     }
