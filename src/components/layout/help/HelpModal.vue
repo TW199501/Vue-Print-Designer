@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { startCase } from 'lodash';
+import { formatShortcut } from '@/utils/os';
 import X from '~icons/material-symbols/close';
 import KeyboardIcon from '~icons/material-symbols/keyboard';
 import InfoIcon from '~icons/material-symbols/info';
@@ -80,17 +81,17 @@ const projectName = startCase(pkg.name);
                 <div>
                   <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">{{ t('shortcuts.general') }}</h4>
                   <ul class="space-y-2 text-gray-600">
-                    <li class="flex justify-between items-center"><span>{{ t('common.save') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + S</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('editor.print') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + P</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('editor.exportPdf') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Shift + E</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('editor.preview') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Shift + P</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('editor.viewJson') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Shift + J</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.newTemplate') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Alt + N</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('common.undo') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Z</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('common.redo') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Y</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.openHelp') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + H</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.zoom') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Wheel</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.closeModal') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Esc</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('common.save') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'S']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('editor.print') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'P']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('editor.exportPdf') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Shift', 'E']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('editor.preview') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Shift', 'P']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('editor.viewJson') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Shift', 'J']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.newTemplate') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Alt', 'N']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('common.undo') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Z']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('common.redo') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Y']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.openHelp') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'H']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.zoom') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Wheel']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.closeModal') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Esc']) }}</kbd></li>
                   </ul>
                 </div>
                 
@@ -98,13 +99,13 @@ const projectName = startCase(pkg.name);
                 <div>
                   <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">{{ t('shortcuts.editing') }}</h4>
                   <ul class="space-y-2 text-gray-600">
-                    <li class="flex justify-between items-center"><span>{{ t('common.copy') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + C</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('common.cut') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + X</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('common.paste') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + V</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('common.delete') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Delete</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.selectAll') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + A</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.multiSelect') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + Click</kbd></li>
-                    <li class="flex justify-between items-center"><span>{{ t('common.lock') }}/{{ t('common.unlock') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">Ctrl + L</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('common.copy') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'C']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('common.cut') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'X']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('common.paste') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'V']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('common.delete') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Delete']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.selectAll') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'A']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.multiSelect') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Click']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('common.lock') }}/{{ t('common.unlock') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'L']) }}</kbd></li>
                   </ul>
                 </div>
 

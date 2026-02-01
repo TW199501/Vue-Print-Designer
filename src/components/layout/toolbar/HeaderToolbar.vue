@@ -46,6 +46,7 @@ import DataObject from '~icons/material-symbols/data-object';
 import CodeEditorModal from '@/components/common/CodeEditorModal.vue';
 import cloneDeep from 'lodash/cloneDeep';
 import { useI18n } from 'vue-i18n';
+import { formatShortcut } from '@/utils/os';
 
 const emit = defineEmits<{
   (e: 'toggleHelp'): void
@@ -478,25 +479,25 @@ onUnmounted(() => {
 
     <!-- History & Edit -->
     <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-      <button @click="store.undo()" :disabled="store.historyPast.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="t('common.undo') + ' (Ctrl+Z)'">
+      <button @click="store.undo()" :disabled="store.historyPast.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="t('common.undo') + ' (' + formatShortcut(['Ctrl', 'Z']) + ')'">
         <Undo2 class="w-4 h-4" />
       </button>
-      <button @click="store.redo()" :disabled="store.historyFuture.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="t('common.redo') + ' (Ctrl+Y)'">
+      <button @click="store.redo()" :disabled="store.historyFuture.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="t('common.redo') + ' (' + formatShortcut(['Ctrl', 'Y']) + ')'">
         <Redo2 class="w-4 h-4" />
       </button>
       <div class="w-px h-4 bg-gray-300 mx-1"></div>
-      <button @click="store.copy()" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="t('common.copy') + ' (Ctrl+C)'">
+      <button @click="store.copy()" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="t('common.copy') + ' (' + formatShortcut(['Ctrl', 'C']) + ')'">
         <Copy class="w-4 h-4" />
       </button>
-      <button @click="store.paste()" :disabled="store.clipboard.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="t('common.paste') + ' (Ctrl+V)'">
+      <button @click="store.paste()" :disabled="store.clipboard.length === 0" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="t('common.paste') + ' (' + formatShortcut(['Ctrl', 'V']) + ')'">
         <ClipboardPaste class="w-4 h-4" />
       </button>
       <div class="w-px h-4 bg-gray-300 mx-1"></div>
-      <button @click="store.toggleLock()" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="(isLocked ? t('editor.unlock') : t('editor.lock')) + ' (Ctrl+L)'">
+      <button @click="store.toggleLock()" :disabled="!store.selectedElementId" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="(isLocked ? t('editor.unlock') : t('editor.lock')) + ' (' + formatShortcut(['Ctrl', 'L']) + ')'">
         <Unlock v-if="isLocked" class="w-4 h-4 text-red-500" />
         <Lock v-else class="w-4 h-4" />
       </button>
-      <button @click="store.removeSelectedElements()" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed text-red-600" :title="t('common.delete') + ' (Del)'">
+      <button @click="store.removeSelectedElements()" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed text-red-600" :title="t('common.delete') + ' (' + formatShortcut(['Del']) + ')'">
         <Trash2 class="w-4 h-4" />
       </button>
     </div>
