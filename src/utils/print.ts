@@ -24,14 +24,12 @@ export const usePrint = () => {
     const basePage = original[0];
     const canvasHeight = store.canvasSize.height;
     
-    // Filter elements that should be repeated (exclude pageNumber placeholders and elements outside range)
+    // Filter elements that should be repeated (elements outside range)
     const repeatHeaders = hasHeader ? basePage.elements.filter(e => 
-      e.type !== ElementType.PAGE_NUMBER && 
       (e.y + e.height) <= store.headerHeight
     ) : [];
     
     const repeatFooters = hasFooter ? basePage.elements.filter(e => 
-      e.type !== ElementType.PAGE_NUMBER && 
       e.y >= (canvasHeight - store.footerHeight)
     ) : [];
 
@@ -68,6 +66,9 @@ export const usePrint = () => {
     store.setShowGrid(false);
     store.setZoom(1); // Ensure 100% zoom for correct rendering
     
+    // Apply repeats (Must be done BEFORE hiding lines, as createRepeatedPages checks showHeaderLine/showFooterLine)
+    store.pages = createRepeatedPages(store.pages);
+    
     // Hide UI overlays
     store.setShowHeaderLine(false);
     store.setShowFooterLine(false);
@@ -75,9 +76,6 @@ export const usePrint = () => {
 
     store.setIsExporting(true);
     document.body.classList.add('exporting');
-    
-    // Apply repeats
-    store.pages = createRepeatedPages(store.pages);
     
     await nextTick();
 
