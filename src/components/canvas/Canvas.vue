@@ -591,18 +591,6 @@ const getGlobalElements = () => {
         </div>
       </template>
 
-      <!-- Elements -->
-      <ElementWrapper
-        v-for="element in page.elements"
-        :key="element.id"
-        :element="element"
-        :is-selected="store.selectedElementId === element.id || store.selectedElementIds.includes(element.id)"
-        :zoom="zoom"
-        :page-index="index"
-      >
-        <component :is="getComponent(element.type)" :element="element" :page-index="index" :total-pages="pages.length" />
-      </ElementWrapper>
-
       <!-- Global Header/Footer Elements (from Page 1) -->
       <template v-if="index > 0 && pages.length > 0">
         <ElementWrapper
@@ -617,6 +605,18 @@ const getGlobalElements = () => {
           <component :is="getComponent(element.type)" :element="element" :page-index="index" :total-pages="pages.length" />
         </ElementWrapper>
       </template>
+
+      <!-- Elements -->
+      <ElementWrapper
+        v-for="element in page.elements"
+        :key="element.id"
+        :element="element"
+        :is-selected="store.selectedElementId === element.id || store.selectedElementIds.includes(element.id)"
+        :zoom="zoom"
+        :page-index="index"
+      >
+        <component :is="getComponent(element.type)" :element="element" :page-index="index" :total-pages="pages.length" />
+      </ElementWrapper>
 
       <!-- Corner Markers -->
       <div v-if="store.showCornerMarkers" class="marker absolute inset-0 pointer-events-none z-50 opacity-50">
