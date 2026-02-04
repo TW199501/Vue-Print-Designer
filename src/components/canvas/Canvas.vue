@@ -549,45 +549,53 @@ const getGlobalElements = () => {
       <!-- Header & Footer Lines -->
       <template v-if="store.showHeaderLine">
         <div 
-          class="absolute left-0 w-full z-20 cursor-row-resize group flex flex-col justify-center items-center"
+          class="absolute left-0 w-full z-20 group flex flex-col justify-center items-center"
+          :class="index === 0 ? 'cursor-row-resize' : 'cursor-default'"
           :style="{ 
             top: `${store.headerHeight}px`, 
             height: '12px',
             marginTop: '-6px'
           }"
-          @mousedown="(e) => handleLineMouseDown(e, 'header')"
+          @mousedown="(e) => index === 0 && handleLineMouseDown(e, 'header')"
         >
           <div 
             class="w-full h-px"
             :style="{
-              backgroundImage: 'linear-gradient(to right, #f87171 60%, transparent 40%)',
+              backgroundImage: index === 0 ? 'linear-gradient(to right, #f87171 60%, transparent 40%)' : 'linear-gradient(to right, #d1d5db 60%, transparent 40%)',
               backgroundSize: '20px 1px',
               backgroundRepeat: 'repeat-x'
             }"
           ></div>
-          <div class="absolute right-0 -top-4 text-xs text-red-400 bg-white/80 px-1 pointer-events-none">Header</div>
+          <div 
+            class="absolute right-0 -top-4 text-xs bg-white/80 px-1 pointer-events-none"
+            :class="index === 0 ? 'text-red-400' : 'text-gray-400'"
+          >Header</div>
         </div>
       </template>
 
       <template v-if="store.showFooterLine">
         <div 
-          class="absolute left-0 w-full z-20 cursor-row-resize group flex flex-col justify-center items-center"
+          class="absolute left-0 w-full z-20 group flex flex-col justify-center items-center"
+          :class="index === 0 ? 'cursor-row-resize' : 'cursor-default'"
           :style="{ 
             bottom: `${store.footerHeight}px`,
             height: '12px',
             marginBottom: '-6px'
           }"
-          @mousedown="(e) => handleLineMouseDown(e, 'footer')"
+          @mousedown="(e) => index === 0 && handleLineMouseDown(e, 'footer')"
         >
           <div 
             class="w-full h-px"
             :style="{
-              backgroundImage: 'linear-gradient(to right, #f87171 60%, transparent 40%)',
+              backgroundImage: index === 0 ? 'linear-gradient(to right, #f87171 60%, transparent 40%)' : 'linear-gradient(to right, #d1d5db 60%, transparent 40%)',
               backgroundSize: '20px 1px',
               backgroundRepeat: 'repeat-x'
             }"
           ></div>
-          <div class="absolute right-0 -bottom-4 text-xs text-red-400 bg-white/80 px-1 pointer-events-none">Footer</div>
+          <div 
+            class="absolute right-0 -bottom-4 text-xs bg-white/80 px-1 pointer-events-none"
+            :class="index === 0 ? 'text-red-400' : 'text-gray-400'"
+          >Footer</div>
         </div>
       </template>
 
