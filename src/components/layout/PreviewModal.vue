@@ -24,12 +24,14 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const store = useDesignerStore();
-const { print: printHtml, exportPdf: exportPdfHtml } = usePrint();
+const { print: printHtml, exportPdf: exportPdfHtml, getPdfBlob } = usePrint();
 const previewContainer = ref<HTMLElement | null>(null);
 const wrapperRef = ref<HTMLElement | null>(null);
 const zoomPercent = ref(100);
 const showJsonModal = ref(false);
 const jsonContent = ref('');
+const modalTitle = ref('');
+const modalLanguage = ref('json');
 
 watch(() => props.visible, (val) => {
   if (!val) {
@@ -56,7 +58,30 @@ const handleViewJson = () => {
     canvasBackground: store.canvasBackground,
   };
   jsonContent.value = JSON.stringify(data, null, 2);
+  modalTitle.value = t('preview.templateJson');
+  modalLanguage.value = 'json';
   showJsonModal.value = true;
+};
+
+const handleViewBlob = async () => {
+  try {
+      if (!previewContainer.value) return;
+      // Use elements within the preview container
+      const pages = Array.from(previewContainer.value.querySelectorAll('.print-page')) as HTMLElement[];
+      const blob = await getPdfBlob(pages);
+      
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+          jsonContent.value = reader.result as string;
+          modalTitle.value = t('editor.viewBlob');
+          modalLanguage.value = 'text';
+          showJsonModal.value = true;
+      }
+  } catch (e) {
+      console.error(e);
+      alert('Failed to generate blob');
+  }
 };
 
 const handlePrint = () => {
@@ -189,6 +214,13 @@ onUnmounted(() => {
             {{ t('editor.viewJson') }}
           </button>
           <button 
+            @click="handleViewBlob"
+            class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-sm text-gray-700 flex items-center gap-2 transition-colors"
+          >
+            <DataObject class="text-lg" />
+            {{ t('editor.viewBlob') }}
+          </button>
+          <button 
             @click="handleClose"
             class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-sm text-gray-700 flex items-center gap-2 transition-colors"
           >
@@ -201,9 +233,9 @@ onUnmounted(() => {
 
   <CodeEditorModal
     v-model:visible="showJsonModal"
-    :title="t('preview.templateJson')"
+    :title="modalTitle"
     :value="jsonContent"
-    language="json"
+    :language="modalLanguage"
     read-only
   />
 </template>
