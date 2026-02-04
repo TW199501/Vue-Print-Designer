@@ -483,8 +483,8 @@ const getGlobalElements = () => {
   if (pages.value.length === 0) return [];
   const firstPage = pages.value[0];
   return firstPage.elements.filter(el => 
-    el.y < store.headerHeight || 
-    el.y >= store.canvasSize.height - store.footerHeight
+    (store.showHeaderLine && el.y < store.headerHeight) || 
+    (store.showFooterLine && el.y >= store.canvasSize.height - store.footerHeight)
   );
 };
 </script>

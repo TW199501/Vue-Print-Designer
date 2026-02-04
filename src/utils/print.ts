@@ -16,8 +16,8 @@ export const usePrint = () => {
     const original = cloneDeep(originalPages);
     
     // Check if header/footer regions are defined
-    const hasHeader = store.headerHeight > 0;
-    const hasFooter = store.footerHeight > 0;
+    const hasHeader = store.headerHeight > 0 && store.showHeaderLine;
+    const hasFooter = store.footerHeight > 0 && store.showFooterLine;
 
     if (!hasHeader && !hasFooter) return original;
 
