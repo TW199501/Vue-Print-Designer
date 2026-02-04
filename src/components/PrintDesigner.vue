@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
 import { useDesignerStore } from '@/stores/designer';
 import { pxToMm } from '@/utils/units';
 import Header from './layout/Header.vue';
@@ -23,10 +23,20 @@ onMounted(() => {
   window.addEventListener('keydown', handleCtrlKey);
   window.addEventListener('keyup', handleCtrlKey);
   window.addEventListener('blur', handleBlur);
-  // Also watch for store changes that might affect layout
-  store.$subscribe(() => {
-    nextTick(updateOffset);
-  });
+  
+  // Watch for layout changes
+  watch(
+    [
+      () => store.pages.length,
+      () => store.canvasSize.width,
+      () => store.canvasSize.height,
+      () => store.zoom,
+      () => store.showMinimap
+    ],
+    () => {
+      nextTick(updateOffset);
+    }
+  );
 });
 
 const scrollX = ref(0);
