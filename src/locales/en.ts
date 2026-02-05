@@ -161,6 +161,7 @@ export default {
       positionSize: 'Position & Size',
       dataBehavior: 'Data & Behavior',
       layoutDimensions: 'Layout & Dimensions',
+      bodyStyle: 'Body Style',
       headerStyle: 'Header Style',
       footerStyle: 'Footer Style',
       cellOperations: 'Cell Operations',

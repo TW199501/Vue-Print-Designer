@@ -219,6 +219,7 @@ const processedData = computed(() => {
 });
 
 const cellStyle = computed(() => ({
+  color: props.element.style.color || '#000000',
   fontFamily: props.element.style.fontFamily,
   borderColor: props.element.style.borderColor || '#000',
   borderWidth: (props.element.style.borderWidth || 1) + 'px',
@@ -408,6 +409,13 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       ]
     },
     {
+      title: 'properties.section.bodyStyle',
+      tab: 'style',
+      fields: [
+        { label: 'properties.label.textColor', type: 'color', target: 'style', key: 'color' }
+      ]
+    },
+    {
       title: 'properties.section.headerStyle',
       tab: 'style',
       fields: [
@@ -445,7 +453,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
 </script>
 
 <template>
-  <div class="w-full h-full overflow-hidden bg-white">
+  <div class="w-full h-full overflow-hidden" :style="{ backgroundColor: element.style.backgroundColor || '#ffffff' }">
     <table class="w-full border-collapse" :class="{ 'h-full': !store.isExporting }" :data-tfoot-repeat="element.tfootRepeat" :data-auto-paginate="element.autoPaginate" :data-custom-script="element.customScript">
       <thead>
         <tr>

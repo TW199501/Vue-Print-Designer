@@ -179,6 +179,13 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
       fontSize: 14,
       color: '#000000',
       ...(type === ElementType.RECT || type === ElementType.CIRCLE ? { backgroundColor: 'transparent' } : {}),
+      ...(type === ElementType.TABLE ? {
+        headerBackgroundColor: '#f3f4f6',
+        headerColor: '#000000',
+        footerBackgroundColor: '#f9fafb',
+        footerColor: '#000000',
+        backgroundColor: '#ffffff'
+      } : {})
     },
     content: type === ElementType.TEXT ? t('canvas.newText') 
       : type === ElementType.BARCODE ? '12345678'
