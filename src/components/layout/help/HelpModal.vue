@@ -87,6 +87,7 @@ const projectName = startCase(pkg.name);
                     <li class="flex justify-between items-center"><span>{{ t('editor.preview') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Shift', 'P']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('editor.viewJson') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Shift', 'J']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('shortcuts.newTemplate') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Alt', 'N']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.openSettings') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', ',']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('common.undo') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Z']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('common.redo') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Y']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('shortcuts.openHelp') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'H']) }}</kbd></li>

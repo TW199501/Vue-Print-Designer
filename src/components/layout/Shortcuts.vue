@@ -88,6 +88,14 @@ const handleKeydown = (e: KeyboardEvent) => {
     return;
   }
 
+  // Settings (Ctrl/Cmd + ,)
+  if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+    e.preventDefault();
+    e.stopPropagation();
+    store.setShowSettings(true);
+    return;
+  }
+
   // If global shortcuts are disabled (e.g. code editor is open), ignore
   if (store.disableGlobalShortcuts) return;
 

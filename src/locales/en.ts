@@ -318,6 +318,7 @@ export default {
     editing: 'Editing',
     manipulation: 'Manipulation',
     newTemplate: 'New Template',
+    openSettings: 'Open Settings',
     openHelp: 'Open Help',
     zoom: 'Zoom In/Out',
     closeModal: 'Close Modal',

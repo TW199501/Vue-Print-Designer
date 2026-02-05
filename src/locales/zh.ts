@@ -318,6 +318,7 @@ export default {
     editing: '编辑',
     manipulation: '操作',
     newTemplate: '新建模版',
+    openSettings: '打开设置',
     openHelp: '打开帮助',
     zoom: '缩放',
     closeModal: '关闭弹窗',
