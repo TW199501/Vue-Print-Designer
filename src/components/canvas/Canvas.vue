@@ -178,7 +178,7 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     style: {
       fontSize: 14,
       color: '#000000',
-      ...(type === ElementType.RECT || type === ElementType.CIRCLE ? { backgroundColor: 'transparent' } : {}),
+      ...(type === ElementType.RECT || type === ElementType.CIRCLE || type === ElementType.PAGE_NUMBER ? { backgroundColor: 'transparent' } : {}),
       ...(type === ElementType.TABLE ? {
         headerBackgroundColor: '#f3f4f6',
         headerColor: '#000000',
