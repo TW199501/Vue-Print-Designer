@@ -84,6 +84,7 @@ export default {
     lock: '锁定',
     unlock: '解锁',
     fontFamily: '字体',
+    settings: '设置',
   },
   canvas: {
     addPage: '添加页',
@@ -344,6 +345,15 @@ export default {
     dependencies: '开源依赖',
     package: '依赖包',
     version: '版本'
+  },
+  settings: {
+    title: '设置',
+    basic: '基础',
+    language: '语言',
+    connection: '连接',
+    basicDesc: '基础设置占位内容。',
+    languageDesc: '语言设置占位内容。',
+    connectionDesc: '连接设置占位内容。'
   },
   preview: {
     title: '打印预览',

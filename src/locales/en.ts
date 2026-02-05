@@ -83,7 +83,8 @@ export default {
     group: 'Group',
     lock: 'Lock',
     unlock: 'Unlock',
-    fontFamily: 'Font Family'
+    fontFamily: 'Font Family',
+    settings: 'Settings'
   },
   canvas: {
     addPage: 'Add Page',
@@ -344,6 +345,15 @@ export default {
     dependencies: 'Open Source Dependencies',
     package: 'Package',
     version: 'Version'
+  },
+  settings: {
+    title: 'Settings',
+    basic: 'Basic',
+    language: 'Language',
+    connection: 'Connections',
+    basicDesc: 'Basic settings placeholder.',
+    languageDesc: 'Language settings placeholder.',
+    connectionDesc: 'Connection settings placeholder.'
   },
   preview: {
     title: 'Print Preview',

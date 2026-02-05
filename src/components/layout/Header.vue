@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import HeaderToolbar from './toolbar/HeaderToolbar.vue';
 import HelpModal from './help/HelpModal.vue';
+import SettingsModal from './settings/SettingsModal.vue';
 
 const { t } = useI18n();
 const store = useDesignerStore();
@@ -15,11 +16,18 @@ const store = useDesignerStore();
       <h1 class="font-semibold text-gray-700">{{ t('common.appTitle') }}</h1>
     </div>
 
-    <HeaderToolbar @toggle-help="store.setShowHelp(true)" />
+    <HeaderToolbar 
+      @toggle-help="store.setShowHelp(true)" 
+      @toggle-settings="store.setShowSettings(true)"
+    />
 
     <HelpModal 
       :show="store.showHelp" 
       @update:show="store.setShowHelp($event)"
+    />
+    <SettingsModal
+      :show="store.showSettings"
+      @update:show="store.setShowSettings($event)"
     />
   </header>
 </template>

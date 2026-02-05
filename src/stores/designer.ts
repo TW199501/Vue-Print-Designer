@@ -24,6 +24,7 @@ export const useDesignerStore = defineStore('designer', {
     showFooterLine: false,
     showMinimap: false,
     showHelp: false,
+    showSettings: false,
     canvasBackground: '#ffffff',
     guides: [],
     historyPast: [],
@@ -71,6 +72,7 @@ export const useDesignerStore = defineStore('designer', {
       this.showCornerMarkers = true;
       this.showMinimap = false;
       this.showHelp = false;
+      this.showSettings = false;
       this.copiedPage = null;
     },
     copyPage(index: number) {
@@ -316,6 +318,9 @@ export const useDesignerStore = defineStore('designer', {
     },
     setShowHelp(show: boolean) {
       this.showHelp = show;
+    },
+    setShowSettings(show: boolean) {
+      this.showSettings = show;
     },
     setCanvasBackground(color: string) {
       this.canvasBackground = color;

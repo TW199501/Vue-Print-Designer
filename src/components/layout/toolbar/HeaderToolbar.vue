@@ -49,6 +49,7 @@ import { formatShortcut } from '@/utils/os';
 
 const emit = defineEmits<{
   (e: 'toggleHelp'): void
+  (e: 'toggleSettings'): void
 }>();
 
 const { t } = useI18n();
@@ -568,6 +569,10 @@ onUnmounted(() => {
         <button @click="emit('toggleHelp'); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
           <HelpCircle class="w-4 h-4 text-gray-500" />
           <span>{{ t('editor.help') }}</span>
+        </button>
+        <button @click="emit('toggleSettings'); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
+          <Settings class="w-4 h-4 text-gray-500" />
+          <span>{{ t('editor.settings') }}</span>
         </button>
         <div class="h-px bg-gray-200 my-0.5"></div>
         <button @click="handlePrint(); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
