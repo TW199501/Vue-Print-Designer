@@ -658,7 +658,7 @@ export const usePrint = () => {
             ctx.imageSmoothingEnabled = false;
         }
 
-        return canvas.toDataURL('image/jpeg', 0.8);
+        return canvas.toDataURL('image/jpeg', 0.5);
     };
 
     // Process pages in batches to avoid freezing the browser

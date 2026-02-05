@@ -536,24 +536,21 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div class="h-6 w-px bg-gray-300"></div>
-
-    <!-- Help -->
-    <button @click="emit('toggleHelp')" class="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors" :title="t('editor.help')">
-      <HelpCircle class="w-5 h-5" />
-    </button>
+<!-- Help moved to dropdown -->
 
     <div class="h-6 w-px bg-gray-300"></div>
 
-    <!-- Preview / Export Dropdown -->
+    <!-- Save / Export Dropdown -->
     <div class="relative">
       <div class="flex items-center shadow-sm">
         <button 
-          @click="handlePreview" 
-          class="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white rounded-l-md hover:bg-indigo-700 transition-colors text-sm border-r border-indigo-500"
+          @click="handleSave" 
+          :disabled="templateStore.isSaving"
+          class="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white rounded-l-md hover:bg-indigo-700 transition-colors text-sm border-r border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Preview class="w-4 h-4" />
-          <span>{{ t('editor.preview') }}</span>
+          <Loading v-if="templateStore.isSaving" class="w-4 h-4 animate-spin" />
+          <Save v-else class="w-4 h-4" />
+          <span>{{ t('common.save') }}</span>
         </button>
         <button 
           @click="showExportMenu = !showExportMenu"
@@ -564,6 +561,15 @@ onUnmounted(() => {
       </div>
 
       <div v-if="showExportMenu" class="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-200 shadow-xl rounded-lg p-1 z-[1000] flex flex-col gap-1">
+        <button @click="handlePreview(); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
+          <Preview class="w-4 h-4 text-gray-500" />
+          <span>{{ t('editor.preview') }}</span>
+        </button>
+        <button @click="emit('toggleHelp'); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
+          <HelpCircle class="w-4 h-4 text-gray-500" />
+          <span>{{ t('editor.help') }}</span>
+        </button>
+        <div class="h-px bg-gray-200 my-0.5"></div>
         <button @click="handlePrint(); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
           <Printer class="w-4 h-4 text-gray-500" />
           <span>{{ t('editor.print') }}</span>
@@ -589,11 +595,7 @@ onUnmounted(() => {
       <div v-if="showExportMenu" class="fixed inset-0 z-[999]" @click="showExportMenu = false"></div>
     </div>
 
-    <button @click="handleSave" :disabled="templateStore.isSaving" class="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-      <Loading v-if="templateStore.isSaving" class="w-4 h-4 animate-spin" />
-      <Save v-else class="w-4 h-4" />
-      <span>{{ t('common.save') }}</span>
-    </button>
+<!-- Save moved to dropdown group -->
   </div>
 
   <PreviewModal 
