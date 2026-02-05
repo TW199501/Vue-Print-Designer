@@ -6,6 +6,9 @@
   .exporting .marker {
     display: none !important;
   }
+  .exporting {
+    overflow-x: hidden;
+  }
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
     width: 12px;
