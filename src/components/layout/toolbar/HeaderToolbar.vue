@@ -566,15 +566,6 @@ onUnmounted(() => {
           <Preview class="w-4 h-4 text-gray-500" />
           <span>{{ t('editor.preview') }}</span>
         </button>
-        <button @click="emit('toggleHelp'); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
-          <HelpCircle class="w-4 h-4 text-gray-500" />
-          <span>{{ t('editor.help') }}</span>
-        </button>
-        <button @click="emit('toggleSettings'); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
-          <Settings class="w-4 h-4 text-gray-500" />
-          <span>{{ t('editor.settings') }}</span>
-        </button>
-        <div class="h-px bg-gray-200 my-0.5"></div>
         <button @click="handlePrint(); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
           <Printer class="w-4 h-4 text-gray-500" />
           <span>{{ t('editor.print') }}</span>
@@ -595,8 +586,16 @@ onUnmounted(() => {
           <DataObject class="w-4 h-4 text-gray-500" />
           <span>{{ t('editor.viewBlob') }}</span>
         </button>
+        <div class="h-px bg-gray-200 my-0.5"></div>        
+        <button @click="emit('toggleHelp'); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
+          <HelpCircle class="w-4 h-4 text-gray-500" />
+          <span>{{ t('editor.help') }}</span>
+        </button>
+        <button @click="emit('toggleSettings'); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
+          <Settings class="w-4 h-4 text-gray-500" />
+          <span>{{ t('editor.settings') }}</span>
+        </button>
       </div>
-      
       <div v-if="showExportMenu" class="fixed inset-0 z-[999]" @click="showExportMenu = false"></div>
     </div>
 
