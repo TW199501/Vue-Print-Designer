@@ -97,7 +97,6 @@ const close = () => {
           <div class="flex-1 overflow-y-auto p-6">
             <!-- Basic Tab -->
             <div v-if="activeTab === 'basic'" class="space-y-4 text-sm text-gray-700">
-              <p class="text-gray-600">{{ t('settings.basicDesc') }}</p>
               <div>
                 <div class="mb-2 font-medium text-gray-900">{{ t('settings.theme') }}</div>
                 <div class="flex items-center gap-3">

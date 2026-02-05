@@ -351,7 +351,6 @@ export default {
     basic: 'Basic',
     language: 'Language',
     connection: 'Connections',
-    basicDesc: 'Basic settings placeholder.',
     theme: 'Theme',
     themeSystem: 'Follow System',
     themeLight: 'Light',

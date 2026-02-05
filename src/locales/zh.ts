@@ -351,7 +351,6 @@ export default {
     basic: '基础',
     language: '语言',
     connection: '连接',
-    basicDesc: '基础设置占位内容。',
     theme: '主题',
     themeSystem: '跟随系统',
     themeLight: '亮色',
