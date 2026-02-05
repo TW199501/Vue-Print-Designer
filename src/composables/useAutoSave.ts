@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue';
 
-const autoSave = ref(localStorage.getItem('print-designer-autosave') === 'true');
+const autoSave = ref(localStorage.getItem('print-designer-autosave') !== 'false');
 
 watch(autoSave, (val) => {
   localStorage.setItem('print-designer-autosave', String(val));
