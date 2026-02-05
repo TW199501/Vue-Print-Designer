@@ -1,10 +1,32 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { PrintElement } from '@/types';
-defineProps<{
+
+const props = defineProps<{
   element: PrintElement;
   pageIndex: number;
   totalPages?: number;
 }>();
+
+const { t } = useI18n();
+
+const pageText = computed(() => {
+  const current = props.pageIndex + 1;
+  const total = props.totalPages || 1;
+  const format = props.element.format || '1/Total';
+
+  switch (format) {
+    case '1':
+      return `${current}`;
+    case 'Page 1':
+      return t('properties.option.page1').replace('1', current.toString());
+    case '1/Total':
+      return `${current}/${total}`;
+    default:
+      return `${current}/${total}`;
+  }
+});
 </script>
 
 <script lang="ts">
@@ -130,7 +152,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
       marginRight: '4px',
       padding: '0 4px'
     }">{{ element.labelText }}</span>
-    <span class="page-number-text">{{ (pageIndex + 1) }}/{{ totalPages || 1 }}</span>
+    <span class="page-number-text">{{ pageText }}</span>
     <span v-if="element.labelText && element.labelPosition === 'after'" :style="{
       fontSize: element.labelFontSize ? `${element.labelFontSize}px` : undefined,
       fontFamily: element.labelFontFamily || undefined,

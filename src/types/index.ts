@@ -92,6 +92,7 @@ export interface PrintElement {
   labelBorderWidth?: number;
   labelBorderStyle?: string;
   labelBorderColor?: string;
+  format?: string; // For page number
   // pagination frame border composed controls
   frameBorderStyle?: 'solid' | 'dashed' | 'dotted';
   frameBorderWidth?: number;

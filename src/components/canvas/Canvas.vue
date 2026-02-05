@@ -190,6 +190,7 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
       : type === ElementType.BARCODE ? '12345678'
       : type === ElementType.QRCODE ? 'https://example.com'
       : '',
+    format: type === ElementType.PAGE_NUMBER ? '1/Total' : undefined,
     // Dummy data for table
     columns: type === ElementType.TABLE ? [
       { field: 'id', header: t('canvas.defaultTableHeaders.id'), width: 50 },
