@@ -353,7 +353,10 @@ export default {
     connection: 'Connections',
     basicDesc: 'Basic settings placeholder.',
     languageDesc: 'Language settings placeholder.',
-    connectionDesc: 'Connection settings placeholder.'
+    connectionDesc: 'Connection settings placeholder.',
+    selectLanguage: 'Select Language',
+    zhLabel: 'Chinese',
+    enLabel: 'English'
   },
   preview: {
     title: 'Print Preview',

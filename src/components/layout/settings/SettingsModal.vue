@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import X from '~icons/material-symbols/close';
 import SettingsIcon from '~icons/material-symbols/settings';
@@ -14,9 +14,15 @@ const emit = defineEmits<{
   (e: 'update:show', value: boolean): void
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const activeTab = ref<'basic' | 'language' | 'connection'>('basic');
+const selectedLang = ref<string>(locale.value as string);
+
+watch(selectedLang, (val) => {
+  locale.value = val;
+  localStorage.setItem('print-designer-language', val);
+});
 
 const close = () => {
   emit('update:show', false);
@@ -83,7 +89,17 @@ const close = () => {
 
             <!-- Language Tab -->
             <div v-if="activeTab === 'language'" class="space-y-4 text-sm text-gray-700">
-              <p class="text-gray-600">{{ t('settings.languageDesc') }}</p>
+              <div class="mb-2 font-medium text-gray-900">{{ t('settings.selectLanguage') }}</div>
+              <div class="flex items-center gap-3">
+                <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer" :class="selectedLang === 'zh' ? 'border-blue-600 text-blue-700' : 'border-gray-300'">
+                  <input type="radio" value="zh" v-model="selectedLang" />
+                  <span>{{ t('settings.zhLabel') }}</span>
+                </label>
+                <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer" :class="selectedLang === 'en' ? 'border-blue-600 text-blue-700' : 'border-gray-300'">
+                  <input type="radio" value="en" v-model="selectedLang" />
+                  <span>{{ t('settings.enLabel') }}</span>
+                </label>
+              </div>
             </div>
 
             <!-- Connection Tab -->
@@ -102,4 +118,3 @@ const close = () => {
     </div>
   </Teleport>
 </template>
-

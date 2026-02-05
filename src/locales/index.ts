@@ -7,8 +7,11 @@ const messages = {
   zh,
 };
 
-// Detect browser language
-const getBrowserLanguage = () => {
+const getInitialLanguage = () => {
+  const stored = localStorage.getItem('print-designer-language');
+  if (stored && (stored === 'zh' || stored === 'en')) {
+    return stored;
+  }
   const lang = navigator.language.toLowerCase();
   if (lang.startsWith('zh')) {
     return 'zh';
@@ -18,7 +21,7 @@ const getBrowserLanguage = () => {
 
 const i18n = createI18n({
   legacy: false, // Use Composition API
-  locale: getBrowserLanguage(),
+  locale: getInitialLanguage(),
   fallbackLocale: 'en',
   messages,
 });

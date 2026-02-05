@@ -353,7 +353,10 @@ export default {
     connection: '连接',
     basicDesc: '基础设置占位内容。',
     languageDesc: '语言设置占位内容。',
-    connectionDesc: '连接设置占位内容。'
+    connectionDesc: '连接设置占位内容。',
+    selectLanguage: '选择语言',
+    zhLabel: '中文',
+    enLabel: 'English'
   },
   preview: {
     title: '打印预览',
