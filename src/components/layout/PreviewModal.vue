@@ -5,6 +5,7 @@ import { usePrint } from '@/utils/print';
 import { useDesignerStore } from '@/stores/designer';
 import Printer from '~icons/material-symbols/print';
 import FilePdf from '~icons/material-symbols/picture-as-pdf';
+import FileOutput from '~icons/material-symbols/file-download';
 import Image from '~icons/material-symbols/image';
 import Close from '~icons/material-symbols/close';
 import ZoomIn from '~icons/material-symbols/zoom-in';
@@ -234,22 +235,15 @@ onUnmounted(() => {
             @click="handlePdf"
             class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center gap-2 text-sm transition-colors"
           >
-            <FilePdf class="text-lg" />
+            <FileOutput class="text-lg" />
             {{ t('editor.exportPdf') }}
           </button>
           <button 
             @click="handleExportImages"
             class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center gap-2 text-sm transition-colors"
           >
-            <Image class="text-lg" />
+            <FileOutput class="text-lg" />
             {{ t('editor.exportImage') }}
-          </button>
-          <button 
-            @click="handleViewJson"
-            class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-sm text-gray-700 flex items-center gap-2 transition-colors"
-          >
-            <DataObject class="text-lg" />
-            {{ t('editor.viewJson') }}
           </button>
           <button 
             @click="handleViewImageBlob"
@@ -262,9 +256,16 @@ onUnmounted(() => {
             @click="handleViewPdfBlob"
             class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-sm text-gray-700 flex items-center gap-2 transition-colors"
           >
-            <FilePdf class="text-lg" />
+            <DataObject class="text-lg" />
             {{ t('editor.viewPdfBlob') }}
           </button>
+          <button 
+            @click="handleViewJson"
+            class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-sm text-gray-700 flex items-center gap-2 transition-colors"
+          >
+            <DataObject class="text-lg" />
+            {{ t('editor.viewJson') }}
+          </button>          
           <button 
             @click="handleClose"
             class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-sm text-gray-700 flex items-center gap-2 transition-colors"
