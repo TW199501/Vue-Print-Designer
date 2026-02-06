@@ -38,6 +38,8 @@ export default {
     print: '打印',
     viewJson: '查看 JSON',
     viewBlob: '查看 Blob',
+    viewImageBlob: '查看图片 Blob',
+    viewPdfBlob: '查看 PDF Blob',
     zoomIn: '放大',
     zoomOut: '缩小',
     zoomLevel: '缩放级别',

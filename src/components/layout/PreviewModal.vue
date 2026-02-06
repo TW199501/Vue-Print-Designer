@@ -64,7 +64,7 @@ const handleViewJson = () => {
   showJsonModal.value = true;
 };
 
-const handleViewBlob = async () => {
+const handleViewImageBlob = async () => {
   try {
       if (!previewContainer.value) return;
       // Use elements within the preview container
@@ -75,13 +75,33 @@ const handleViewBlob = async () => {
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
           jsonContent.value = reader.result as string;
-          modalTitle.value = t('editor.viewBlob');
+          modalTitle.value = t('editor.viewImageBlob');
           modalLanguage.value = 'text';
           showJsonModal.value = true;
       }
   } catch (e) {
       console.error(e);
       alert('Failed to generate blob');
+  }
+};
+
+const handleViewPdfBlob = async () => {
+  try {
+      if (!previewContainer.value) return;
+      const pages = Array.from(previewContainer.value.querySelectorAll('.print-page')) as HTMLElement[];
+      const blob = await getPdfBlob(pages);
+      
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+          jsonContent.value = reader.result as string;
+          modalTitle.value = t('editor.viewPdfBlob');
+          modalLanguage.value = 'text';
+          showJsonModal.value = true;
+      }
+  } catch (e) {
+      console.error(e);
+      alert('Failed to generate PDF blob');
   }
 };
 
@@ -232,11 +252,18 @@ onUnmounted(() => {
             {{ t('editor.viewJson') }}
           </button>
           <button 
-            @click="handleViewBlob"
+            @click="handleViewImageBlob"
             class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-sm text-gray-700 flex items-center gap-2 transition-colors"
           >
             <DataObject class="text-lg" />
-            {{ t('editor.viewBlob') }}
+            {{ t('editor.viewImageBlob') }}
+          </button>
+          <button 
+            @click="handleViewPdfBlob"
+            class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-sm text-gray-700 flex items-center gap-2 transition-colors"
+          >
+            <FilePdf class="text-lg" />
+            {{ t('editor.viewPdfBlob') }}
           </button>
           <button 
             @click="handleClose"

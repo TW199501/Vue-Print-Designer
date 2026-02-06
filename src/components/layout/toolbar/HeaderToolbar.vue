@@ -4,6 +4,7 @@ import { useDesignerStore } from '@/stores/designer';
 import Printer from '~icons/material-symbols/print';
 import Preview from '~icons/material-symbols/preview';
 import FileOutput from '~icons/material-symbols/file-download';
+import FilePdf from '~icons/material-symbols/picture-as-pdf';
 import Image from '~icons/material-symbols/image';
 import ZoomIn from '~icons/material-symbols/zoom-in';
 import ZoomOut from '~icons/material-symbols/zoom-out';
@@ -83,7 +84,7 @@ const handleViewJson = () => {
 const showSaveNameModal = ref(false);
 const { getPrintHtml, print, exportPdf, getPdfBlob, exportImages, getImageBlob } = usePrint();
 
-const handleViewBlob = async () => {
+const handleViewImageBlob = async () => {
   try {
       // Use real DOM elements to ensure computed styles are captured correctly
       const pages = Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
@@ -93,13 +94,32 @@ const handleViewBlob = async () => {
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
           jsonContent.value = reader.result as string;
-          modalTitle.value = t('editor.viewBlob');
+          modalTitle.value = t('editor.viewImageBlob');
           modalLanguage.value = 'text';
           showJsonModal.value = true;
       }
   } catch (e) {
       console.error(e);
       alert('Failed to generate blob');
+  }
+};
+
+const handleViewPdfBlob = async () => {
+  try {
+      const pages = Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
+      const blob = await getPdfBlob(pages);
+      
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+          jsonContent.value = reader.result as string;
+          modalTitle.value = t('editor.viewPdfBlob');
+          modalLanguage.value = 'text';
+          showJsonModal.value = true;
+      }
+  } catch (e) {
+      console.error(e);
+      alert('Failed to generate PDF blob');
   }
 };
 
@@ -286,7 +306,7 @@ onMounted(() => {
   window.addEventListener('designer:print', handlePrint);
   window.addEventListener('designer:export-pdf', handleExport);
   window.addEventListener('designer:view-json', handleViewJson);
-  window.addEventListener('designer:view-blob', handleViewBlob);
+  window.addEventListener('designer:view-blob', handleViewImageBlob);
 });
 
 onUnmounted(() => {
@@ -295,7 +315,7 @@ onUnmounted(() => {
   window.removeEventListener('designer:print', handlePrint);
   window.removeEventListener('designer:export-pdf', handleExport);
   window.removeEventListener('designer:view-json', handleViewJson);
-  window.removeEventListener('designer:view-blob', handleViewBlob);
+  window.removeEventListener('designer:view-blob', handleViewImageBlob);
 });
 </script>
 
@@ -582,9 +602,13 @@ onUnmounted(() => {
           <DataObject class="w-4 h-4 text-gray-500" />
           <span>{{ t('editor.viewJson') }}</span>
         </button>
-        <button @click="handleViewBlob(); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
+        <button @click="handleViewImageBlob(); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
           <DataObject class="w-4 h-4 text-gray-500" />
-          <span>{{ t('editor.viewBlob') }}</span>
+          <span>{{ t('editor.viewImageBlob') }}</span>
+        </button>
+        <button @click="handleViewPdfBlob(); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">
+          <FilePdf class="w-4 h-4 text-gray-500" />
+          <span>{{ t('editor.viewPdfBlob') }}</span>
         </button>
         <div class="h-px bg-gray-200 my-0.5"></div>        
         <button @click="emit('toggleHelp'); showExportMenu = false" class="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm text-left transition-colors">

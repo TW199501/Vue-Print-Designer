@@ -38,6 +38,8 @@ export default {
     print: 'Print',
     viewJson: 'View JSON',
     viewBlob: 'View Blob',
+    viewImageBlob: 'View Image Blob',
+    viewPdfBlob: 'View PDF Blob',
     zoomIn: 'Zoom In',
     zoomOut: 'Zoom Out',
     zoomLevel: 'Zoom Level',
