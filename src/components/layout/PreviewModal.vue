@@ -25,7 +25,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const store = useDesignerStore();
-const { print: printHtml, exportPdf: exportPdfHtml, getPdfBlob, exportImages } = usePrint();
+const { print: printHtml, exportPdf: exportPdfHtml, getPdfBlob, exportImages, getImageBlob } = usePrint();
 const previewContainer = ref<HTMLElement | null>(null);
 const wrapperRef = ref<HTMLElement | null>(null);
 const zoomPercent = ref(100);
@@ -69,7 +69,7 @@ const handleViewBlob = async () => {
       if (!previewContainer.value) return;
       // Use elements within the preview container
       const pages = Array.from(previewContainer.value.querySelectorAll('.print-page')) as HTMLElement[];
-      const blob = await getPdfBlob(pages);
+      const blob = await getImageBlob(pages);
       
       const reader = new FileReader();
       reader.readAsDataURL(blob);

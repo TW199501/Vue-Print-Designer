@@ -81,13 +81,13 @@ const handleViewJson = () => {
   showJsonModal.value = true;
 };
 const showSaveNameModal = ref(false);
-const { getPrintHtml, print, exportPdf, getPdfBlob, exportImages } = usePrint();
+const { getPrintHtml, print, exportPdf, getPdfBlob, exportImages, getImageBlob } = usePrint();
 
 const handleViewBlob = async () => {
   try {
       // Use real DOM elements to ensure computed styles are captured correctly
       const pages = Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
-      const blob = await getPdfBlob(pages);
+      const blob = await getImageBlob(pages);
       
       const reader = new FileReader();
       reader.readAsDataURL(blob);

@@ -751,6 +751,46 @@ export const usePrint = () => {
     }
   };
 
+  const stitchImages = async (images: string[]): Promise<string> => {
+    if (images.length === 0) return '';
+    
+    // Load first image to get dimensions
+    const firstImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = images[0];
+    });
+    
+    const imgWidth = firstImg.width;
+    const imgHeight = firstImg.height;
+    const totalHeight = imgHeight * images.length;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = imgWidth;
+    canvas.height = totalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Could not get canvas context');
+    
+    // Draw first image
+    ctx.drawImage(firstImg, 0, 0);
+    
+    // Draw remaining images
+    for (let i = 1; i < images.length; i++) {
+        await new Promise<void>((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, 0, i * imgHeight);
+                resolve();
+            };
+            img.onerror = reject;
+            img.src = images[i];
+        });
+    }
+    
+    return canvas.toDataURL('image/jpeg', 0.8);
+  };
+
   const exportImages = async (content?: HTMLElement | string | HTMLElement[], filenamePrefix = 'print-design') => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
@@ -765,47 +805,6 @@ export const usePrint = () => {
             const pageImages = await generatePageImages(container, width, height);
             
             if (pageImages.length === 0) return;
-
-            // Stitch images into one
-            const stitchImages = async (images: string[]): Promise<string> => {
-                if (images.length === 0) return '';
-                
-                // Load first image to get dimensions
-                const firstImg = await new Promise<HTMLImageElement>((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => resolve(img);
-                    img.onerror = reject;
-                    img.src = images[0];
-                });
-                
-                const imgWidth = firstImg.width;
-                const imgHeight = firstImg.height;
-                const totalHeight = imgHeight * images.length;
-                
-                const canvas = document.createElement('canvas');
-                canvas.width = imgWidth;
-                canvas.height = totalHeight;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) throw new Error('Could not get canvas context');
-                
-                // Draw first image
-                ctx.drawImage(firstImg, 0, 0);
-                
-                // Draw remaining images
-                for (let i = 1; i < images.length; i++) {
-                    await new Promise<void>((resolve, reject) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            ctx.drawImage(img, 0, i * imgHeight);
-                            resolve();
-                        };
-                        img.onerror = reject;
-                        img.src = images[i];
-                    });
-                }
-                
-                return canvas.toDataURL('image/jpeg', 0.8);
-            };
 
             const finalImage = await stitchImages(pageImages);
             
@@ -829,6 +828,39 @@ export const usePrint = () => {
     }
   };
 
+  const getImageBlob = async (content: HTMLElement | string | HTMLElement[]) => {
+    try {
+        const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
+        const restore = await prepareEnvironment();
+        
+        const width = store.canvasSize.width;
+        const height = store.canvasSize.height;
+
+        const { container, tempWrapper } = await processContentForImage(targetContent, width, height);
+
+        try {
+            const pageImages = await generatePageImages(container, width, height);
+            
+            if (pageImages.length === 0) throw new Error('No images generated');
+
+            const finalImage = await stitchImages(pageImages);
+            
+            // Convert Data URL to Blob
+            const response = await fetch(finalImage);
+            return await response.blob();
+            
+        } finally {
+            if (tempWrapper && tempWrapper.parentNode) {
+                tempWrapper.parentNode.removeChild(tempWrapper);
+            }
+            restore();
+        }
+    } catch (error) {
+        console.error('Get Image Blob failed', error);
+        throw error;
+    }
+  };
+
   const getPdfBlob = async (content: HTMLElement | string | HTMLElement[]) => {
     try {
         const pdf = await createPdfDocument(content);
@@ -844,6 +876,7 @@ export const usePrint = () => {
     print,
     exportPdf,
     exportImages,
-    getPdfBlob
+    getPdfBlob,
+    getImageBlob
   };
 };
