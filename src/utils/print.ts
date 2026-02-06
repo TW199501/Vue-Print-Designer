@@ -1,6 +1,5 @@
 import { nextTick } from 'vue';
 import jsPDF from 'jspdf';
-import JSZip from 'jszip';
 import domtoimage from 'dom-to-image-more';
 import { Canvg } from 'canvg';
 import cloneDeep from 'lodash/cloneDeep';
@@ -765,32 +764,59 @@ export const usePrint = () => {
         try {
             const pageImages = await generatePageImages(container, width, height);
             
-            if (pageImages.length === 1) {
-                // Download single image
-                const link = document.createElement('a');
-                link.href = pageImages[0];
-                link.download = `${filenamePrefix}.jpg`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else {
-                // Download zip
-                const zip = new JSZip();
-                pageImages.forEach((imgData, i) => {
-                    // Remove data:image/jpeg;base64, prefix
-                    const base64Data = imgData.replace(/^data:image\/jpeg;base64,/, "");
-                    zip.file(`${filenamePrefix}-${i + 1}.jpg`, base64Data, { base64: true });
+            if (pageImages.length === 0) return;
+
+            // Stitch images into one
+            const stitchImages = async (images: string[]): Promise<string> => {
+                if (images.length === 0) return '';
+                
+                // Load first image to get dimensions
+                const firstImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = reject;
+                    img.src = images[0];
                 });
                 
-                const content = await zip.generateAsync({ type: 'blob' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = `${filenamePrefix}.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-            }
+                const imgWidth = firstImg.width;
+                const imgHeight = firstImg.height;
+                const totalHeight = imgHeight * images.length;
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = imgWidth;
+                canvas.height = totalHeight;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('Could not get canvas context');
+                
+                // Draw first image
+                ctx.drawImage(firstImg, 0, 0);
+                
+                // Draw remaining images
+                for (let i = 1; i < images.length; i++) {
+                    await new Promise<void>((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            ctx.drawImage(img, 0, i * imgHeight);
+                            resolve();
+                        };
+                        img.onerror = reject;
+                        img.src = images[i];
+                    });
+                }
+                
+                return canvas.toDataURL('image/jpeg', 0.8);
+            };
+
+            const finalImage = await stitchImages(pageImages);
+            
+            // Download single stitched image
+            const link = document.createElement('a');
+            link.href = finalImage;
+            link.download = `${filenamePrefix}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
         } finally {
             if (tempWrapper && tempWrapper.parentNode) {
                 tempWrapper.parentNode.removeChild(tempWrapper);
