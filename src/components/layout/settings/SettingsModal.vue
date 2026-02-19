@@ -249,21 +249,19 @@ const close = () => {
 
             <!-- Connection Tab -->
             <div v-if="activeTab === 'connection'" class="space-y-4 text-sm text-gray-700">
-              <div class="flex items-center border-b border-gray-200">
-                <button
-                  class="flex-1 px-4 py-2 text-sm border-b-2 text-center"
-                  :class="activeConnectionTab === 'local' ? 'border-blue-600 text-blue-600 font-medium' : 'border-transparent text-gray-500'"
-                  @click="activeConnectionTab = 'local'"
+              <div class="flex items-center gap-3">
+                <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer"
+                  :class="activeConnectionTab === 'local' ? 'border-blue-600 text-blue-700' : 'border-gray-300'"
                 >
-                  {{ t('settings.localConnection') }}
-                </button>
-                <button
-                  class="flex-1 px-4 py-2 text-sm border-b-2 text-center"
-                  :class="activeConnectionTab === 'remote' ? 'border-blue-600 text-blue-600 font-medium' : 'border-transparent text-gray-500'"
-                  @click="activeConnectionTab = 'remote'"
+                  <input type="radio" value="local" v-model="activeConnectionTab" />
+                  <span>{{ t('settings.localConnection') }}</span>
+                </label>
+                <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer"
+                  :class="activeConnectionTab === 'remote' ? 'border-blue-600 text-blue-700' : 'border-gray-300'"
                 >
-                  {{ t('settings.remoteConnection') }}
-                </button>
+                  <input type="radio" value="remote" v-model="activeConnectionTab" />
+                  <span>{{ t('settings.remoteConnection') }}</span>
+                </label>
               </div>
 
               <div v-if="activeConnectionTab === 'local'" class="space-y-4">
@@ -292,11 +290,11 @@ const close = () => {
                     <input v-model="localSettings.secretKey" type="text" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600" />
                   </label>
                 </div>
-                <div class="flex items-center justify-between">
-                  <div class="text-xs text-gray-500">
-                    <span class="font-medium text-gray-700">{{ t('settings.connectionUrl') }}: </span>
-                    <span>{{ localWsUrl }}</span>
-                  </div>
+                <div class="rounded bg-gray-100 px-3 py-2 text-xs text-gray-600 break-all">
+                  <span class="font-medium text-gray-700">{{ t('settings.connectionUrl') }}: </span>
+                  <span>{{ localWsUrl }}</span>
+                </div>
+                <div class="flex justify-end">
                   <button
                     @click="handleLocalConnection"
                     :disabled="localConnecting || (!localConnected && !localHasConfig)"
@@ -342,11 +340,11 @@ const close = () => {
                     <input v-model="remoteSettings.password" type="password" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600" />
                   </label>
                 </div>
-                <div class="flex items-center justify-between">
-                  <div class="text-xs text-gray-500">
-                    <span class="font-medium text-gray-700">{{ t('settings.connectionUrl') }}: </span>
-                    <span>{{ remoteWsUrl }}</span>
-                  </div>
+                <div class="rounded bg-gray-100 px-3 py-2 text-xs text-gray-600 break-all">
+                  <span class="font-medium text-gray-700">{{ t('settings.connectionUrl') }}: </span>
+                  <span>{{ remoteWsUrl }}</span>
+                </div>
+                <div class="flex justify-end">
                   <button
                     @click="handleRemoteConnection"
                     :disabled="remoteConnecting || (!remoteConnected && !remoteHasConfig)"
