@@ -584,8 +584,7 @@ const createState = (): PrintSettingsState => {
           return;
         }
 
-        const baseUrl = normalizeBaseUrl(remoteSettings.apiBaseUrl);
-        const loginResponse = await fetch(`${baseUrl}/api/login`, {
+        const loginResponse = await fetch(remoteSettings.apiBaseUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

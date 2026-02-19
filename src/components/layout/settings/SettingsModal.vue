@@ -7,7 +7,10 @@ import { usePrintSettings } from '@/composables/usePrintSettings';
 import X from '~icons/material-symbols/close';
 import SettingsIcon from '~icons/material-symbols/settings';
 import TranslateIcon from '~icons/material-symbols/translate';
+import PrintIcon from '~icons/material-symbols/print';
+import CloudIcon from '~icons/material-symbols/cloud';
 import LinkIcon from '~icons/material-symbols/link';
+import LinkOffIcon from '~icons/material-symbols/link-off';
 
 defineProps<{
   show: boolean
@@ -38,8 +41,7 @@ const {
   fetchRemoteClients
 } = usePrintSettings();
 
-const activeTab = ref<'basic' | 'language' | 'connection'>('basic');
-const activeConnectionTab = ref<'local' | 'remote'>('local');
+const activeTab = ref<'basic' | 'language' | 'local' | 'remote'>('basic');
 const selectedLang = ref<string>(locale.value as string);
 const localConnected = computed(() => localStatus.value === 'connected');
 const remoteConnected = computed(() => remoteStatus.value === 'connected');
@@ -91,7 +93,7 @@ watch(selectedTheme, (val) => {
   setTheme(val);
 });
 
-watch([activeConnectionTab, remoteStatus], ([tab, status]) => {
+watch([activeTab, remoteStatus], ([tab, status]) => {
   if (tab !== 'remote' || status !== 'connected') return;
   fetchRemoteClients();
 });
@@ -128,24 +130,33 @@ const close = () => {
               {{ t('settings.language') }}
             </button>
             <button
-              @click="activeTab = 'connection'"
+              @click="activeTab = 'local'"
               class="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors text-sm"
-              :class="activeTab === 'connection' ? 'bg-white text-blue-600 border-l-4 border-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-4 border-transparent'"
+              :class="activeTab === 'local' ? 'bg-white text-blue-600 border-l-4 border-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-4 border-transparent'"
             >
-              <LinkIcon class="w-5 h-5" />
-              {{ t('settings.connection') }}
+              <PrintIcon class="w-5 h-5" />
+              {{ t('settings.localConnection') }}
+            </button>
+            <button
+              @click="activeTab = 'remote'"
+              class="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors text-sm"
+              :class="activeTab === 'remote' ? 'bg-white text-blue-600 border-l-4 border-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-4 border-transparent'"
+            >
+              <CloudIcon class="w-5 h-5" />
+              {{ t('settings.remoteConnection') }}
             </button>
           </div>
         </div>
 
         <!-- Content Area -->
-        <div class="flex-1 flex flex-col min-w-0">
+        <div class="flex-1 flex flex-col min-w-0 relative">
           <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-800">
               {{ 
                 activeTab === 'basic' ? t('settings.basic') :
                 activeTab === 'language' ? t('settings.language') :
-                t('settings.connection')
+                activeTab === 'local' ? t('settings.localConnection') :
+                t('settings.remoteConnection')
               }}
             </h3>
             <button @click="close" class="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
@@ -255,24 +266,12 @@ const close = () => {
               <p class="text-xs text-gray-500 mt-2">{{ t('settings.languageDesc') }}</p>
             </div>
 
-            <!-- Connection Tab -->
-            <div v-if="activeTab === 'connection'" class="space-y-4 text-sm text-gray-700">
-              <div class="flex items-center gap-3">
-                <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer"
-                  :class="activeConnectionTab === 'local' ? 'border-blue-600 text-blue-700' : 'border-gray-300'"
-                >
-                  <input type="radio" value="local" v-model="activeConnectionTab" />
-                  <span>{{ t('settings.localConnection') }}</span>
-                </label>
-                <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer"
-                  :class="activeConnectionTab === 'remote' ? 'border-blue-600 text-blue-700' : 'border-gray-300'"
-                >
-                  <input type="radio" value="remote" v-model="activeConnectionTab" />
-                  <span>{{ t('settings.remoteConnection') }}</span>
-                </label>
-              </div>
-
-              <div v-if="activeConnectionTab === 'local'" class="space-y-4">
+            <!-- Local Connection Tab -->
+            <div v-if="activeTab === 'local'" class="space-y-4 text-sm text-gray-700">
+                <div class="space-y-2">
+                  <div class="font-medium text-gray-900">{{ t('settings.localClientTitle') }}</div>
+                  <p class="text-xs text-gray-500">{{ t('settings.localClientDesc') }}</p>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                   <label class="flex flex-col gap-1">
                     <span class="text-xs text-gray-500">{{ t('settings.host') }}</span>
@@ -302,19 +301,32 @@ const close = () => {
                   <span class="font-medium text-gray-700">{{ t('settings.connectionUrl') }}: </span>
                   <span>{{ localWsUrl }}</span>
                 </div>
-                <div class="flex justify-end">
-                  <button
-                    @click="handleLocalConnection"
-                    :disabled="localConnecting || (!localConnected && !localHasConfig)"
-                    class="px-4 py-2 text-white rounded transition-colors text-sm disabled:opacity-50"
-                    :class="connectionButtonClass(localStatus)"
-                  >
-                    {{ localButtonLabel }}
-                  </button>
-                </div>
-              </div>
+            </div>
 
-              <div v-if="activeConnectionTab === 'remote'" class="space-y-4">
+            <!-- Remote Connection Tab -->
+            <div v-if="activeTab === 'remote'" class="space-y-4 text-sm text-gray-700">
+                <div class="space-y-2">
+                  <div class="font-medium text-gray-900">{{ t('settings.remoteLoginTitle') }}</div>
+                  <p class="text-xs text-gray-500">{{ t('settings.remoteLoginDesc') }}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <label class="flex flex-col gap-1 col-span-2">
+                    <span class="text-xs text-gray-500">{{ t('settings.apiBaseUrl') }}</span>
+                    <input v-model="remoteSettings.apiBaseUrl" type="text" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600" :placeholder="t('settings.apiBasePlaceholder')" />
+                  </label>
+                  <label class="flex flex-col gap-1">
+                    <span class="text-xs text-gray-500">{{ t('settings.username') }}</span>
+                    <input v-model="remoteSettings.username" type="text" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600" />
+                  </label>
+                  <label class="flex flex-col gap-1">
+                    <span class="text-xs text-gray-500">{{ t('settings.password') }}</span>
+                    <input v-model="remoteSettings.password" type="password" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600" />
+                  </label>
+                </div>
+                <div class="space-y-2 pt-2 border-t border-gray-200">
+                  <div class="font-medium text-gray-900">{{ t('settings.remoteWsTitle') }}</div>
+                  <p class="text-xs text-gray-500">{{ t('settings.remoteWsDesc') }}</p>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                   <label class="flex flex-col gap-1">
                     <span class="text-xs text-gray-500">{{ t('settings.host') }}</span>
@@ -334,18 +346,6 @@ const close = () => {
                       <option value="ws">ws</option>
                       <option value="wss">wss</option>
                     </select>
-                  </label>
-                  <label class="flex flex-col gap-1 col-span-2">
-                    <span class="text-xs text-gray-500">{{ t('settings.apiBaseUrl') }}</span>
-                    <input v-model="remoteSettings.apiBaseUrl" type="text" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600" :placeholder="t('settings.apiBasePlaceholder')" />
-                  </label>
-                  <label class="flex flex-col gap-1">
-                    <span class="text-xs text-gray-500">{{ t('settings.username') }}</span>
-                    <input v-model="remoteSettings.username" type="text" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600" />
-                  </label>
-                  <label class="flex flex-col gap-1">
-                    <span class="text-xs text-gray-500">{{ t('settings.password') }}</span>
-                    <input v-model="remoteSettings.password" type="password" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600" />
                   </label>
                   <label class="flex flex-col gap-1 col-span-2">
                     <span class="text-xs text-gray-500">{{ t('settings.remoteClient') }}</span>
@@ -370,19 +370,36 @@ const close = () => {
                   <span class="font-medium text-gray-700">{{ t('settings.connectionUrl') }}: </span>
                   <span>{{ remoteWsUrl }}</span>
                 </div>
-                <div class="flex justify-end">
-                  <button
-                    @click="handleRemoteConnection"
-                    :disabled="remoteConnecting || (!remoteConnected && !remoteHasConfig)"
-                    class="px-4 py-2 text-white rounded transition-colors text-sm disabled:opacity-50"
-                    :class="connectionButtonClass(remoteStatus)"
-                  >
-                    {{ remoteButtonLabel }}
-                  </button>
-                </div>
                 <p class="text-xs text-gray-500">{{ t('settings.remoteAuthHint') }}</p>
-              </div>
             </div>
+          </div>
+
+          <div v-if="activeTab === 'local'" class="absolute right-6 top-[84px] z-10">
+            <button
+              @click="handleLocalConnection"
+              :disabled="localConnecting || (!localConnected && !localHasConfig)"
+              class="h-9 w-9 inline-flex items-center justify-center rounded-full text-white transition-colors text-sm disabled:opacity-50"
+              :class="connectionButtonClass(localStatus)"
+              :title="localButtonLabel"
+              :aria-label="localButtonLabel"
+            >
+              <LinkOffIcon v-if="localConnected" class="w-5 h-5" />
+              <LinkIcon v-else class="w-5 h-5" :class="{ 'animate-spin': localConnecting }" />
+            </button>
+          </div>
+
+          <div v-if="activeTab === 'remote'" class="absolute right-6 top-[84px] z-10">
+            <button
+              @click="handleRemoteConnection"
+              :disabled="remoteConnecting || (!remoteConnected && !remoteHasConfig)"
+              class="h-9 w-9 inline-flex items-center justify-center rounded-full text-white transition-colors text-sm disabled:opacity-50"
+              :class="connectionButtonClass(remoteStatus)"
+              :title="remoteButtonLabel"
+              :aria-label="remoteButtonLabel"
+            >
+              <LinkOffIcon v-if="remoteConnected" class="w-5 h-5" />
+              <LinkIcon v-else class="w-5 h-5" :class="{ 'animate-spin': remoteConnecting }" />
+            </button>
           </div>
           
           <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end rounded-br-lg">
