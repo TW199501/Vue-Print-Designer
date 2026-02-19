@@ -199,6 +199,12 @@ const close = () => {
                   <div class="mb-2 font-medium text-gray-900">{{ t('settings.printMode') }}</div>
                   <div class="flex items-center gap-3">
                     <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer"
+                      :class="printMode === 'browser' ? 'border-blue-600 text-blue-700' : 'border-gray-300'"
+                    >
+                      <input type="radio" value="browser" v-model="printMode" />
+                      <span>{{ t('settings.printModeBrowser') }}</span>
+                    </label>
+                    <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer"
                       :class="printMode === 'local' ? 'border-blue-600 text-blue-700' : 'border-gray-300'"
                     >
                       <input type="radio" value="local" v-model="printMode" :disabled="!localConnected" />
@@ -209,12 +215,6 @@ const close = () => {
                     >
                       <input type="radio" value="remote" v-model="printMode" :disabled="!remoteConnected" />
                       <span>{{ t('settings.printModeRemote') }}</span>
-                    </label>
-                    <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer"
-                      :class="printMode === 'browser' ? 'border-blue-600 text-blue-700' : 'border-gray-300'"
-                    >
-                      <input type="radio" value="browser" v-model="printMode" />
-                      <span>{{ t('settings.printModeBrowser') }}</span>
                     </label>
                   </div>
                   <p class="text-xs text-gray-500 mt-2">{{ t('settings.printModeDesc') }}</p>
