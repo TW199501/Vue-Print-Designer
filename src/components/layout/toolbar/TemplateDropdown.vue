@@ -189,9 +189,9 @@ const handleModalSave = (name: string) => {
       class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors w-40"
       title="Templates"
     >
-      <Description class="w-4 h-4 text-gray-500 flex-shrink-0" />
+      <Description class="w-4 h-4 flex-shrink-0" />
       <span class="flex-1 truncate text-left">{{ currentTemplateName }}</span>
-      <ChevronDown class="w-4 h-4 text-gray-500 flex-shrink-0" />
+      <ChevronDown class="w-4 h-4 flex-shrink-0" />
     </button>
 
     <div v-if="isOpen" class="absolute top-full left-0 mt-2 w-[220px] bg-white rounded-lg shadow-xl border border-gray-200 z-[100] flex flex-col max-h-[500px]">
