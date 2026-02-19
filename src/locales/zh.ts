@@ -408,6 +408,7 @@ export default {
       error: '错误'
     },
     retrying: '重试中（{count}/{max}）',
+    cancelRetry: '停止重试',
     selectLanguage: '选择语言',
     zhLabel: '中文',
     enLabel: 'English'

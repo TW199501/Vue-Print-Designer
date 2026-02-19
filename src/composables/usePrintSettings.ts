@@ -89,6 +89,8 @@ interface PrintSettingsState {
   fetchRemoteClients: () => Promise<RemoteClientInfo[]>;
   fetchRemotePrinters: (clientId?: string) => Promise<RemotePrinterInfo[]>;
   fetchLocalPrinterCaps: (printer: string) => Promise<LocalPrinterCaps | undefined>;
+  cancelLocalRetry: () => void;
+  cancelRemoteRetry: () => void;
   connectLocal: () => Promise<void>;
   disconnectLocal: () => void;
   connectRemote: () => Promise<void>;
@@ -391,12 +393,35 @@ const createState = (): PrintSettingsState => {
     remoteRetryCount.value = 0;
   };
 
+  const cancelLocalRetry = () => {
+    localManualDisconnect.value = true;
+    clearLocalRetry();
+    if (localSocket.value) {
+      localSocket.value.close();
+    }
+    localSocket.value = null;
+    localStatus.value = 'disconnected';
+    localStatusMessage.value = '';
+  };
+
+  const cancelRemoteRetry = () => {
+    remoteManualDisconnect.value = true;
+    clearRemoteRetry();
+    if (remoteSocket.value) {
+      remoteSocket.value.close();
+    }
+    remoteSocket.value = null;
+    remoteStatus.value = 'disconnected';
+    remoteStatusMessage.value = '';
+  };
+
   const scheduleLocalReconnect = () => {
     if (localManualDisconnect.value) return;
     if (localRetryTimer.value) return;
     if (localRetryCount.value >= maxRetries) {
       localStatus.value = 'error';
       localStatusMessage.value = 'Local connection failed';
+      localRetryCount.value = 0;
       return;
     }
     localRetryCount.value += 1;
@@ -413,6 +438,7 @@ const createState = (): PrintSettingsState => {
     if (remoteRetryCount.value >= maxRetries) {
       remoteStatus.value = 'error';
       remoteStatusMessage.value = 'Remote connection failed';
+      remoteRetryCount.value = 0;
       return;
     }
     remoteRetryCount.value += 1;
@@ -756,6 +782,8 @@ const createState = (): PrintSettingsState => {
     fetchRemoteClients,
     fetchRemotePrinters,
     fetchLocalPrinterCaps,
+    cancelLocalRetry,
+    cancelRemoteRetry,
     connectLocal,
     disconnectLocal,
     connectRemote,

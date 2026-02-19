@@ -36,6 +36,8 @@ const {
   remoteSelectedClientId,
   localWsUrl,
   remoteWsUrl,
+  cancelLocalRetry,
+  cancelRemoteRetry,
   connectLocal,
   disconnectLocal,
   connectRemote,
@@ -53,15 +55,11 @@ const localHasConfig = computed(() => Boolean(localSettings.host && localSetting
 const remoteHasConfig = computed(() => Boolean(remoteSettings.apiBaseUrl && remoteSettings.username && remoteSettings.password));
 
 const localButtonLabel = computed(() => {
-  if (localConnected.value) return t('settings.status.connected');
-  if (localRetryCount.value > 0) return t('settings.retrying', { count: localRetryCount.value, max: 10 });
-  return t('settings.status.disconnected');
+  return localConnected.value ? t('settings.status.connected') : t('settings.status.disconnected');
 });
 
 const remoteButtonLabel = computed(() => {
-  if (remoteConnected.value) return t('settings.status.connected');
-  if (remoteRetryCount.value > 0) return t('settings.retrying', { count: remoteRetryCount.value, max: 10 });
-  return t('settings.status.disconnected');
+  return remoteConnected.value ? t('settings.status.connected') : t('settings.status.disconnected');
 });
 
 const connectionButtonClass = (status: 'connecting' | 'connected' | 'disconnected' | 'error') => {
@@ -308,14 +306,19 @@ const close = () => {
                   <button
                     @click="handleLocalConnection"
                     :disabled="localConnecting || localRetryCount > 0 || (!localConnected && !localHasConfig)"
-                    class="relative w-full inline-flex items-center justify-center gap-2 px-3 h-9 rounded-lg transition-colors text-sm shadow-sm overflow-hidden disabled:opacity-50"
+                    class="w-full inline-flex items-center justify-center gap-2 px-3 h-9 rounded transition-colors text-sm shadow-sm disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
                     :class="connectionButtonClass(localStatus)"
                   >
-                    <span v-if="localConnecting" class="btn-fill"></span>
                     <LinkIcon v-if="localConnected" class="w-4 h-4" />
                     <LinkOffIcon v-else class="w-4 h-4" />
-                    <span class="relative z-10">{{ localButtonLabel }}</span>
+                    <span>{{ localButtonLabel }}</span>
                   </button>
+                  <div v-if="localRetryCount > 0 && !localConnected" class="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>{{ t('settings.retrying', { count: localRetryCount, max: 10 }) }}</span>
+                    <button @click="cancelLocalRetry" class="text-blue-600 hover:text-blue-700">
+                      {{ t('settings.cancelRetry') }}
+                    </button>
+                  </div>
                 </div>
             </div>
 
@@ -391,14 +394,19 @@ const close = () => {
                   <button
                     @click="handleRemoteConnection"
                     :disabled="remoteConnecting || remoteRetryCount > 0 || (!remoteConnected && !remoteHasConfig)"
-                    class="relative w-full inline-flex items-center justify-center gap-2 px-3 h-9 rounded-lg transition-colors text-sm shadow-sm overflow-hidden disabled:opacity-50"
+                    class="w-full inline-flex items-center justify-center gap-2 px-3 h-9 rounded transition-colors text-sm shadow-sm disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
                     :class="connectionButtonClass(remoteStatus)"
                   >
-                    <span v-if="remoteConnecting" class="btn-fill"></span>
                     <LinkIcon v-if="remoteConnected" class="w-4 h-4" />
                     <LinkOffIcon v-else class="w-4 h-4" />
-                    <span class="relative z-10">{{ remoteButtonLabel }}</span>
+                    <span>{{ remoteButtonLabel }}</span>
                   </button>
+                  <div v-if="remoteRetryCount > 0 && !remoteConnected" class="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>{{ t('settings.retrying', { count: remoteRetryCount, max: 10 }) }}</span>
+                    <button @click="cancelRemoteRetry" class="text-blue-600 hover:text-blue-700">
+                      {{ t('settings.cancelRetry') }}
+                    </button>
+                  </div>
                 </div>
             </div>
           </div>
@@ -414,20 +422,3 @@ const close = () => {
   </Teleport>
 </template>
 
-<style scoped>
-.btn-fill {
-  position: absolute;
-  inset: 0;
-  background: #2563eb;
-  transform: scaleX(0);
-  transform-origin: left;
-  animation: btnFill 0.6s ease-out forwards;
-  opacity: 0.9;
-}
-
-@keyframes btnFill {
-  to {
-    transform: scaleX(1);
-  }
-}
-</style>
