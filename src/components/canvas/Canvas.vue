@@ -23,6 +23,12 @@ const { t } = useI18n();
 
 const pages = computed(() => store.pages);
 const zoom = computed(() => store.zoom);
+const pageSpacingX = computed(() => store.pageSpacingX || 0);
+const pageSpacingY = computed(() => store.pageSpacingY || 0);
+const marginLeft = computed(() => store.pageSpacingX || 0);
+const marginRight = computed(() => store.pageSpacingX || 0);
+const marginTop = computed(() => store.pageSpacingY || 0);
+const marginBottom = computed(() => store.pageSpacingY || 0);
 const canvasSize = computed(() => store.canvasSize);
 
 // Header/Footer Dragging
@@ -535,7 +541,15 @@ const getGlobalElements = () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-8" :style="{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: 'fit-content' }">
+  <div
+    class="flex flex-col"
+    :style="{
+      transform: `scale(${zoom})`,
+      transformOrigin: 'top left',
+      width: 'fit-content',
+      rowGap: `${pageSpacingY}px`
+    }"
+  >
     <div v-for="(page, index) in pages" :key="page.id" class="relative group">
       <div class="absolute top-0 -right-12 flex flex-col gap-2 z-10">
         <button 
@@ -677,13 +691,25 @@ const getGlobalElements = () => {
       <!-- Corner Markers -->
       <div v-if="store.showCornerMarkers" data-print-exclude="true" class="marker absolute inset-0 pointer-events-none z-50 opacity-50">
         <!-- Top Left -->
-        <div class="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-gray-300"></div>
+        <div
+          class="absolute w-3 h-3 border-t-2 border-l-2 border-gray-300"
+          :style="{ top: `${marginTop}px`, left: `${marginLeft}px` }"
+        ></div>
         <!-- Top Right -->
-        <div class="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-gray-300"></div>
+        <div
+          class="absolute w-3 h-3 border-t-2 border-r-2 border-gray-300"
+          :style="{ top: `${marginTop}px`, right: `${marginRight}px` }"
+        ></div>
         <!-- Bottom Left -->
-        <div class="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-gray-300"></div>
+        <div
+          class="absolute w-3 h-3 border-b-2 border-l-2 border-gray-300"
+          :style="{ bottom: `${marginBottom}px`, left: `${marginLeft}px` }"
+        ></div>
         <!-- Bottom Right -->
-        <div class="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-gray-300"></div>
+        <div
+          class="absolute w-3 h-3 border-b-2 border-r-2 border-gray-300"
+          :style="{ bottom: `${marginBottom}px`, right: `${marginRight}px` }"
+        ></div>
       </div>
     </div>
   </div>

@@ -54,6 +54,8 @@ onMounted(() => {
       () => store.showHeaderLine,
       () => store.showFooterLine,
       () => store.canvasBackground,
+      () => store.pageSpacingX,
+      () => store.pageSpacingY,
       () => store.watermark,
       () => store.showMinimap
     ],
@@ -99,11 +101,11 @@ const canvasStyle = computed(() => {
   const pagesCount = store.pages.length;
   const pageHeight = store.canvasSize.height;
   const pageWidth = store.canvasSize.width;
-  const gap = 32; // gap-8
+  const gapY = store.pageSpacingY || 0;
   // const paddingBottom = 80; // pb-20 - Removed to prevent unnecessary scrollbars
   
   const unscaledHeight = pagesCount > 0
-    ? (pagesCount * pageHeight) + ((pagesCount - 1) * gap)
+    ? (pagesCount * pageHeight) + ((pagesCount - 1) * gapY)
     : 0;
 
   const unscaledWidth = pageWidth;

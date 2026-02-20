@@ -143,6 +143,8 @@ export interface DesignerState {
   showHelp: boolean;
   showSettings: boolean;
   canvasBackground: string;
+  pageSpacingX?: number;
+  pageSpacingY?: number;
   guides: Guide[];
   historyPast: Page[][];
   historyFuture: Page[][];

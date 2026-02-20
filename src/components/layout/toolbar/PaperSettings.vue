@@ -62,6 +62,16 @@ const watermarkDensity = computed({
   set: (val) => store.setWatermark({ density: unitToPx(Number(val), store.unit as Unit) })
 });
 
+const pageSpacingX = computed({
+  get: () => formatUnitValue(store.pageSpacingX || 0),
+  set: (val) => store.setPageSpacingX(unitToPx(Number(val), store.unit as Unit))
+});
+
+const pageSpacingY = computed({
+  get: () => formatUnitValue(store.pageSpacingY || 0),
+  set: (val) => store.setPageSpacingY(unitToPx(Number(val), store.unit as Unit))
+});
+
 const unitLabel = computed(() => {
   if (store.unit === 'px') return t('common.px');
   if (store.unit === 'pt') return t('common.pt');
@@ -180,6 +190,27 @@ watch(() => store.canvasSize, (newSize) => {
               type="number" 
               :value="formatUnitValue(customHeight)"
               @change="(e) => { customHeight = unitToPx(Number((e.target as HTMLInputElement).value), store.unit as Unit); applyCustomSize(); }"
+              class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">{{ t('editor.spacingX') }} ({{ unitLabel }})</label>
+            <input 
+              type="number" 
+              :value="pageSpacingX"
+              @change="(e) => { pageSpacingX = Number((e.target as HTMLInputElement).value); }"
+              class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">{{ t('editor.spacingY') }} ({{ unitLabel }})</label>
+            <input 
+              type="number" 
+              :value="pageSpacingY"
+              @change="(e) => { pageSpacingY = Number((e.target as HTMLInputElement).value); }"
               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
             />
           </div>

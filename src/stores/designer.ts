@@ -48,6 +48,8 @@ export const useDesignerStore = defineStore('designer', {
     showHelp: false,
     showSettings: false,
     canvasBackground: '#ffffff',
+    pageSpacingX: 32,
+    pageSpacingY: 32,
     guides: [],
     historyPast: [],
     historyFuture: [],
@@ -82,6 +84,12 @@ export const useDesignerStore = defineStore('designer', {
     setIsExporting(isExporting: boolean) {
       this.isExporting = isExporting;
     },
+    setPageSpacingX(value: number) {
+      this.pageSpacingX = Math.max(0, Math.round(value));
+    },
+    setPageSpacingY(value: number) {
+      this.pageSpacingY = Math.max(0, Math.round(value));
+    },
     resetCanvas() {
       this.watermark = { ...defaultWatermark };
       localStorage.setItem('print-designer-watermark', JSON.stringify(this.watermark));
@@ -98,6 +106,8 @@ export const useDesignerStore = defineStore('designer', {
       this.showHeaderLine = false;
       this.showFooterLine = false;
       this.canvasBackground = '#ffffff';
+      this.pageSpacingX = 32;
+      this.pageSpacingY = 32;
       this.canvasSize = { width: 794, height: 1123 };
       this.zoom = 1;
       this.showGrid = true;

@@ -568,8 +568,7 @@ export const usePrint = () => {
                      // Prevent infinite loop: if we are at the first row (r=0) 
                      // AND the table is already at the top of the page, we MUST accept at least one row.
                      if (splitIndex === 0) {
-                         const wrapperTop = parseFloat(getComputedStyle(wrapper).top) || 0;
-                         const startY = copyHeader && headerHeight > 0 ? headerHeight + 10 : 0;
+                         const startY = copyHeader && headerHeight > 0 ? headerHeight + 10 : (store.pageSpacingY || 0);
                          // If we are essentially at the top already
                          if (wrapperTop <= startY + 5) {
                              splitIndex = 1; // Force one row to stay
@@ -603,7 +602,7 @@ export const usePrint = () => {
                  const newWrapper = wrapper.cloneNode(true) as HTMLElement;
                  // Set top to headerHeight + padding or just below header
                  // If headerHeight is 0, use 20px padding.
-                 const startY = copyHeader && headerHeight > 0 ? headerHeight + 10 : 0;
+                 const startY = copyHeader && headerHeight > 0 ? headerHeight + 10 : (store.pageSpacingY || 0);
                  newWrapper.style.removeProperty('top');
                  newWrapper.style.setProperty('top', `${startY}px`, 'important');
                  // Height is already auto from the cloned wrapper

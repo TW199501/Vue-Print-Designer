@@ -67,6 +67,8 @@ export default {
     paperSettings: 'Paper Settings',
     sizePreset: 'Size Preset',
     custom: 'Custom',
+    spacingX: 'Horizontal Margin',
+    spacingY: 'Vertical Margin',
     showCornerMarkers: 'Show Corner Markers',
     showGrid: 'Show Grid',
     showMinimap: 'Show Minimap',
