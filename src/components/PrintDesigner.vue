@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import { useTemplateStore } from '@/stores/templates';
 import { useAutoSave } from '@/composables/useAutoSave';
@@ -12,13 +13,22 @@ import Canvas from './canvas/Canvas.vue';
 import Ruler from './layout/Ruler.vue';
 import Shortcuts from './layout/Shortcuts.vue';
 import Minimap from './layout/Minimap.vue';
+import InputModal from '@/components/common/InputModal.vue';
 
 const store = useDesignerStore();
 const templateStore = useTemplateStore();
 const { autoSave } = useAutoSave();
+const { t } = useI18n();
 const scrollContainer = ref<HTMLElement | null>(null);
 const canvasContainer = ref<HTMLElement | null>(null);
 const canvasWrapper = ref<HTMLElement | null>(null);
+const showSaveAsModal = ref(false);
+
+const editingCustomElement = computed(() => store.editingCustomElement);
+const saveAsInitialName = computed(() => {
+  if (!editingCustomElement.value) return '';
+  return `${editingCustomElement.value.name} Copy`;
+});
 
 onMounted(() => {
   nextTick(() => {
@@ -67,6 +77,7 @@ onMounted(() => {
 });
 
 const debouncedAutoSave = debounce(() => {
+  if (store.editingCustomElementId) return;
   if (autoSave.value && templateStore.currentTemplateId && !templateStore.isSaving) {
     const currentTemplate = templateStore.templates.find(t => t.id === templateStore.currentTemplateId);
     if (currentTemplate) {
@@ -74,6 +85,30 @@ const debouncedAutoSave = debounce(() => {
     }
   }
 }, 1000);
+
+const handleSaveCustomEdit = () => {
+  const ok = store.commitCustomElementEdit();
+  if (!ok) {
+    alert(t('sidebar.editSaveFailed'));
+    return;
+  }
+  store.cancelCustomElementEdit();
+};
+
+const handleSaveCustomEditAs = (name: string) => {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const ok = store.saveCustomElementEditAs(trimmed);
+  if (!ok) {
+    alert(t('sidebar.editSaveFailed'));
+    return;
+  }
+  store.cancelCustomElementEdit();
+};
+
+const handleExitCustomEdit = () => {
+  store.cancelCustomElementEdit();
+};
 
 const scrollX = ref(0);
 const scrollY = ref(0);
@@ -374,6 +409,22 @@ const rulerIndicators = computed(() => {
     <div class="flex-1 flex overflow-hidden">
       <Sidebar />
       <main class="flex-1 overflow-hidden relative flex flex-col">
+        <div v-if="store.editingCustomElementId" class="flex items-center justify-between px-4 py-2 bg-blue-50 border-b border-blue-200 text-blue-900">
+          <div class="text-sm font-medium">
+            {{ t('sidebar.editingElement', { name: editingCustomElement?.name || '' }) }}
+          </div>
+          <div class="flex items-center gap-2">
+            <button @click="handleSaveCustomEdit" class="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700">
+              {{ t('sidebar.saveEdit') }}
+            </button>
+            <button @click="showSaveAsModal = true" class="px-3 py-1.5 text-xs font-medium border border-blue-300 text-blue-900 rounded hover:bg-blue-100">
+              {{ t('sidebar.saveAs') }}
+            </button>
+            <button @click="handleExitCustomEdit" class="px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-100 rounded">
+              {{ t('sidebar.exitEdit') }}
+            </button>
+          </div>
+        </div>
         <Shortcuts />
         <!-- Rulers Area -->
         <div class="relative w-full h-full flex flex-col overflow-hidden">
@@ -560,5 +611,14 @@ const rulerIndicators = computed(() => {
       </main>
       <PropertiesPanel />
     </div>
+
+    <InputModal
+      :show="showSaveAsModal"
+      :initial-value="saveAsInitialName"
+      :title="t('sidebar.saveAsCustomElement')"
+      :placeholder="t('sidebar.enterNamePlaceholder')"
+      @close="showSaveAsModal = false"
+      @save="handleSaveCustomEditAs"
+    />
   </div>
 </template>

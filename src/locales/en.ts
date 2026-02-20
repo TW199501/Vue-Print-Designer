@@ -144,12 +144,20 @@ export default {
     circle: 'Circle',
     noCustomElements: 'No custom elements saved yet.',
     moreOptions: 'More options',
+    editElement: 'Edit Element',
     rename: 'Rename',
     copy: 'Copy',
     delete: 'Delete',
     renameModalTitle: 'Rename Custom Element',
     enterNamePlaceholder: 'Enter element name...',
-    confirmDelete: 'Are you sure you want to delete "{name}"?'
+    confirmDelete: 'Are you sure you want to delete "{name}"?',
+    confirmSwitchEdit: 'Exit current edit for "{name}"?',
+    editingElement: 'Editing custom element: {name}',
+    saveEdit: 'Save',
+    saveAs: 'Save As',
+    exitEdit: 'Exit',
+    saveAsCustomElement: 'Save as Custom Element',
+    editSaveFailed: 'Nothing to save. Please select an element.'
   },
   elements: {
     text: 'Text',

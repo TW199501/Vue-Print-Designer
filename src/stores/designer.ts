@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
 import cloneDeep from 'lodash/cloneDeep';
-import { type DesignerState, type PrintElement, type Page, type Guide, ElementType, type CustomElementTemplate, type WatermarkSettings } from '@/types';
+import { type DesignerState, type PrintElement, type Page, type Guide, ElementType, type CustomElementTemplate, type WatermarkSettings, type CustomElementEditSnapshot } from '@/types';
 
 const defaultWatermark: WatermarkSettings = {
   enabled: false,
@@ -31,6 +31,8 @@ export const useDesignerStore = defineStore('designer', {
     currentPageIndex: 0,
     customElements: JSON.parse(localStorage.getItem('print-designer-custom-elements') || '[]'),
     testData: {},
+    editingCustomElementId: null,
+    customElementEditSnapshot: null,
     selectedElementId: null,
     selectedElementIds: [],
     selectedGuideId: null,
@@ -118,6 +120,108 @@ export const useDesignerStore = defineStore('designer', {
       this.showHelp = false;
       this.showSettings = false;
       this.copiedPage = null;
+    },
+    startCustomElementEdit(id: string) {
+      const template = this.customElements.find(el => el.id === id);
+      if (!template) return;
+
+      if (!this.customElementEditSnapshot) {
+        this.customElementEditSnapshot = {
+          pages: cloneDeep(this.pages),
+          canvasSize: cloneDeep(this.canvasSize),
+          guides: cloneDeep(this.guides),
+          zoom: this.zoom,
+          showGrid: this.showGrid,
+          headerHeight: this.headerHeight,
+          footerHeight: this.footerHeight,
+          showHeaderLine: this.showHeaderLine,
+          showFooterLine: this.showFooterLine,
+          showMinimap: this.showMinimap,
+          canvasBackground: this.canvasBackground,
+          pageSpacingX: this.pageSpacingX,
+          pageSpacingY: this.pageSpacingY,
+          unit: this.unit,
+          watermark: cloneDeep(this.watermark),
+          testData: cloneDeep(this.testData),
+          currentPageIndex: this.currentPageIndex,
+          selectedElementId: this.selectedElementId,
+          selectedElementIds: cloneDeep(this.selectedElementIds),
+          selectedGuideId: this.selectedGuideId,
+          highlightedGuideId: this.highlightedGuideId,
+          highlightedEdge: this.highlightedEdge,
+        } satisfies CustomElementEditSnapshot;
+      }
+
+      this.editingCustomElementId = id;
+      this.resetCanvas();
+
+      const element = cloneDeep(template.element);
+      element.id = uuidv4();
+
+      this.pages = [{ id: uuidv4(), elements: [element] }];
+      this.currentPageIndex = 0;
+      this.selectedElementId = element.id;
+      this.selectedElementIds = [element.id];
+      this.historyPast = [];
+      this.historyFuture = [];
+      this.guides = [];
+      this.tableSelection = null;
+    },
+    cancelCustomElementEdit() {
+      const snapshot = this.customElementEditSnapshot;
+      this.editingCustomElementId = null;
+      this.customElementEditSnapshot = null;
+      if (!snapshot) return;
+
+      this.pages = snapshot.pages;
+      this.canvasSize = snapshot.canvasSize;
+      this.guides = snapshot.guides;
+      this.zoom = snapshot.zoom;
+      this.showGrid = snapshot.showGrid;
+      this.headerHeight = snapshot.headerHeight;
+      this.footerHeight = snapshot.footerHeight;
+      this.showHeaderLine = snapshot.showHeaderLine;
+      this.showFooterLine = snapshot.showFooterLine;
+      this.showMinimap = snapshot.showMinimap;
+      this.canvasBackground = snapshot.canvasBackground;
+      this.pageSpacingX = snapshot.pageSpacingX ?? this.pageSpacingX;
+      this.pageSpacingY = snapshot.pageSpacingY ?? this.pageSpacingY;
+      this.unit = snapshot.unit || this.unit;
+      if (snapshot.unit) {
+        localStorage.setItem('print-designer-unit', snapshot.unit);
+      }
+      if (snapshot.watermark) {
+        this.watermark = cloneDeep(snapshot.watermark);
+        localStorage.setItem('print-designer-watermark', JSON.stringify(this.watermark));
+      }
+      this.testData = snapshot.testData || {};
+      this.currentPageIndex = snapshot.currentPageIndex;
+      this.selectedElementId = snapshot.selectedElementId;
+      this.selectedElementIds = snapshot.selectedElementIds;
+      this.selectedGuideId = snapshot.selectedGuideId;
+      this.highlightedGuideId = snapshot.highlightedGuideId;
+      this.highlightedEdge = snapshot.highlightedEdge;
+      this.historyPast = [];
+      this.historyFuture = [];
+      this.tableSelection = null;
+    },
+    commitCustomElementEdit() {
+      if (!this.editingCustomElementId) return false;
+      const template = this.customElements.find(el => el.id === this.editingCustomElementId);
+      if (!template) return false;
+
+      const element = this.selectedElement || this.pages[0]?.elements[0];
+      if (!element) return false;
+
+      template.element = cloneDeep(element);
+      this.saveCustomElements();
+      return true;
+    },
+    saveCustomElementEditAs(name: string) {
+      const element = this.selectedElement || this.pages[0]?.elements[0];
+      if (!element) return false;
+      this.addCustomElement(name, element);
+      return true;
     },
     copyPage(index: number) {
       const page = this.pages[index];
@@ -1326,6 +1430,10 @@ export const useDesignerStore = defineStore('designer', {
       }
       return null;
     },
-    currentPage: (state) => state.pages[state.currentPageIndex]
+    currentPage: (state) => state.pages[state.currentPageIndex],
+    editingCustomElement: (state) => {
+      if (!state.editingCustomElementId) return null;
+      return state.customElements.find(el => el.id === state.editingCustomElementId) || null;
+    }
   }
 });

@@ -116,7 +116,7 @@ const toggleMenu = (event: MouseEvent, id: string) => {
     }
 
     // Vertical edge detection
-    const MENU_HEIGHT_ESTIMATE = 170; // Estimate menu height (4 items + padding)
+    const MENU_HEIGHT_ESTIMATE = 210; // Estimate menu height (5 items + padding)
     const spaceBelow = window.innerHeight - rect.bottom;
     
     if (spaceBelow < MENU_HEIGHT_ESTIMATE) {
@@ -165,6 +165,23 @@ const handleDelete = (item: CustomElementTemplate) => {
   if (confirm(t('sidebar.confirmDelete', { name: item.name }))) {
     store.removeCustomElement(item.id);
   }
+};
+
+const handleEditElement = (item: CustomElementTemplate) => {
+  activeMenuId.value = null;
+
+  if (store.editingCustomElementId === item.id) return;
+
+  if (store.editingCustomElementId && store.editingCustomElementId !== item.id) {
+    const current = store.customElements.find(el => el.id === store.editingCustomElementId);
+    const currentName = current ? current.name : '';
+    if (!confirm(t('sidebar.confirmSwitchEdit', { name: currentName }))) {
+      return;
+    }
+    store.cancelCustomElementEdit();
+  }
+
+  store.startCustomElementEdit(item.id);
 };
 
 const supportsTestData = (item: CustomElementTemplate) => {
@@ -300,6 +317,9 @@ onUnmounted(() => {
       >
         <template v-for="item in customElements" :key="item.id">
           <template v-if="item.id === activeMenuId">
+            <button @click="handleEditElement(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+              <Edit class="w-3.5 h-3.5" /> {{ t('sidebar.editElement') }}
+            </button>
             <button v-if="supportsTestData(item)" @click="handleTestData(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
               <DataObject class="w-3.5 h-3.5" /> {{ t('common.testData') }}
             </button>

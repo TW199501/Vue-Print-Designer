@@ -144,12 +144,20 @@ export default {
     circle: '圆形',
     noCustomElements: '暂无自定义组件',
     moreOptions: '更多选项',
+    editElement: '编辑元素',
     rename: '重命名',
     copy: '复制',
     delete: '删除',
     renameModalTitle: '重命名自定义组件',
     enterNamePlaceholder: '输入组件名称...',
-    confirmDelete: '确定要删除 "{name}" 吗？'
+    confirmDelete: '确定要删除 "{name}" 吗？',
+    confirmSwitchEdit: '退出当前对 "{name}" 的编辑？',
+    editingElement: '正在编辑自定义元素：{name}',
+    saveEdit: '保存',
+    saveAs: '另存为',
+    exitEdit: '退出',
+    saveAsCustomElement: '另存为自定义元素',
+    editSaveFailed: '没有可保存的元素，请先选中一个元素。'
   },
   elements: {
     text: '文本',

@@ -120,11 +120,38 @@ export interface CustomElementTemplate {
   testData?: Record<string, any>;
 }
 
+export interface CustomElementEditSnapshot {
+  pages: Page[];
+  canvasSize: Size;
+  guides: Guide[];
+  zoom: number;
+  showGrid: boolean;
+  headerHeight: number;
+  footerHeight: number;
+  showHeaderLine: boolean;
+  showFooterLine: boolean;
+  showMinimap: boolean;
+  canvasBackground: string;
+  pageSpacingX?: number;
+  pageSpacingY?: number;
+  unit?: 'mm' | 'px' | 'pt';
+  watermark?: WatermarkSettings;
+  testData?: Record<string, any>;
+  currentPageIndex: number;
+  selectedElementId: string | null;
+  selectedElementIds: string[];
+  selectedGuideId: string | null;
+  highlightedGuideId: string | null;
+  highlightedEdge: 'left' | 'top' | 'right' | 'bottom' | null;
+}
+
 export interface DesignerState {
   pages: Page[];
   currentPageIndex: number;
   customElements: CustomElementTemplate[];
   testData: Record<string, any>;
+  editingCustomElementId?: string | null;
+  customElementEditSnapshot?: CustomElementEditSnapshot | null;
   selectedElementId: string | null;
   selectedElementIds: string[];
   selectedGuideId: string | null;
