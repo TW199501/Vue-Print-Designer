@@ -109,7 +109,7 @@ const defaultLocalSettings: LocalConnectionSettings = {
 
 const defaultRemoteSettings: RemoteConnectionSettings = {
   wsAddress: 'ws://localhost:8080/ws/request',
-  apiBaseUrl: '/api',
+  apiBaseUrl: 'http://localhost:8080/api/login',
   username: '',
   password: ''
 };
