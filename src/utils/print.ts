@@ -739,12 +739,36 @@ export const usePrint = () => {
     }
   };
 
-  const browserPrint = async (content: HTMLElement | string | HTMLElement[]) => {
-    try {
+      const browserPrint = async (content: HTMLElement | string | HTMLElement[]) => {
+      try {
         const pdf = await createPdfDocument(content);
-        pdf.autoPrint();
         const blob = pdf.output('blob');
         const blobUrl = URL.createObjectURL(blob);
+
+        const isEdge = /Edg\//.test(navigator.userAgent);
+        if (isEdge) {
+          const popup = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+          if (!popup) {
+            URL.revokeObjectURL(blobUrl);
+            return;
+          }
+
+          popup.addEventListener('beforeunload', () => {
+            URL.revokeObjectURL(blobUrl);
+          });
+
+          popup.onload = () => {
+            try {
+              popup.focus();
+              popup.print();
+            } finally {
+              setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+              }, 1000);
+            }
+          };
+          return;
+        }
         
         const iframe = document.createElement('iframe');
         iframe.style.position = 'fixed';
@@ -752,15 +776,20 @@ export const usePrint = () => {
         iframe.style.top = '0';
         iframe.style.width = '0px';
         iframe.style.height = '0px';
-        iframe.style.border = 'fixed';
+        iframe.style.border = '0';
         iframe.style.visibility = 'hidden';
         iframe.src = blobUrl;
         document.body.appendChild(iframe);
         
         iframe.onload = () => {
-            if (iframe.contentWindow) {
-                iframe.contentWindow.print();
-            }
+          const win = iframe.contentWindow;
+          if (win) {
+            win.focus();
+            // Edge needs a short delay for the PDF viewer to finish rendering.
+            setTimeout(() => {
+              win.print();
+            }, 100);
+          }
             setTimeout(() => {
                 document.body.removeChild(iframe);
                 URL.revokeObjectURL(blobUrl);
