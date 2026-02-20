@@ -584,17 +584,18 @@ const getGlobalElements = () => {
         @click.self="handleBackgroundClick"
       >
       <!-- Grid Background -->
-      <div v-if="store.showGrid" class="absolute inset-0 pointer-events-none opacity-50"
+       <div v-if="store.showGrid" data-print-exclude="true" class="absolute inset-0 pointer-events-none opacity-50"
            style="background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px); background-size: 20px 20px;">
       </div>
 
 
       <!-- Selection Box -->
-      <div v-if="isBoxSelecting && currentSelectingPageIndex === index" :style="selectionBoxStyle"></div>
+       <div v-if="isBoxSelecting && currentSelectingPageIndex === index" data-print-exclude="true" :style="selectionBoxStyle"></div>
 
       <!-- Header & Footer Lines -->
       <template v-if="store.showHeaderLine">
         <div 
+          data-print-exclude="true"
           class="absolute left-0 w-full z-20 group flex flex-col justify-center items-center"
           :class="index === 0 ? 'cursor-row-resize' : 'cursor-default'"
           :style="{ 
@@ -621,6 +622,7 @@ const getGlobalElements = () => {
 
       <template v-if="store.showFooterLine">
         <div 
+          data-print-exclude="true"
           class="absolute left-0 w-full z-20 group flex flex-col justify-center items-center"
           :class="index === 0 ? 'cursor-row-resize' : 'cursor-default'"
           :style="{ 
@@ -673,7 +675,7 @@ const getGlobalElements = () => {
       </ElementWrapper>
 
       <!-- Corner Markers -->
-      <div v-if="store.showCornerMarkers" class="marker absolute inset-0 pointer-events-none z-50 opacity-50">
+      <div v-if="store.showCornerMarkers" data-print-exclude="true" class="marker absolute inset-0 pointer-events-none z-50 opacity-50">
         <!-- Top Left -->
         <div class="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-gray-300"></div>
         <!-- Top Right -->

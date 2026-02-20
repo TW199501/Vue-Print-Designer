@@ -5,7 +5,7 @@ import { Canvg } from 'canvg';
 import cloneDeep from 'lodash/cloneDeep';
 import { v4 as uuidv4 } from 'uuid';
 import { useDesignerStore } from '@/stores/designer';
-import { ElementType, type Page } from '@/types';
+import { ElementType, type Page, type WatermarkSettings } from '@/types';
 import { usePrintSettings, type PrintMode, type PrintOptions } from '@/composables/usePrintSettings';
 
 import { pxToMm } from '@/utils/units';
@@ -64,51 +64,68 @@ export const usePrint = () => {
     return withRepeats;
   };
 
-  const prepareEnvironment = async () => {
-    const previousSelection = store.selectedElementId;
-    const previousShowGrid = store.showGrid;
-    const previousZoom = store.zoom;
-    const previousPages = cloneDeep(store.pages);
-    
-    // Save UI state
-    const previousShowHeaderLine = store.showHeaderLine;
-    const previousShowFooterLine = store.showFooterLine;
-    const previousShowCornerMarkers = store.showCornerMarkers;
+  const prepareEnvironment = async (options: { mutateStore?: boolean; setExporting?: boolean } = {}) => {
+    const mutateStore = options.mutateStore !== false;
+    const setExporting = options.setExporting !== false;
+    const previousSelection = mutateStore ? store.selectedElementId : null;
+    const previousShowGrid = mutateStore ? store.showGrid : false;
+    const previousZoom = mutateStore ? store.zoom : 1;
+    const previousPages = mutateStore ? cloneDeep(store.pages) : null;
+    const previousShowHeaderLine = mutateStore ? store.showHeaderLine : false;
+    const previousShowFooterLine = mutateStore ? store.showFooterLine : false;
+    const previousShowCornerMarkers = mutateStore ? store.showCornerMarkers : false;
+    const previousIsExporting = setExporting ? store.isExporting : false;
 
-    store.selectElement(null);
-    store.setShowGrid(false);
-    store.setZoom(1); // Ensure 100% zoom for correct rendering
-    
-    // Apply repeats (Must be done BEFORE hiding lines, as createRepeatedPages checks showHeaderLine/showFooterLine)
-    store.pages = createRepeatedPages(store.pages);
-    
-    // Hide UI overlays
-    store.setShowHeaderLine(false);
-    store.setShowFooterLine(false);
-    store.showCornerMarkers = false;
+    let shield: HTMLDivElement | null = null;
 
-    store.setIsExporting(true);
-    document.body.classList.add('exporting');
+    if (mutateStore) {
+      store.selectElement(null);
+      store.setShowGrid(false);
+      store.setZoom(1); // Ensure 100% zoom for correct rendering
 
-    const shield = document.createElement('div');
-    shield.setAttribute('data-print-shield', 'true');
-    shield.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:transparent;pointer-events:auto;';
-    document.body.appendChild(shield);
-    
+      // Apply repeats (Must be done BEFORE hiding lines, as createRepeatedPages checks showHeaderLine/showFooterLine)
+      store.pages = createRepeatedPages(store.pages);
+
+      // Hide UI overlays
+      store.setShowHeaderLine(false);
+      store.setShowFooterLine(false);
+      store.showCornerMarkers = false;
+
+      if (setExporting) {
+        store.setIsExporting(true);
+        document.body.classList.add('exporting');
+      }
+
+      shield = document.createElement('div');
+      shield.setAttribute('data-print-shield', 'true');
+      shield.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:transparent;pointer-events:auto;';
+      document.body.appendChild(shield);
+    }
+
+    if (!mutateStore && setExporting) {
+      store.setIsExporting(true);
+      document.body.classList.add('exporting');
+    }
+
     await nextTick();
     // Wait for async rendering (like QR Codes) which might take a moment to generate data URLs
     await new Promise(resolve => setTimeout(resolve, 500));
 
     return () => {
-      if (shield.parentNode) {
+      if (shield?.parentNode) {
         shield.parentNode.removeChild(shield);
       }
-      document.body.classList.remove('exporting');
-      store.setIsExporting(false);
+      if (setExporting) {
+        document.body.classList.remove('exporting');
+        store.setIsExporting(previousIsExporting);
+      }
+      if (!mutateStore) return;
       store.setShowGrid(previousShowGrid);
       store.selectElement(previousSelection);
       store.setZoom(previousZoom);
-      store.pages = previousPages;
+      if (previousPages) {
+        store.pages = previousPages;
+      }
       store.setShowHeaderLine(previousShowHeaderLine);
       store.setShowFooterLine(previousShowFooterLine);
       store.showCornerMarkers = previousShowCornerMarkers;
@@ -156,21 +173,110 @@ export const usePrint = () => {
     Array.from(element.children).forEach(child => cleanElement(child as HTMLElement));
   };
 
+  type PrintRenderPayload = {
+    pages: Page[];
+    canvasSize: { width: number; height: number };
+    canvasBackground: string;
+    headerHeight: number;
+    footerHeight: number;
+    showHeaderLine: boolean;
+    showFooterLine: boolean;
+    watermark: WatermarkSettings;
+    unit: 'mm' | 'px' | 'pt';
+  };
+
+  const buildPrintRenderPayload = (): PrintRenderPayload => ({
+    pages: createRepeatedPages(store.pages),
+    canvasSize: { ...store.canvasSize },
+    canvasBackground: store.canvasBackground,
+    headerHeight: store.headerHeight,
+    footerHeight: store.footerHeight,
+    showHeaderLine: store.showHeaderLine,
+    showFooterLine: store.showFooterLine,
+    watermark: cloneDeep(store.watermark),
+    unit: store.unit || 'mm'
+  });
+
+  const waitForMessage = (token: string, type: string, timeoutMs = 10000) => new Promise<any>((resolve, reject) => {
+    const origin = window.location.origin;
+    const timeoutId = window.setTimeout(() => {
+      window.removeEventListener('message', handler);
+      reject(new Error(`Print renderer timeout: ${type}`));
+    }, timeoutMs);
+
+    const handler = (event: MessageEvent) => {
+      if (event.origin !== origin) return;
+      const data = event.data as { type?: string; token?: string };
+      if (!data || data.type !== type || data.token !== token) return;
+      window.clearTimeout(timeoutId);
+      window.removeEventListener('message', handler);
+      resolve(data);
+    };
+
+    window.addEventListener('message', handler);
+  });
+
+  const renderPagesViaIframe = async () => {
+    const token = uuidv4();
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('data-print-renderer', 'true');
+    iframe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;border:0;visibility:hidden;';
+    iframe.src = `${window.location.origin}${window.location.pathname}?print=1&printToken=${encodeURIComponent(token)}`;
+    document.body.appendChild(iframe);
+
+    const cleanup = () => {
+      if (iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe);
+      }
+    };
+
+    try {
+      await waitForMessage(token, 'print-renderer-ready');
+      const payload = buildPrintRenderPayload();
+      iframe.contentWindow?.postMessage({ type: 'print-renderer-payload', token, payload }, window.location.origin);
+      await waitForMessage(token, 'print-renderer-rendered');
+
+      const frameDoc = iframe.contentDocument;
+      const frameWin = iframe.contentWindow;
+      if (!frameDoc || !frameWin) throw new Error('Print renderer not available');
+
+      const pages = Array.from(frameDoc.querySelectorAll('.print-page')) as HTMLElement[];
+      return {
+        pages,
+        cleanup,
+        getComputedStyleFn: frameWin.getComputedStyle.bind(frameWin)
+      };
+    } catch (error) {
+      cleanup();
+      throw error;
+    }
+  };
+
+  const resolveRenderSource = async (content: HTMLElement | string | HTMLElement[]) => {
+    if (typeof content === 'string') {
+      return { content, cleanup: null as null | (() => void), getComputedStyleFn: window.getComputedStyle };
+    }
+
+    const iframeResult = await renderPagesViaIframe();
+    return { content: iframeResult.pages, cleanup: iframeResult.cleanup, getComputedStyleFn: iframeResult.getComputedStyleFn };
+  };
+
   const getPrintHtml = async (): Promise<string> => {
-    const restore = await prepareEnvironment();
-    
+    const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
+
     const width = store.canvasSize.width;
     const height = store.canvasSize.height;
 
     let resultContainer: HTMLElement | null = null;
     let tempWrapper: HTMLElement | null = null;
-    
+    let cleanup: (() => void) | null = null;
+
     try {
-        // Use real DOM elements to ensure computed styles are captured correctly
-        const pages = Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
-        
+        const source = await resolveRenderSource(Array.from(document.querySelectorAll('.print-page')) as HTMLElement[]);
+        cleanup = source.cleanup;
+
         // Use the shared processing logic (handles pagination, SVG, etc.)
-        const result = await processContentForImage(pages, width, height);
+        const result = await processContentForImage(source.content, width, height, true, source.getComputedStyleFn);
         resultContainer = result.container;
         tempWrapper = result.tempWrapper;
 
@@ -205,10 +311,13 @@ export const usePrint = () => {
         
         return previewContainer.outerHTML;
     } finally {
-        if (tempWrapper && tempWrapper.parentNode) {
-            tempWrapper.parentNode.removeChild(tempWrapper);
-        }
-        restore();
+      if (tempWrapper && tempWrapper.parentNode) {
+        tempWrapper.parentNode.removeChild(tempWrapper);
+      }
+      if (cleanup) {
+        cleanup();
+      }
+      restore();
     }
   };
 
@@ -534,15 +643,18 @@ export const usePrint = () => {
     return pages.length;
   };
 
-  const cloneElementWithStyles = (element: HTMLElement): HTMLElement => {
+  const cloneElementWithStyles = (
+    element: HTMLElement,
+    getComputedStyleFn: (elt: Element) => CSSStyleDeclaration = window.getComputedStyle
+  ): HTMLElement => {
     const clone = element.cloneNode(true) as HTMLElement;
     const queue: [HTMLElement, HTMLElement][] = [[element, clone]];
     
     while (queue.length > 0) {
         const [source, target] = queue.shift()!;
         
-        if ((source as any) instanceof HTMLElement || (source as any) instanceof SVGElement) {
-            const computed = window.getComputedStyle(source);
+        if (source.nodeType === 1) {
+          const computed = getComputedStyleFn(source);
             const style = target.style;
             
             // Copy all styles
@@ -562,7 +674,13 @@ export const usePrint = () => {
     return clone;
   };
 
-  const processContentForImage = async (content: HTMLElement | string | HTMLElement[], width: number, height: number, convertSvg = true) => {
+  const processContentForImage = async (
+    content: HTMLElement | string | HTMLElement[],
+    width: number,
+    height: number,
+    convertSvg = true,
+    getComputedStyleFn: (elt: Element) => CSSStyleDeclaration = window.getComputedStyle
+  ) => {
     // Create hidden container
     const container = document.createElement('div');
     container.style.position = 'fixed';
@@ -601,7 +719,7 @@ export const usePrint = () => {
     }
         
     pages.forEach((page, idx) => {
-        const clone = cloneElementWithStyles(page);
+        const clone = cloneElementWithStyles(page, getComputedStyleFn);
             clone.style.position = 'absolute';
             clone.style.left = '0';
             clone.style.top = `${idx * height}px`;
@@ -609,6 +727,9 @@ export const usePrint = () => {
             clone.style.height = `${height}px`;
             clone.style.transform = 'none'; // Reset zoom
             clone.style.backgroundColor = store.canvasBackground;
+
+            // Remove elements that should never appear in print/preview
+            clone.querySelectorAll('[data-print-exclude="true"]').forEach(el => el.remove());
 
             // MARK WRAPPERS for pagination logic BEFORE cleaning
             const wrappers = clone.querySelectorAll('.element-wrapper');
@@ -694,39 +815,49 @@ export const usePrint = () => {
     return pageImages;
   };
 
-  const createPdfDocument = async (content: HTMLElement | string | HTMLElement[]) => {
-    const restore = await prepareEnvironment();
-    
+    const createPdfDocument = async (content: HTMLElement | string | HTMLElement[]) => {
+    const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
+
     const width = store.canvasSize.width;
     const height = store.canvasSize.height;
     const widthMm = pxToMm(width);
     const heightMm = pxToMm(height);
 
-    const { container, tempWrapper, pagesCount } = await processContentForImage(content, width, height);
+    let tempWrapper: HTMLElement | null = null;
+    let cleanup: (() => void) | null = null;
 
     try {
-        const pdf = new jsPDF({
-            orientation: width > height ? 'l' : 'p',
-            unit: 'mm',
-            format: [widthMm, heightMm],
-            hotfixes: ['px_scaling']
-        });
+      const source = await resolveRenderSource(content);
+      cleanup = source.cleanup;
 
-        const pageImages = await generatePageImages(container, width, height);
+      const { container, tempWrapper: wrapper } = await processContentForImage(source.content, width, height, true, source.getComputedStyleFn);
+      tempWrapper = wrapper;
+
+      const pdf = new jsPDF({
+        orientation: width > height ? 'l' : 'p',
+        unit: 'mm',
+        format: [widthMm, heightMm],
+        hotfixes: ['px_scaling']
+      });
+
+      const pageImages = await generatePageImages(container, width, height);
         
-        pageImages.forEach((imgData, i) => {
-            if (i > 0) pdf.addPage([widthMm, heightMm]);
-            pdf.addImage(imgData, 'JPEG', 0, 0, widthMm, heightMm);
-        });
+      pageImages.forEach((imgData, i) => {
+        if (i > 0) pdf.addPage([widthMm, heightMm]);
+        pdf.addImage(imgData, 'JPEG', 0, 0, widthMm, heightMm);
+      });
         
-        return pdf;
+      return pdf;
     } finally {
-        if (tempWrapper && tempWrapper.parentNode) {
-            tempWrapper.parentNode.removeChild(tempWrapper);
-        }
-        restore();
+      if (tempWrapper && tempWrapper.parentNode) {
+        tempWrapper.parentNode.removeChild(tempWrapper);
+      }
+      if (cleanup) {
+        cleanup();
+      }
+      restore();
     }
-  };
+    };
 
   const exportPdf = async (content?: HTMLElement | string | HTMLElement[], filename = 'print-design.pdf') => {
     try {
@@ -987,12 +1118,16 @@ export const usePrint = () => {
   const exportImages = async (content?: HTMLElement | string | HTMLElement[], filenamePrefix = 'print-design') => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
-        const restore = await prepareEnvironment();
+        const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
         
         const width = store.canvasSize.width;
         const height = store.canvasSize.height;
 
-        const { container, tempWrapper } = await processContentForImage(targetContent, width, height);
+        let cleanup: (() => void) | null = null;
+        const source = await resolveRenderSource(targetContent);
+        cleanup = source.cleanup;
+
+        const { container, tempWrapper } = await processContentForImage(source.content, width, height, true, source.getComputedStyleFn);
 
         try {
             const pageImages = await generatePageImages(container, width, height);
@@ -1013,6 +1148,9 @@ export const usePrint = () => {
             if (tempWrapper && tempWrapper.parentNode) {
                 tempWrapper.parentNode.removeChild(tempWrapper);
             }
+          if (cleanup) {
+            cleanup();
+          }
             restore();
         }
     } catch (error) {
@@ -1024,12 +1162,16 @@ export const usePrint = () => {
   const getImageBlob = async (content: HTMLElement | string | HTMLElement[]) => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
-        const restore = await prepareEnvironment();
+        const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
         
         const width = store.canvasSize.width;
         const height = store.canvasSize.height;
 
-        const { container, tempWrapper } = await processContentForImage(targetContent, width, height);
+        let cleanup: (() => void) | null = null;
+        const source = await resolveRenderSource(targetContent);
+        cleanup = source.cleanup;
+
+        const { container, tempWrapper } = await processContentForImage(source.content, width, height, true, source.getComputedStyleFn);
 
         try {
             const pageImages = await generatePageImages(container, width, height);
@@ -1046,6 +1188,9 @@ export const usePrint = () => {
             if (tempWrapper && tempWrapper.parentNode) {
                 tempWrapper.parentNode.removeChild(tempWrapper);
             }
+          if (cleanup) {
+            cleanup();
+          }
             restore();
         }
     } catch (error) {

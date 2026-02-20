@@ -356,7 +356,7 @@ const handleResizeStart = (e: MouseEvent) => {
     <slot></slot>
 
     <!-- Locked Indicator -->
-    <div v-if="!readOnly && element.locked && isSelected" class="absolute -top-3 -right-3 bg-red-500 rounded-full p-1 shadow-md z-50">
+    <div v-if="!readOnly && element.locked && isSelected" data-print-exclude="true" class="absolute -top-3 -right-3 bg-red-500 rounded-full p-1 shadow-md z-50">
       <Lock class="w-3 h-3 text-white" />
     </div>
 
@@ -364,12 +364,14 @@ const handleResizeStart = (e: MouseEvent) => {
     <template v-if="!readOnly && isSelected && store.selectedElementIds.length <= 1 && !element.locked">
        <!-- Resize Handle -->
        <div
+         data-print-exclude="true"
          class="resize-handle absolute bottom-0 right-0 w-3 h-3 bg-blue-600 cursor-se-resize z-50"
          @mousedown="handleResizeStart"
        ></div>
        
        <!-- Rotation Handle (top right, no background) -->
        <div
+         data-print-exclude="true"
          class="rotate-handle absolute -top-4 -right-5 w-5 h-5 flex items-center justify-center cursor-grab z-50 text-blue-500 hover:text-blue-700"
          :title="t('common.rotate')"
          @mousedown="handleRotateStart"
