@@ -75,8 +75,8 @@ export const usePrint = () => {
     const previousShowFooterLine = mutateStore ? store.showFooterLine : false;
     const previousShowCornerMarkers = mutateStore ? store.showCornerMarkers : false;
     const previousIsExporting = setExporting ? store.isExporting : false;
-
-    let shield: HTMLDivElement | null = null;
+    const previousHtmlOverflowX = document.documentElement.style.overflowX;
+    const previousBodyOverflowX = document.body.style.overflowX;
 
     if (mutateStore) {
       store.selectElement(null);
@@ -96,11 +96,10 @@ export const usePrint = () => {
         document.body.classList.add('exporting');
       }
 
-      shield = document.createElement('div');
-      shield.setAttribute('data-print-shield', 'true');
-      shield.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:transparent;pointer-events:auto;';
-      document.body.appendChild(shield);
     }
+
+    document.documentElement.style.overflowX = 'hidden';
+    document.body.style.overflowX = 'hidden';
 
     if (!mutateStore && setExporting) {
       store.setIsExporting(true);
@@ -112,13 +111,12 @@ export const usePrint = () => {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     return () => {
-      if (shield?.parentNode) {
-        shield.parentNode.removeChild(shield);
-      }
       if (setExporting) {
         document.body.classList.remove('exporting');
         store.setIsExporting(previousIsExporting);
       }
+      document.documentElement.style.overflowX = previousHtmlOverflowX;
+      document.body.style.overflowX = previousBodyOverflowX;
       if (!mutateStore) return;
       store.setShowGrid(previousShowGrid);
       store.selectElement(previousSelection);
