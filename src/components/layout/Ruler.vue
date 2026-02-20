@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
-import { pxToMm, mmToPx, MM_TO_PX } from '@/utils/units';
+import { ref, onMounted, watch } from 'vue';
+import { MM_TO_PX, PT_TO_PX, type Unit } from '@/utils/units';
 
 const props = defineProps<{
   type: 'horizontal' | 'vertical';
@@ -9,6 +9,7 @@ const props = defineProps<{
   offset: number; // Start position offset (where 0 is)
   thick?: number;
   indicators?: { position: number; color: string }[];
+  unit: Unit;
 }>();
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -49,19 +50,18 @@ const draw = () => {
   ctx.font = '10px sans-serif';
   ctx.beginPath();
 
-  // Determine step size in MM
-  // Visual pixels per MM
-  const visualPxPerMm = MM_TO_PX * zoom;
+  const pxPerUnit = props.unit === 'mm' ? MM_TO_PX : props.unit === 'pt' ? PT_TO_PX : 1;
+  const visualPxPerUnit = pxPerUnit * zoom;
   
   const targetVisualGap = 50; // px between major marks
-  const targetMmGap = targetVisualGap / visualPxPerMm;
+  const targetUnitGap = targetVisualGap / visualPxPerUnit;
   
   // Find closest nice number (steps in MM)
   const steps = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
-  let stepMm = steps[steps.length - 1];
+  let stepUnit = steps[steps.length - 1];
   for (const s of steps) {
-    if (s >= targetMmGap - 0.001) {
-      stepMm = s;
+    if (s >= targetUnitGap - 0.001) {
+      stepUnit = s;
       break;
     }
   }
@@ -71,23 +71,23 @@ const draw = () => {
   
   // Logical Start (mm) = (-offset + scroll) / zoom
   // Logical Start (mm) = Logical Start (mm) / MM_TO_PX
-  const startMmRaw = (-offset + scroll) / (zoom * MM_TO_PX);
-  const endMmRaw = (length - offset + scroll) / (zoom * MM_TO_PX);
+  const startUnitRaw = (-offset + scroll) / (zoom * pxPerUnit);
+  const endUnitRaw = (length - offset + scroll) / (zoom * pxPerUnit);
   
   // Align start to step
-  const firstMarkMm = Math.floor(startMmRaw / stepMm) * stepMm;
+  const firstMarkUnit = Math.floor(startUnitRaw / stepUnit) * stepUnit;
   
   // Use a slightly larger end check to ensure we cover the screen
-  for (let valMm = firstMarkMm; valMm <= endMmRaw; valMm += stepMm) {
+  for (let valUnit = firstMarkUnit; valUnit <= endUnitRaw; valUnit += stepUnit) {
     // Avoid precision issues: round valMm to 1 decimal place for display if needed
     // But keep precise for calculation
     
     // Position in screen pixels
     // valMm * MM_TO_PX = logical pixels
-    const pos = offset + (valMm * MM_TO_PX * zoom) - scroll;
+    const pos = offset + (valUnit * pxPerUnit * zoom) - scroll;
     
     // Draw mark
-    const label = Number(valMm.toFixed(1)).toString(); // Clean label
+    const label = Number(valUnit.toFixed(1)).toString(); // Clean label
     
     if (type === 'horizontal') {
       ctx.moveTo(pos, 0);
@@ -106,10 +106,10 @@ const draw = () => {
     }
     
     // Subdivisions
-    const subStepMm = stepMm / 5; // 5 subdivisions
+    const subStepUnit = stepUnit / 5; // 5 subdivisions
     for(let i=1; i<5; i++) {
-        const subValMm = valMm + subStepMm * i;
-        const subPos = offset + (subValMm * MM_TO_PX * zoom) - scroll;
+      const subValUnit = valUnit + subStepUnit * i;
+      const subPos = offset + (subValUnit * pxPerUnit * zoom) - scroll;
         if (type === 'horizontal') {
             ctx.moveTo(subPos, THICKNESS - 5);
             ctx.lineTo(subPos, THICKNESS);
@@ -143,7 +143,7 @@ onMounted(() => {
   }
 });
 
-watch(() => [props.zoom, props.scroll, props.offset, props.indicators], draw, { deep: true });
+watch(() => [props.zoom, props.scroll, props.offset, props.indicators, props.unit], draw, { deep: true });
 
 const emit = defineEmits<{
   (e: 'guide-drag-start', event: MouseEvent): void

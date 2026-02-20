@@ -5,6 +5,7 @@ import { type DesignerState, type PrintElement, type Page, type Guide, ElementTy
 
 export const useDesignerStore = defineStore('designer', {
   state: (): DesignerState => ({
+    unit: (localStorage.getItem('print-designer-unit') as 'mm' | 'px' | 'pt') || 'mm',
     pages: [{ id: uuidv4(), elements: [] }],
     currentPageIndex: 0,
     customElements: JSON.parse(localStorage.getItem('print-designer-custom-elements') || '[]'),
@@ -37,6 +38,10 @@ export const useDesignerStore = defineStore('designer', {
     tableSelection: null,
   }),
   actions: {
+    setUnit(unit: 'mm' | 'px' | 'pt') {
+      this.unit = unit;
+      localStorage.setItem('print-designer-unit', unit);
+    },
     setDragging(isDragging: boolean) {
       this.isDragging = isDragging;
     },

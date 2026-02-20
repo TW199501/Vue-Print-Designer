@@ -120,6 +120,7 @@ export interface DesignerState {
   highlightedGuideId: string | null;
   highlightedEdge: 'left' | 'top' | 'right' | 'bottom' | null;
   canvasSize: Size; // A4 usually
+  unit?: 'mm' | 'px' | 'pt';
   zoom: number;
   isDragging: boolean;
   showGrid: boolean;

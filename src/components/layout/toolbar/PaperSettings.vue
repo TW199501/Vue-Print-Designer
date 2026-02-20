@@ -3,7 +3,7 @@ import { ref, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import { PAPER_SIZES, type PaperSizeKey } from '@/constants/paper';
-import { pxToMm, mmToPx } from '@/utils/units';
+import { pxToUnit, unitToPx, type Unit } from '@/utils/units';
 import Settings from '~icons/material-symbols/settings';
 import ChevronDown from '~icons/material-symbols/expand-more';
 import Plus from '~icons/material-symbols/add';
@@ -21,6 +21,17 @@ const canvasBackground = computed({
   get: () => store.canvasBackground,
   set: (val) => store.setCanvasBackground(val)
 });
+
+const unitLabel = computed(() => {
+  if (store.unit === 'px') return t('common.px');
+  if (store.unit === 'pt') return t('common.pt');
+  return t('common.mm');
+});
+
+const formatUnitValue = (px: number) => {
+  const value = pxToUnit(px, store.unit as Unit);
+  return store.unit === 'px' ? Math.round(value) : Number(value.toFixed(1));
+};
 
 const handlePaperChange = () => {
   if (selectedPaper.value !== 'CUSTOM') {
@@ -94,28 +105,41 @@ watch(() => store.canvasSize, (newSize) => {
             class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
           >
             <option v-for="(size, key) in PAPER_SIZES" :key="key" :value="key">
-              {{ key }} ({{ pxToMm(size.width) }}mm x {{ pxToMm(size.height) }}mm)
+              {{ key }} ({{ formatUnitValue(size.width) }}{{ unitLabel }} x {{ formatUnitValue(size.height) }}{{ unitLabel }})
             </option>
             <option value="CUSTOM">{{ t('editor.custom') }}</option>
           </select>
         </div>
 
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">{{ t('editor.unit') }}</label>
+          <select 
+            :value="store.unit"
+            @change="(e) => store.setUnit((e.target as HTMLSelectElement).value as Unit)"
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+          >
+            <option value="mm">{{ t('common.mm') }}</option>
+            <option value="pt">{{ t('common.pt') }}</option>
+            <option value="px">{{ t('common.px') }}</option>
+          </select>
+        </div>
+
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs text-gray-500 mb-1">{{ t('common.width') }} ({{ t('common.mm') }})</label>
+            <label class="block text-xs text-gray-500 mb-1">{{ t('common.width') }} ({{ unitLabel }})</label>
             <input 
               type="number" 
-              :value="pxToMm(customWidth)"
-              @change="(e) => { customWidth = mmToPx(Number((e.target as HTMLInputElement).value)); applyCustomSize(); }"
+              :value="formatUnitValue(customWidth)"
+              @change="(e) => { customWidth = unitToPx(Number((e.target as HTMLInputElement).value), store.unit as Unit); applyCustomSize(); }"
               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">{{ t('common.height') }} ({{ t('common.mm') }})</label>
+            <label class="block text-xs text-gray-500 mb-1">{{ t('common.height') }} ({{ unitLabel }})</label>
             <input 
               type="number" 
-              :value="pxToMm(customHeight)"
-              @change="(e) => { customHeight = mmToPx(Number((e.target as HTMLInputElement).value)); applyCustomSize(); }"
+              :value="formatUnitValue(customHeight)"
+              @change="(e) => { customHeight = unitToPx(Number((e.target as HTMLInputElement).value), store.unit as Unit); applyCustomSize(); }"
               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
             />
           </div>
@@ -217,12 +241,12 @@ watch(() => store.canvasSize, (newSize) => {
             <div class="flex items-center gap-1">
               <input 
                 type="number" 
-                :value="pxToMm(store.headerHeight)"
-                @change="e => store.setHeaderHeight(mmToPx(Number((e.target as HTMLInputElement).value)))"
+                :value="formatUnitValue(store.headerHeight)"
+                @change="e => store.setHeaderHeight(unitToPx(Number((e.target as HTMLInputElement).value), store.unit as Unit))"
                 class="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none text-right"
                 min="0"
               />
-              <span class="text-xs text-gray-500">{{ t('common.mm') }}</span>
+              <span class="text-xs text-gray-500">{{ unitLabel }}</span>
             </div>
           </div>
 
@@ -246,12 +270,12 @@ watch(() => store.canvasSize, (newSize) => {
             <div class="flex items-center gap-1">
               <input 
                 type="number" 
-                :value="pxToMm(store.footerHeight)"
-                @change="e => store.setFooterHeight(mmToPx(Number((e.target as HTMLInputElement).value)))"
+                :value="formatUnitValue(store.footerHeight)"
+                @change="e => store.setFooterHeight(unitToPx(Number((e.target as HTMLInputElement).value), store.unit as Unit))"
                 class="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none text-right"
                 min="0"
               />
-              <span class="text-xs text-gray-500">{{ t('common.mm') }}</span>
+              <span class="text-xs text-gray-500">{{ unitLabel }}</span>
             </div>
           </div>
         </div>

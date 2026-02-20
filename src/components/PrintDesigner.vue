@@ -4,7 +4,7 @@ import { useDesignerStore } from '@/stores/designer';
 import { useTemplateStore } from '@/stores/templates';
 import { useAutoSave } from '@/composables/useAutoSave';
 import debounce from 'lodash/debounce';
-import { pxToMm } from '@/utils/units';
+import { pxToUnit, type Unit } from '@/utils/units';
 import Header from './layout/Header.vue';
 import Sidebar from './layout/Sidebar.vue';
 import PropertiesPanel from './layout/PropertiesPanel.vue';
@@ -88,6 +88,11 @@ const scrollWidth = ref(0);
 const scrollHeight = ref(0);
 const viewportWidth = ref(0);
 const viewportHeight = ref(0);
+const unitLabel = computed(() => store.unit || 'mm');
+const formatUnitValue = (px: number) => {
+  const value = pxToUnit(px, (store.unit || 'mm') as Unit);
+  return store.unit === 'px' ? Math.round(value) : Number(value.toFixed(1));
+};
 
 const canvasStyle = computed(() => {
   const pagesCount = store.pages.length;
@@ -373,12 +378,13 @@ const rulerIndicators = computed(() => {
            <div class="flex-none h-5 bg-gray-50 border-b border-gray-300 flex z-20">
               <div class="w-5 flex-none bg-gray-100 border-r border-gray-300"></div> <!-- Corner -->
               <div class="flex-1 relative overflow-hidden">
-                 <Ruler 
+                  <Ruler 
                     type="horizontal" 
                     :zoom="store.zoom" 
                     :scroll="scrollX" 
                     :offset="offsetX" 
                     :thick="20"
+                    :unit="(store.unit || 'mm') as Unit"
                     :indicators="rulerIndicators.h"
                     @guide-drag-start="(e) => handleGuideDragStart(e, 'horizontal')"
                  />
@@ -388,12 +394,13 @@ const rulerIndicators = computed(() => {
            <div class="flex-1 flex overflow-hidden relative">
               <!-- Left Ruler -->
               <div class="w-5 flex-none bg-gray-50 border-r border-gray-300 h-full relative z-20 overflow-hidden">
-                 <Ruler 
+                  <Ruler 
                     type="vertical" 
                     :zoom="store.zoom" 
                     :scroll="scrollY" 
                     :offset="offsetY" 
                     :thick="20"
+                    :unit="(store.unit || 'mm') as Unit"
                     :indicators="rulerIndicators.v"
                     @guide-drag-start="(e) => handleGuideDragStart(e, 'vertical')"
                  />
@@ -420,7 +427,7 @@ const rulerIndicators = computed(() => {
                             :style="{ top: `${offsetY + dragProjection.minY * store.zoom}px`, left: 0 }">
                           <div class="absolute -top-6 bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm"
                                :style="{ left: `${scrollX + 10}px` }">
-                             {{ pxToMm(dragProjection.minY).toFixed(1) }} mm
+                             {{ formatUnitValue(dragProjection.minY) }} {{ unitLabel }}
                           </div>
                        </div>
                        <!-- Bottom Line -->
@@ -428,7 +435,7 @@ const rulerIndicators = computed(() => {
                             :style="{ top: `${offsetY + dragProjection.maxY * store.zoom}px`, left: 0 }">
                           <div class="absolute -top-6 bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm"
                                :style="{ left: `${scrollX + 10}px` }">
-                             {{ pxToMm(dragProjection.maxY).toFixed(1) }} mm
+                             {{ formatUnitValue(dragProjection.maxY) }} {{ unitLabel }}
                           </div>
                        </div>
                        <!-- Left Line -->
@@ -436,7 +443,7 @@ const rulerIndicators = computed(() => {
                             :style="{ left: `${offsetX + dragProjection.minX * store.zoom}px`, top: 0 }">
                           <div class="absolute -left-2 transform -translate-x-full bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap"
                                :style="{ top: `${scrollY + 10}px` }">
-                             {{ pxToMm(dragProjection.minX).toFixed(1) }} mm
+                             {{ formatUnitValue(dragProjection.minX) }} {{ unitLabel }}
                           </div>
                        </div>
                        <!-- Right Line -->
@@ -444,7 +451,7 @@ const rulerIndicators = computed(() => {
                             :style="{ left: `${offsetX + dragProjection.maxX * store.zoom}px`, top: 0 }">
                           <div class="absolute -left-2 transform -translate-x-full bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap"
                                :style="{ top: `${scrollY + 10}px` }">
-                             {{ pxToMm(dragProjection.maxX).toFixed(1) }} mm
+                             {{ formatUnitValue(dragProjection.maxX) }} {{ unitLabel }}
                           </div>
                        </div>
                      </template>
@@ -459,7 +466,7 @@ const rulerIndicators = computed(() => {
                        >
                         <div :class="['w-full', store.highlightedGuideId === guide.id ? 'border-t-2 border-pink-500' : 'border-t border-cyan-500', 'group-hover:border-cyan-400']"></div>
                           <div class="absolute left-2 -top-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
-                             {{ pxToMm(guide.position) }}mm
+                             {{ formatUnitValue(guide.position) }}{{ unitLabel }}
                           </div>
                        </div>
                        <div 
@@ -470,7 +477,7 @@ const rulerIndicators = computed(() => {
                        >
                            <div :class="['h-full', store.highlightedGuideId === guide.id ? 'border-l-2 border-pink-500' : 'border-l border-cyan-500', 'group-hover:border-cyan-400']"></div>
                            <div class="absolute top-2 -left-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
-                             {{ pxToMm(guide.position) }}mm
+                             {{ formatUnitValue(guide.position) }}{{ unitLabel }}
                           </div>
                        </div>
                     </template>
@@ -491,7 +498,7 @@ const rulerIndicators = computed(() => {
                            'absolute bg-cyan-500 text-white text-[10px] px-1 rounded',
                            draggingGuideType === 'horizontal' ? 'left-2 -top-4' : 'top-2 -left-4'
                        ]">
-                          {{ pxToMm(draggingGuidePos) }}mm
+                          {{ formatUnitValue(draggingGuidePos) }}{{ unitLabel }}
                        </div>
                     </div>
                     
