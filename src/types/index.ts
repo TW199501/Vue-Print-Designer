@@ -122,6 +122,8 @@ export interface CustomElementTemplate {
 
 export interface CustomElementEditSnapshot {
   pages: Page[];
+  historyPast: Page[][];
+  historyFuture: Page[][];
   canvasSize: Size;
   guides: Guide[];
   zoom: number;

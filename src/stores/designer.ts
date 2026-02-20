@@ -128,6 +128,8 @@ export const useDesignerStore = defineStore('designer', {
       if (!this.customElementEditSnapshot) {
         this.customElementEditSnapshot = {
           pages: cloneDeep(this.pages),
+          historyPast: cloneDeep(this.historyPast),
+          historyFuture: cloneDeep(this.historyFuture),
           canvasSize: cloneDeep(this.canvasSize),
           guides: cloneDeep(this.guides),
           zoom: this.zoom,
@@ -174,6 +176,8 @@ export const useDesignerStore = defineStore('designer', {
       if (!snapshot) return;
 
       this.pages = snapshot.pages;
+      this.historyPast = snapshot.historyPast || [];
+      this.historyFuture = snapshot.historyFuture || [];
       this.canvasSize = snapshot.canvasSize;
       this.guides = snapshot.guides;
       this.zoom = snapshot.zoom;
@@ -201,8 +205,6 @@ export const useDesignerStore = defineStore('designer', {
       this.selectedGuideId = snapshot.selectedGuideId;
       this.highlightedGuideId = snapshot.highlightedGuideId;
       this.highlightedEdge = snapshot.highlightedEdge;
-      this.historyPast = [];
-      this.historyFuture = [];
       this.tableSelection = null;
     },
     commitCustomElementEdit() {
