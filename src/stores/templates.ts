@@ -52,6 +52,8 @@ export const useTemplateStore = defineStore('templates', {
         showFooterLine: designerStore.showFooterLine,
         showMinimap: designerStore.showMinimap,
         canvasBackground: designerStore.canvasBackground,
+        unit: designerStore.unit,
+        watermark: cloneDeep(designerStore.watermark),
         // Add other necessary state here
       };
 
@@ -86,6 +88,8 @@ export const useTemplateStore = defineStore('templates', {
       const newData = data || {
         pages: designerStore.pages,
         canvasSize: designerStore.canvasSize,
+        unit: designerStore.unit,
+        watermark: designerStore.watermark,
         // ... capture current state if data not provided
       };
       
@@ -154,6 +158,8 @@ export const useTemplateStore = defineStore('templates', {
         if (data.showFooterLine !== undefined) designerStore.showFooterLine = data.showFooterLine;
         if (data.showMinimap !== undefined) designerStore.showMinimap = data.showMinimap;
         if (data.canvasBackground !== undefined) designerStore.canvasBackground = data.canvasBackground;
+        if (data.unit !== undefined) designerStore.unit = data.unit;
+        if (data.watermark !== undefined) designerStore.watermark = data.watermark;
         
         // Reset selection and history
         designerStore.selectedElementId = null;

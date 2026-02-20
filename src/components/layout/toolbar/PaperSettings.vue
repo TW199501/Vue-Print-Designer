@@ -7,6 +7,7 @@ import { pxToUnit, unitToPx, type Unit } from '@/utils/units';
 import Settings from '~icons/material-symbols/settings';
 import ChevronDown from '~icons/material-symbols/expand-more';
 import Plus from '~icons/material-symbols/add';
+import X from '~icons/material-symbols/close';
 import ColorPicker from '@/components/common/ColorPicker.vue';
 
 const { t } = useI18n();
@@ -16,6 +17,7 @@ const selectedPaper = ref<PaperSizeKey>('A4');
 const customWidth = ref(PAPER_SIZES.A4.width);
 const customHeight = ref(PAPER_SIZES.A4.height);
 const showPaperSettings = ref(false);
+const showAdvancedSettings = ref(false);
 
 const canvasBackground = computed({
   get: () => store.canvasBackground,
@@ -182,8 +184,17 @@ watch(() => store.canvasSize, (newSize) => {
             />
           </div>
         </div>
+
+        <div>
+          <button
+            @click="showAdvancedSettings = true"
+            class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md transition-colors text-sm font-medium"
+          >
+            {{ t('editor.advancedSettings') }}
+          </button>
+        </div>
       </div>
-      
+
       <div class="mt-4 flex items-center justify-between">
         <span class="text-sm text-gray-700 font-medium">{{ t('editor.showCornerMarkers') }}</span>
         <button 
@@ -256,102 +267,9 @@ watch(() => store.canvasSize, (newSize) => {
       </div>
 
       <div class="border-t border-gray-200 my-4 pt-3">
-        <h3 class="text-sm font-semibold text-gray-700 mb-3">{{ t('editor.watermark') }}</h3>
-
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-700 font-medium">{{ t('editor.watermarkEnable') }}</span>
-            <button 
-              @click="watermarkEnabled = !watermarkEnabled"
-              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
-              :class="watermarkEnabled ? 'bg-blue-600' : 'bg-gray-200'"
-            >
-              <span class="sr-only">Toggle watermark</span>
-              <span
-                aria-hidden="true"
-                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                :class="watermarkEnabled ? 'translate-x-5' : 'translate-x-0'"
-              />
-            </button>
-          </div>
-
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkText') }}</label>
-            <input
-              v-model="watermarkText"
-              type="text"
-              class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-              :placeholder="t('editor.watermarkTextPlaceholder')"
-            />
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkAngle') }}</label>
-              <input
-                v-model.number="watermarkAngle"
-                type="number"
-                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkOpacity') }}</label>
-              <input
-                v-model.number="watermarkOpacity"
-                type="number"
-                min="0"
-                max="100"
-                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-              />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkSize') }} ({{ unitLabel }})</label>
-              <input
-                v-model.number="watermarkSize"
-                type="number"
-                min="1"
-                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkDensity') }} ({{ unitLabel }})</label>
-              <input
-                v-model.number="watermarkDensity"
-                type="number"
-                min="20"
-                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkColor') }}</label>
-            <ColorPicker
-              v-model="watermarkColor"
-              default-color="#000000"
-              placement="bottom-end"
-            >
-              <template #trigger="{ color, open }">
-                <div
-                  class="w-8 h-6 rounded border border-gray-300 cursor-pointer relative overflow-hidden hover:border-blue-500 transition-colors"
-                  :class="{ 'ring-2 ring-blue-500 ring-offset-1': open }"
-                >
-                  <div class="absolute inset-0" :style="{ backgroundColor: color }"></div>
-                </div>
-              </template>
-            </ColorPicker>
-          </div>
-        </div>
-      </div>
-
-      <div class="border-t border-gray-200 my-4 pt-3">
         <h3 class="text-sm font-semibold text-gray-700 mb-3">{{ t('editor.headerFooter') }}</h3>
         
         <div class="space-y-3">
-          <!-- Header Settings -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
                <button 
@@ -380,7 +298,6 @@ watch(() => store.canvasSize, (newSize) => {
             </div>
           </div>
 
-          <!-- Footer Settings -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
                <button 
@@ -426,5 +343,119 @@ watch(() => store.canvasSize, (newSize) => {
         @click="showPaperSettings = false"
       ></div>
     </div>
+
+    <Teleport to="body">
+      <div v-if="showAdvancedSettings" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50" @click.self="showAdvancedSettings = false">
+        <div class="bg-white rounded-lg shadow-xl w-[640px] max-w-full max-h-[90vh] flex flex-col overflow-hidden">
+          <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
+            <h3 class="text-lg font-semibold text-gray-800">{{ t('editor.advancedSettings') }}</h3>
+            <button @click="showAdvancedSettings = false" class="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+
+          <div class="p-4 overflow-y-auto space-y-4">
+            <div>
+              <h3 class="text-sm font-semibold text-gray-700 mb-3">{{ t('editor.watermark') }}</h3>
+
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-gray-700 font-medium">{{ t('editor.watermarkEnable') }}</span>
+                  <button 
+                    @click="watermarkEnabled = !watermarkEnabled"
+                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                    :class="watermarkEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                  >
+                    <span class="sr-only">Toggle watermark</span>
+                    <span
+                      aria-hidden="true"
+                      class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                      :class="watermarkEnabled ? 'translate-x-5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkText') }}</label>
+                  <input
+                    v-model="watermarkText"
+                    type="text"
+                    class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+                    :placeholder="t('editor.watermarkTextPlaceholder')"
+                  />
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkAngle') }}</label>
+                    <input
+                      v-model.number="watermarkAngle"
+                      type="number"
+                      class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkOpacity') }}</label>
+                    <input
+                      v-model.number="watermarkOpacity"
+                      type="number"
+                      min="0"
+                      max="100"
+                      class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkSize') }} ({{ unitLabel }})</label>
+                    <input
+                      v-model.number="watermarkSize"
+                      type="number"
+                      min="1"
+                      class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkDensity') }} ({{ unitLabel }})</label>
+                    <input
+                      v-model.number="watermarkDensity"
+                      type="number"
+                      min="20"
+                      class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">{{ t('editor.watermarkColor') }}</label>
+                  <ColorPicker
+                    v-model="watermarkColor"
+                    default-color="#000000"
+                    placement="bottom-end"
+                  >
+                    <template #trigger="{ color, open }">
+                      <div
+                        class="w-8 h-6 rounded border border-gray-300 cursor-pointer relative overflow-hidden hover:border-blue-500 transition-colors"
+                        :class="{ 'ring-2 ring-blue-500 ring-offset-1': open }"
+                      >
+                        <div class="absolute inset-0" :style="{ backgroundColor: color }"></div>
+                      </div>
+                    </template>
+                  </ColorPicker>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+            <button @click="showAdvancedSettings = false" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
+              {{ t('common.close') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

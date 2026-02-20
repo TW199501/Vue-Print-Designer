@@ -47,6 +47,7 @@ export default {
     zoomLevel: '缩放级别',
     zoomSettings: '缩放设置',
     unit: '单位',
+    advancedSettings: '高级设置',
     watermark: '水印',
     watermarkEnable: '启用',
     watermarkText: '文字',

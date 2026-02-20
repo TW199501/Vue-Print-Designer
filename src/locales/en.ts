@@ -47,6 +47,7 @@ export default {
     zoomLevel: 'Zoom Level',
     zoomSettings: 'Zoom Settings',
     unit: 'Unit',
+    advancedSettings: 'Advanced Settings',
     watermark: 'Watermark',
     watermarkEnable: 'Enable',
     watermarkText: 'Text',

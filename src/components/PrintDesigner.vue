@@ -54,6 +54,7 @@ onMounted(() => {
       () => store.showHeaderLine,
       () => store.showFooterLine,
       () => store.canvasBackground,
+      () => store.watermark,
       () => store.showMinimap
     ],
     () => {
