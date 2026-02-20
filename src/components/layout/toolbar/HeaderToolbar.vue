@@ -85,6 +85,8 @@ const handleViewJson = () => {
   showJsonModal.value = true;
 };
 const showSaveNameModal = ref(false);
+const saveNameInitialValue = ref('');
+const saveModalMode = ref<'save' | 'saveAs'>('save');
 const { getPrintHtml, print, exportPdf, getPdfBlob, exportImages, getImageBlob } = usePrint();
 
 const handleViewImageBlob = async () => {
@@ -320,17 +322,31 @@ const handleSave = () => {
       return;
     }
   }
+  saveModalMode.value = 'save';
+  saveNameInitialValue.value = '';
+  showSaveNameModal.value = true;
+};
+
+const handleSaveAs = () => {
+  saveModalMode.value = 'saveAs';
+  const current = templateStore.templates.find(t => t.id === templateStore.currentTemplateId);
+  saveNameInitialValue.value = current ? `${current.name} Copy` : '';
   showSaveNameModal.value = true;
 };
 
 const handleSaveConfirm = (name: string) => {
-  templateStore.saveCurrentTemplate(name);
+  if (saveModalMode.value === 'saveAs') {
+    templateStore.createTemplate(name);
+  } else {
+    templateStore.saveCurrentTemplate(name);
+  }
   showSaveNameModal.value = false;
 };
 
 onMounted(() => {
   window.addEventListener('designer:preview', handlePreview);
   window.addEventListener('designer:save', handleSave);
+  window.addEventListener('designer:save-as', handleSaveAs);
   window.addEventListener('designer:print', handlePrint);
   window.addEventListener('designer:export-pdf', handleExport);
   window.addEventListener('designer:view-json', handleViewJson);
@@ -340,6 +356,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('designer:preview', handlePreview);
   window.removeEventListener('designer:save', handleSave);
+  window.removeEventListener('designer:save-as', handleSaveAs);
   window.removeEventListener('designer:print', handlePrint);
   window.removeEventListener('designer:export-pdf', handleExport);
   window.removeEventListener('designer:view-json', handleViewJson);
@@ -352,7 +369,8 @@ onUnmounted(() => {
     <TemplateDropdown />
     <InputModal 
       :show="showSaveNameModal" 
-      :title="t('editor.saveTemplate')"
+      :title="saveModalMode === 'saveAs' ? t('editor.saveAsTemplate') : t('editor.saveTemplate')"
+      :initial-value="saveNameInitialValue"
       @close="showSaveNameModal = false"
       @save="handleSaveConfirm"
     />

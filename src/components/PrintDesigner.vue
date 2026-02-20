@@ -14,6 +14,9 @@ import Ruler from './layout/Ruler.vue';
 import Shortcuts from './layout/Shortcuts.vue';
 import Minimap from './layout/Minimap.vue';
 import InputModal from '@/components/common/InputModal.vue';
+import Save from '~icons/material-symbols/save';
+import SaveAs from '~icons/material-symbols/save-as';
+import Logout from '~icons/material-symbols/logout';
 
 const store = useDesignerStore();
 const templateStore = useTemplateStore();
@@ -36,6 +39,7 @@ onMounted(() => {
   });
   window.addEventListener('resize', updateOffset);
   window.addEventListener('keydown', handleCtrlKey);
+  window.addEventListener('keydown', handleCustomEditShortcuts);
   window.addEventListener('keyup', handleCtrlKey);
   window.addEventListener('blur', handleBlur);
   
@@ -111,6 +115,47 @@ const handleExitCustomEdit = () => {
     return;
   }
   store.cancelCustomElementEdit();
+  requestAnimationFrame(() => {
+    scrollContainer.value?.focus?.();
+  });
+};
+
+const isTypingTarget = (target: EventTarget | null) => {
+  const el = target as HTMLElement | null;
+  if (!el) return false;
+  if (el.isContentEditable) return true;
+  const tag = el.tagName?.toLowerCase();
+  return tag === 'input' || tag === 'textarea' || tag === 'select';
+};
+
+const handleCustomEditShortcuts = (e: KeyboardEvent) => {
+  if (!store.editingCustomElementId) return;
+  if (showSaveAsModal.value) return;
+  if (isTypingTarget(e.target)) return;
+
+  const mod = e.ctrlKey || e.metaKey;
+  if (!mod) return;
+
+  const key = e.key.toLowerCase();
+  if (key === 's' && e.shiftKey) {
+    e.preventDefault();
+    e.stopPropagation();
+    showSaveAsModal.value = true;
+    return;
+  }
+
+  if (key === 's') {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSaveCustomEdit();
+    return;
+  }
+
+  if (key === 'q') {
+    e.preventDefault();
+    e.stopPropagation();
+    handleExitCustomEdit();
+  }
 };
 
 const scrollX = ref(0);
@@ -199,6 +244,7 @@ onUnmounted(() => {
   window.removeEventListener('mousemove', handleGuideMouseMove);
   window.removeEventListener('mouseup', handleGuideMouseUp);
   window.removeEventListener('keydown', handleCtrlKey);
+  window.removeEventListener('keydown', handleCustomEditShortcuts);
   window.removeEventListener('keyup', handleCtrlKey);
   window.removeEventListener('blur', handleBlur);
   scrollContainer.value?.removeEventListener('wheel', handleZoomWheel);
@@ -412,18 +458,21 @@ const rulerIndicators = computed(() => {
     <div class="flex-1 flex overflow-hidden">
       <Sidebar />
       <main class="flex-1 overflow-hidden relative flex flex-col">
-        <div v-if="store.editingCustomElementId" class="flex items-center justify-between px-4 py-2 bg-blue-50 border-b border-blue-200 text-blue-900">
+        <div v-if="store.editingCustomElementId" class="flex items-center justify-between px-4 py-2 bg-blue-50 border-b border-blue-200 text-blue-900 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-100">
           <div class="text-sm font-medium">
             {{ t('sidebar.editingElement', { name: editingCustomElement?.name || '' }) }}
           </div>
           <div class="flex items-center gap-2">
-            <button @click="handleSaveCustomEdit" class="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700">
+            <button @click="handleSaveCustomEdit" class="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 inline-flex items-center gap-1.5">
+              <Save class="w-4 h-4" />
               {{ t('sidebar.saveEdit') }}
             </button>
-            <button @click="showSaveAsModal = true" class="px-3 py-1.5 text-xs font-medium border border-blue-300 text-blue-900 rounded hover:bg-blue-100">
+            <button @click="showSaveAsModal = true" class="px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-900 rounded hover:bg-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 dark:text-blue-100 inline-flex items-center gap-1.5">
+              <SaveAs class="w-4 h-4" />
               {{ t('sidebar.saveAs') }}
             </button>
-            <button @click="handleExitCustomEdit" class="px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-100 rounded">
+            <button @click="handleExitCustomEdit" class="px-3 py-1.5 text-xs font-medium bg-slate-200 text-slate-900 rounded hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-100 inline-flex items-center gap-1.5">
+              <Logout class="w-4 h-4" />
               {{ t('sidebar.exitEdit') }}
             </button>
           </div>
@@ -466,7 +515,8 @@ const rulerIndicators = computed(() => {
               <!-- Canvas Area -->
               <div
                 ref="scrollContainer"
-                class="flex-1 overflow-auto bg-gray-100 p-8 flex relative canvas-scroll"
+                tabindex="-1"
+                class="flex-1 overflow-auto bg-gray-100 p-8 flex relative canvas-scroll focus:outline-none"
                 @scroll="handleScroll"
                   @click="(e) => { if (e.target === scrollContainer || e.target === e.currentTarget) { store.selectGuide(null); } }"
               >

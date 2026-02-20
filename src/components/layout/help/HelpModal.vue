@@ -82,6 +82,7 @@ const projectName = startCase(pkg.name);
                   <h4 class="font-medium text-gray-900 mb-3 border-b pb-1">{{ t('shortcuts.general') }}</h4>
                   <ul class="space-y-2 text-gray-600">
                     <li class="flex justify-between items-center"><span>{{ t('common.save') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'S']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.saveAsTemplate') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Shift', 'S']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('editor.print') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'P']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('editor.exportPdf') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Shift', 'E']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('editor.preview') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Shift', 'P']) }}</kbd></li>
@@ -107,6 +108,9 @@ const projectName = startCase(pkg.name);
                     <li class="flex justify-between items-center"><span>{{ t('shortcuts.selectAll') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'A']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('shortcuts.multiSelect') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Click']) }}</kbd></li>
                     <li class="flex justify-between items-center"><span>{{ t('common.lock') }}/{{ t('common.unlock') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'L']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.customEditSave') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'S']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.customEditSaveAs') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Shift', 'S']) }}</kbd></li>
+                    <li class="flex justify-between items-center"><span>{{ t('shortcuts.customEditExit') }}</span> <kbd class="bg-gray-100 px-2 py-0.5 rounded border text-xs">{{ formatShortcut(['Ctrl', 'Q']) }}</kbd></li>
                   </ul>
                 </div>
 

@@ -228,8 +228,22 @@ const handleKeydown = (e: KeyboardEvent) => {
     return;
   }
 
+  const mod = e.ctrlKey || e.metaKey;
+  const key = e.key.toLowerCase();
+
+  if (store.editingCustomElementId && mod && (key === 's' || key === 'q')) {
+    return;
+  }
+
+  // Save As (Ctrl + Shift + S)
+  if (mod && e.shiftKey && key === 's') {
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent('designer:save-as'));
+    return;
+  }
+
   // Save (Ctrl + S)
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+  if (mod && key === 's') {
     e.preventDefault();
     window.dispatchEvent(new CustomEvent('designer:save'));
     return;
