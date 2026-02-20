@@ -64,7 +64,7 @@ const remoteButtonLabel = computed(() => {
 
 const connectionButtonClass = (status: 'connecting' | 'connected' | 'disconnected' | 'error') => {
   if (status === 'connected') return 'bg-blue-600 hover:bg-blue-700 text-white border border-blue-600';
-  return 'bg-transparent text-blue-600 border border-blue-600 hover:bg-blue-50 active:bg-blue-600 active:text-white';
+  return 'bg-transparent text-blue-600 border border-blue-600 hover:bg-blue-50';
 };
 
 const handleLocalConnection = async () => {
