@@ -12,7 +12,11 @@ const store = useDesignerStore();
 <template>
   <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-[2000] relative shadow-sm">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">P</div>
+      <img
+        src="@/assets/logo.png"
+        alt="Logo"
+        class="w-8 h-8 object-contain"
+      />
       <h1 class="font-semibold text-gray-700">{{ t('common.appTitle') }}</h1>
     </div>
 
