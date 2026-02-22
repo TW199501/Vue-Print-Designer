@@ -391,6 +391,9 @@ const handleMouseDown = (e: MouseEvent) => {
       class="absolute shadow-sm border border-gray-300 overflow-hidden"
       :style="getPageStyle(index)"
     >
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm leading-none text-gray-300 z-10">
+        {{ index + 1 }}
+      </div>
       <!-- Elements -->
       <div 
         v-for="element in page.elements" 
