@@ -39,6 +39,7 @@ watch(() => props.visible, (val) => {
   if (!val) {
     zoomPercent.value = 100;
   }
+  store.setDisableGlobalShortcuts(val);
 });
 
 const handleClose = () => {
@@ -175,6 +176,9 @@ onUnmounted(() => {
   window.removeEventListener('keyup', handleCtrlKey);
   window.removeEventListener('blur', handleBlur);
   wrapperRef.value?.removeEventListener('wheel', handleWheel);
+  if (props.visible) {
+    store.setDisableGlobalShortcuts(false);
+  }
 });
 </script>
 

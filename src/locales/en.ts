@@ -381,11 +381,22 @@ export default {
     package: 'Package',
     version: 'Version'
   },
+  colorPicker: {
+    clear: 'Clear',
+    transparent: 'Transparent'
+  },
   settings: {
     title: 'Settings',
     basic: 'Basic',
     language: 'Language',
     connection: 'Connections',
+    themeColor: 'Theme Color',
+    themeColorDesc: 'Pick a preset theme color and apply instantly.',
+    themePresetDefault: 'Blue',
+    themePresetEmerald: 'Emerald',
+    themePresetAmber: 'Amber',
+    themePresetRose: 'Rose',
+    themePresetCustom: 'Custom',
     theme: 'Theme',
     themeSystem: 'Follow System',
     themeLight: 'Light',

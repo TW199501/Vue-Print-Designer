@@ -53,7 +53,7 @@ const style = computed(() => {
   }
 
   if (actualIsSelected) {
-    baseStyle.border = props.element.locked ? '2px solid #ef4444' : '2px solid #3b82f6';
+    baseStyle.border = props.element.locked ? '2px solid #ef4444' : '2px solid var(--brand-500)';
   } else {
     if (!selfBorderedTypes.includes(props.element.type) && props.element.style.borderStyle && props.element.style.borderStyle !== 'none') {
       baseStyle.borderStyle = props.element.style.borderStyle;
@@ -345,7 +345,7 @@ const handleResizeStart = (e: MouseEvent) => {
     ref="elementRef"
     class="element-wrapper absolute select-none"
     :class="[
-      readOnly ? 'cursor-not-allowed' : 'group hover:outline hover:outline-1 hover:outline-blue-300',
+      readOnly ? 'cursor-not-allowed' : 'group theme-outline-hover',
       !readOnly && element.locked ? 'cursor-not-allowed' : '',
       !readOnly && !element.locked ? 'cursor-move' : ''
     ]"

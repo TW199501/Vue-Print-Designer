@@ -80,6 +80,9 @@ const getPasteTarget = (clientX: number, clientY: number) => {
 };
 
 const handleKeydown = (e: KeyboardEvent) => {
+  // If global shortcuts are disabled (e.g. modal open), ignore
+  if (store.disableGlobalShortcuts) return;
+
   // New Template (Ctrl + Alt + N) - Trigger UI flow via event
   if ((e.ctrlKey || e.metaKey) && e.altKey && e.key.toLowerCase() === 'n') {
     e.preventDefault();
@@ -95,9 +98,6 @@ const handleKeydown = (e: KeyboardEvent) => {
     store.setShowSettings(true);
     return;
   }
-
-  // If global shortcuts are disabled (e.g. code editor is open), ignore
-  if (store.disableGlobalShortcuts) return;
 
   // ignore when typing in inputs
   const target = e.target as Element | null;

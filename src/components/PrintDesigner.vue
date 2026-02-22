@@ -6,6 +6,7 @@ import { useTemplateStore } from '@/stores/templates';
 import { useAutoSave } from '@/composables/useAutoSave';
 import debounce from 'lodash/debounce';
 import { pxToUnit, type Unit } from '@/utils/units';
+import { parseColor, toRgbaString } from '@/utils/color';
 import Header from './layout/Header.vue';
 import Sidebar from './layout/Sidebar.vue';
 import PropertiesPanel from './layout/PropertiesPanel.vue';
@@ -26,6 +27,18 @@ const scrollContainer = ref<HTMLElement | null>(null);
 const canvasContainer = ref<HTMLElement | null>(null);
 const canvasWrapper = ref<HTMLElement | null>(null);
 const showSaveAsModal = ref(false);
+const brandTick = ref(0);
+
+const handleBrandThemeUpdated = () => {
+  brandTick.value += 1;
+};
+
+const getThemeRgba = (cssVar: string, alpha: number) => {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
+  const parsed = parseColor(value);
+  if (!parsed) return `rgba(59, 130, 246, ${alpha})`;
+  return toRgbaString(parsed.h, parsed.s, parsed.v, alpha);
+};
 
 const editingCustomElement = computed(() => store.editingCustomElement);
 const saveAsInitialName = computed(() => {
@@ -42,6 +55,7 @@ onMounted(() => {
   window.addEventListener('keydown', handleCustomEditShortcuts);
   window.addEventListener('keyup', handleCtrlKey);
   window.addEventListener('blur', handleBlur);
+  window.addEventListener('brand-theme-updated', handleBrandThemeUpdated);
   
   // Watch for layout changes
   watch(
@@ -129,6 +143,7 @@ const isTypingTarget = (target: EventTarget | null) => {
 };
 
 const handleCustomEditShortcuts = (e: KeyboardEvent) => {
+  if (store.disableGlobalShortcuts) return;
   if (!store.editingCustomElementId) return;
   if (showSaveAsModal.value) return;
   if (isTypingTarget(e.target)) return;
@@ -247,8 +262,10 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleCustomEditShortcuts);
   window.removeEventListener('keyup', handleCtrlKey);
   window.removeEventListener('blur', handleBlur);
+  window.removeEventListener('brand-theme-updated', handleBrandThemeUpdated);
   scrollContainer.value?.removeEventListener('wheel', handleZoomWheel);
 });
+
 
 // Guides Logic
 const isDraggingGuide = ref(false);
@@ -340,6 +357,7 @@ const handleZoomWheel = (e: WheelEvent) => {
 };
 
 const handleCtrlKey = (e: KeyboardEvent) => {
+  if (store.disableGlobalShortcuts) return;
   if (e.key === 'Control' || e.key === 'Meta') {
     if (e.type === 'keydown' && !e.repeat) {
       scrollContainer.value?.addEventListener('wheel', handleZoomWheel, { passive: false });
@@ -436,17 +454,19 @@ const dragProjection = computed(() => {
 
 const rulerIndicators = computed(() => {
   if (!dragProjection.value) return { h: [], v: [] };
+  brandTick.value;
+  const indicatorColor = getThemeRgba('--brand-500', 0.5);
   
   const { minX, maxX, minY, maxY } = dragProjection.value;
   
   return {
     h: [
-      { position: minX, color: 'rgba(6, 182, 212, 0.5)' },
-      { position: maxX, color: 'rgba(6, 182, 212, 0.5)' }
+      { position: minX, color: indicatorColor },
+      { position: maxX, color: indicatorColor }
     ],
     v: [
-      { position: minY, color: 'rgba(6, 182, 212, 0.5)' },
-      { position: maxY, color: 'rgba(6, 182, 212, 0.5)' }
+      { position: minY, color: indicatorColor },
+      { position: maxY, color: indicatorColor }
     ]
   };
 });
@@ -530,33 +550,33 @@ const rulerIndicators = computed(() => {
                     <!-- Dragging Distance Guides -->
                      <template v-if="dragProjection">
                        <!-- Top Line -->
-                       <div class="absolute w-full border-t border-cyan-500 border-dashed"
+                        <div class="absolute w-full border-t border-blue-500 border-dashed"
                             :style="{ top: `${offsetY + dragProjection.minY * store.zoom}px`, left: 0 }">
-                          <div class="absolute -top-6 bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm"
+                          <div class="absolute -top-6 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm"
                                :style="{ left: `${scrollX + 10}px` }">
                              {{ formatUnitValue(dragProjection.minY) }} {{ unitLabel }}
                           </div>
                        </div>
                        <!-- Bottom Line -->
-                       <div class="absolute w-full border-t border-cyan-500 border-dashed"
+                        <div class="absolute w-full border-t border-blue-500 border-dashed"
                             :style="{ top: `${offsetY + dragProjection.maxY * store.zoom}px`, left: 0 }">
-                          <div class="absolute -top-6 bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm"
+                          <div class="absolute -top-6 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm"
                                :style="{ left: `${scrollX + 10}px` }">
                              {{ formatUnitValue(dragProjection.maxY) }} {{ unitLabel }}
                           </div>
                        </div>
                        <!-- Left Line -->
-                       <div class="absolute h-full border-l border-cyan-500 border-dashed"
+                        <div class="absolute h-full border-l border-blue-500 border-dashed"
                             :style="{ left: `${offsetX + dragProjection.minX * store.zoom}px`, top: 0 }">
-                          <div class="absolute -left-2 transform -translate-x-full bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap"
+                          <div class="absolute -left-2 transform -translate-x-full bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap"
                                :style="{ top: `${scrollY + 10}px` }">
                              {{ formatUnitValue(dragProjection.minX) }} {{ unitLabel }}
                           </div>
                        </div>
                        <!-- Right Line -->
-                       <div class="absolute h-full border-l border-cyan-500 border-dashed"
+                        <div class="absolute h-full border-l border-blue-500 border-dashed"
                             :style="{ left: `${offsetX + dragProjection.maxX * store.zoom}px`, top: 0 }">
-                          <div class="absolute -left-2 transform -translate-x-full bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap"
+                          <div class="absolute -left-2 transform -translate-x-full bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap"
                                :style="{ top: `${scrollY + 10}px` }">
                              {{ formatUnitValue(dragProjection.maxX) }} {{ unitLabel }}
                           </div>
@@ -571,8 +591,8 @@ const rulerIndicators = computed(() => {
                           :style="{ top: `${offsetY + guide.position * store.zoom}px` }"
                           @mousedown.stop="(e) => { store.selectGuide(guide.id); handleGuideDragStart(e, 'horizontal', guide.id); }"
                        >
-                        <div :class="['w-full', store.highlightedGuideId === guide.id ? 'border-t-2 border-pink-500' : 'border-t border-cyan-500', 'group-hover:border-cyan-400']"></div>
-                          <div class="absolute left-2 -top-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
+                        <div :class="['w-full', store.highlightedGuideId === guide.id ? 'border-t-2 border-blue-600' : 'border-t border-blue-500', 'group-hover:border-blue-400']"></div>
+                          <div class="absolute left-2 -top-4 bg-blue-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
                              {{ formatUnitValue(guide.position) }}{{ unitLabel }}
                           </div>
                        </div>
@@ -582,8 +602,8 @@ const rulerIndicators = computed(() => {
                           :style="{ left: `${offsetX + guide.position * store.zoom}px` }"
                           @mousedown.stop="(e) => { store.selectGuide(guide.id); handleGuideDragStart(e, 'vertical', guide.id); }"
                        >
-                           <div :class="['h-full', store.highlightedGuideId === guide.id ? 'border-l-2 border-pink-500' : 'border-l border-cyan-500', 'group-hover:border-cyan-400']"></div>
-                           <div class="absolute top-2 -left-4 bg-cyan-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
+                           <div :class="['h-full', store.highlightedGuideId === guide.id ? 'border-l-2 border-blue-600' : 'border-l border-blue-500', 'group-hover:border-blue-400']"></div>
+                           <div class="absolute top-2 -left-4 bg-blue-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
                              {{ formatUnitValue(guide.position) }}{{ unitLabel }}
                           </div>
                        </div>
@@ -593,7 +613,7 @@ const rulerIndicators = computed(() => {
                     <div 
                        v-if="isDraggingGuide && !draggingGuideId"
                        :class="[
-                         'absolute border-cyan-500 border-dashed pointer-events-none',
+                         'absolute border-blue-500 border-dashed pointer-events-none',
                          draggingGuideType === 'horizontal' ? 'left-0 w-full border-t' : 'top-0 h-full border-l'
                        ]"
                        :style="{ 
@@ -602,7 +622,7 @@ const rulerIndicators = computed(() => {
                        }"
                     >
                        <div :class="[
-                           'absolute bg-cyan-500 text-white text-[10px] px-1 rounded',
+                           'absolute bg-blue-500 text-white text-[10px] px-1 rounded',
                            draggingGuideType === 'horizontal' ? 'left-2 -top-4' : 'top-2 -left-4'
                        ]">
                           {{ formatUnitValue(draggingGuidePos) }}{{ unitLabel }}
@@ -615,22 +635,22 @@ const rulerIndicators = computed(() => {
                     <div v-if="store.highlightedEdge" class="absolute pointer-events-none">
                       <div 
                         v-if="store.highlightedEdge === 'top'" 
-                        class="absolute left-0 w-full border-t border-pink-500"
+                        class="absolute left-0 w-full border-t border-blue-500"
                         :style="{ top: `${offsetY}px` }"
                       ></div>
                       <div 
                         v-else-if="store.highlightedEdge === 'bottom'" 
-                        class="absolute left-0 w-full border-t border-pink-500"
+                        class="absolute left-0 w-full border-t border-blue-500"
                         :style="{ top: `${offsetY + store.canvasSize.height * store.zoom}px` }"
                       ></div>
                       <div 
                         v-else-if="store.highlightedEdge === 'left'" 
-                        class="absolute top-0 h-full border-l border-pink-500"
+                        class="absolute top-0 h-full border-l border-blue-500"
                         :style="{ left: `${offsetX}px` }"
                       ></div>
                       <div 
                         v-else-if="store.highlightedEdge === 'right'" 
-                        class="absolute top-0 h-full border-l border-pink-500"
+                        class="absolute top-0 h-full border-l border-blue-500"
                         :style="{ left: `${offsetX + store.canvasSize.width * store.zoom}px` }"
                       ></div>
                     </div>

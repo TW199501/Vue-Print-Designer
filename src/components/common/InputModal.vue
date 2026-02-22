@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Close from '~icons/material-symbols/close';
+import { useDesignerStore } from '@/stores/designer';
 
 const props = defineProps<{
   show: boolean;
@@ -16,6 +17,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const designerStore = useDesignerStore();
 
 const value = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
@@ -26,7 +28,10 @@ watch(() => props.show, (val) => {
     setTimeout(() => {
       inputRef.value?.focus();
     }, 100);
+    designerStore.setDisableGlobalShortcuts(true);
+    return;
   }
+  designerStore.setDisableGlobalShortcuts(false);
 });
 
 const handleSave = () => {
@@ -34,6 +39,12 @@ const handleSave = () => {
   emit('save', value.value.trim());
   emit('close');
 };
+
+onUnmounted(() => {
+  if (props.show) {
+    designerStore.setDisableGlobalShortcuts(false);
+  }
+});
 </script>
 
 <template>

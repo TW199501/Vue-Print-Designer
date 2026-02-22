@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CheckIcon from '~icons/material-symbols/check';
 import CloseIcon from '~icons/material-symbols/close';
 import FormatColorReset from '~icons/material-symbols/format-color-reset';
@@ -11,14 +12,18 @@ const props = defineProps<{
   disabled?: boolean;
   defaultColor?: string;
   allowTransparent?: boolean;
+  teleportToBody?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string | undefined): void;
 }>();
 
+const { t } = useI18n();
+
 const isOpen = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
+const dropdownRef = ref<HTMLElement | null>(null);
 
 // HSV State
 const hsv = ref<HSVA>({ h: 0, s: 0, v: 0, a: 1 });
@@ -152,6 +157,17 @@ const updatePosition = () => {
 
   const style: Record<string, string> = {};
 
+  if (props.teleportToBody) {
+    const fitsRight = rect.left + dropdownW <= screenW - 20;
+    const fitsBottom = rect.bottom + dropdownH <= screenH - 10;
+
+    style.position = 'fixed';
+    style.left = `${fitsRight ? rect.left : Math.max(8, rect.right - dropdownW)}px`;
+    style.top = `${fitsBottom ? rect.bottom + 8 : Math.max(8, rect.top - dropdownH - 8)}px`;
+    dropdownStyle.value = style;
+    return;
+  }
+
   // Horizontal Position
   // Check if there is enough space on the right
   if (rect.left + dropdownW > screenW - 20) {
@@ -193,10 +209,25 @@ const close = () => {
 };
 
 const handleClickOutside = (e: MouseEvent) => {
-  if (containerRef.value && !containerRef.value.contains(e.target as Node)) {
+  const target = e.target as Node;
+  if (containerRef.value && containerRef.value.contains(target)) return;
+  if (dropdownRef.value && dropdownRef.value.contains(target)) return;
+  if (containerRef.value) {
     close();
   }
 };
+
+watch(isOpen, (val) => {
+  if (!props.teleportToBody) return;
+  if (val) {
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+  } else {
+    window.removeEventListener('scroll', updatePosition, true);
+    window.removeEventListener('resize', updatePosition);
+  }
+});
 
 // Presets
 const PRESET_COLORS = [
@@ -238,8 +269,121 @@ onUnmounted(() => {
     </slot>
 
     <!-- Dropdown -->
+    <Teleport v-if="isOpen && teleportToBody" to="body">
+      <div 
+        ref="dropdownRef"
+        class="fixed z-[99999] bg-white rounded-lg shadow-xl border border-gray-200 p-3 w-[240px]"
+        :style="dropdownStyle"
+        @click.stop
+      >
+        <!-- Saturation/Value Panel -->
+        <div 
+          ref="svPanelRef"
+          class="w-full h-32 rounded relative cursor-crosshair mb-3"
+          :style="svPanelStyle"
+          @mousedown="(e) => handleDrag(e, 'sv')"
+        >
+          <div class="absolute inset-0 bg-gradient-to-r from-white to-transparent rounded"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent rounded"></div>
+          <div 
+            class="absolute w-3 h-3 border-2 border-white rounded-full shadow-sm -ml-1.5 -mt-1.5 pointer-events-none"
+            :style="cursorStyle"
+          ></div>
+        </div>
+
+        <!-- Sliders -->
+        <div class="flex gap-2 mb-3">
+          <div class="flex-1 flex flex-col gap-2">
+            <!-- Hue Slider -->
+            <div 
+              ref="hueSliderRef"
+              class="h-3 rounded relative cursor-pointer border border-gray-200"
+              style="background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)"
+              @mousedown="(e) => handleDrag(e, 'hue')"
+            >
+              <div 
+                class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white border border-gray-300 rounded-full shadow-sm -ml-1.5 pointer-events-none"
+                :style="hueCursorStyle"
+              ></div>
+            </div>
+
+            <!-- Alpha Slider -->
+            <div class="relative h-3 rounded bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] border border-gray-200">
+              <div 
+                ref="alphaSliderRef"
+                class="absolute inset-0 cursor-pointer rounded"
+                :style="alphaBackgroundStyle"
+                @mousedown="(e) => handleDrag(e, 'alpha')"
+              >
+                <div 
+                  class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white border border-gray-300 rounded-full shadow-sm -ml-1.5 pointer-events-none"
+                  :style="alphaCursorStyle"
+                ></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Current Color Preview -->
+          <div class="w-8 h-8 rounded border border-gray-200 overflow-hidden relative">
+              <div class="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] opacity-50"></div>
+              <div class="absolute inset-0" :style="{ backgroundColor: rgbaValue }"></div>
+              <div v-if="hsv.a === 0" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div class="w-full h-[1px] bg-red-500 rotate-45"></div>
+              </div>
+          </div>
+        </div>
+
+        <!-- Inputs -->
+        <div class="flex gap-2 mb-3">
+          <div class="flex-1">
+            <input 
+              type="text" 
+              v-model="hexValue" 
+              class="w-full text-xs px-2 py-1 border border-gray-300 rounded focus:border-blue-500 outline-none font-mono uppercase"
+              placeholder="#000000"
+            />
+          </div>
+          <div class="w-16 text-right text-xs text-gray-500 flex items-center justify-end">
+            {{ Math.round(hsv.a * 100) }}%
+          </div>
+        </div>
+
+        <!-- Presets -->
+        <div class="grid grid-cols-9 gap-1.5 mb-3">
+          <div 
+            v-for="color in PRESET_COLORS" 
+            :key="color"
+            class="w-4 h-4 rounded-sm cursor-pointer border border-transparent hover:scale-110 hover:border-gray-400 hover:z-10 transition-all relative"
+            :class="{ 'ring-2 ring-blue-500 ring-offset-1 z-10': hexValue === color }"
+            :style="{ backgroundColor: color }"
+            @click="selectPreset(color)"
+            :title="color"
+          ></div>
+        </div>
+        
+        <!-- Footer Actions -->
+        <div class="flex justify-between border-t pt-2">
+          <button 
+            @click="$emit('update:modelValue', undefined); close()"
+            class="text-xs text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+          >
+            {{ t('colorPicker.clear') }}
+          </button>
+          <div v-if="allowTransparent">
+            <button 
+              @click="$emit('update:modelValue', 'transparent'); close()"
+              class="text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+            >
+              {{ t('colorPicker.transparent') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <div 
-      v-if="isOpen" 
+      v-else-if="isOpen" 
+      ref="dropdownRef"
       class="absolute z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-3 w-[240px]"
       :style="dropdownStyle"
       @click.stop
@@ -335,14 +479,14 @@ onUnmounted(() => {
            @click="$emit('update:modelValue', undefined); close()"
            class="text-xs text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors"
          >
-           Clear
+           {{ t('colorPicker.clear') }}
          </button>
          <div v-if="allowTransparent">
            <button 
              @click="$emit('update:modelValue', 'transparent'); close()"
              class="text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
            >
-             Transparent
+             {{ t('colorPicker.transparent') }}
            </button>
          </div>
       </div>

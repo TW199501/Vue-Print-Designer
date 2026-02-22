@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '@/composables/useTheme';
 import { useAutoSave } from '@/composables/useAutoSave';
 import { usePrintSettings } from '@/composables/usePrintSettings';
+import { useDesignerStore } from '@/stores/designer';
+import ColorPicker from '@/components/common/ColorPicker.vue';
+import { parseColor, hsvToRgb } from '@/utils/color';
 import X from '~icons/material-symbols/close';
 import SettingsIcon from '~icons/material-symbols/settings';
 import TranslateIcon from '~icons/material-symbols/translate';
@@ -12,7 +15,7 @@ import CloudIcon from '~icons/material-symbols/cloud';
 import LinkIcon from '~icons/material-symbols/link';
 import LinkOffIcon from '~icons/material-symbols/link-off';
 
-defineProps<{
+const props = defineProps<{
   show: boolean
 }>();
 
@@ -23,6 +26,7 @@ const emit = defineEmits<{
 const { t, locale } = useI18n();
 const { theme: selectedTheme, setTheme } = useTheme();
 const { autoSave } = useAutoSave();
+const designerStore = useDesignerStore();
 const {
   printMode,
   silentPrint,
@@ -47,6 +51,8 @@ const {
 
 const activeTab = ref<'basic' | 'language' | 'local' | 'remote'>('basic');
 const selectedLang = ref<string>(locale.value as string);
+const selectedBrandKey = ref<string>(localStorage.getItem('print-designer-brand-key') || 'default');
+const customBrandHex = ref<string>(localStorage.getItem('print-designer-brand-custom-hex') || '#3b82f6');
 const localConnected = computed(() => localStatus.value === 'connected');
 const remoteConnected = computed(() => remoteStatus.value === 'connected');
 const localConnecting = computed(() => localStatus.value === 'connecting');
@@ -66,6 +72,165 @@ const connectionButtonClass = (status: 'connecting' | 'connected' | 'disconnecte
   if (status === 'connected') return 'bg-blue-600 hover:bg-blue-700 text-white border border-blue-600';
   return 'bg-transparent text-blue-600 border border-blue-600 hover:bg-blue-50';
 };
+
+const clamp = (value: number, min = 0, max = 255) => Math.min(Math.max(value, min), max);
+
+const rgbToHex = (r: number, g: number, b: number) => {
+  const toHex = (v: number) => clamp(Math.round(v)).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+};
+
+const mixRgb = (base: { r: number; g: number; b: number }, mix: { r: number; g: number; b: number }, ratio: number) => ({
+  r: base.r + (mix.r - base.r) * ratio,
+  g: base.g + (mix.g - base.g) * ratio,
+  b: base.b + (mix.b - base.b) * ratio
+});
+
+const buildScaleFromHex = (hex: string) => {
+  const parsed = parseColor(hex);
+  if (!parsed) return null;
+  const baseRgb = hsvToRgb(parsed.h, parsed.s, parsed.v);
+  const white = { r: 255, g: 255, b: 255 };
+  const black = { r: 0, g: 0, b: 0 };
+
+  const c50 = mixRgb(baseRgb, white, 0.92);
+  const c100 = mixRgb(baseRgb, white, 0.84);
+  const c200 = mixRgb(baseRgb, white, 0.68);
+  const c300 = mixRgb(baseRgb, white, 0.5);
+  const c400 = mixRgb(baseRgb, white, 0.32);
+  const c500 = mixRgb(baseRgb, white, 0.16);
+  const c700 = mixRgb(baseRgb, black, 0.12);
+  const c800 = mixRgb(baseRgb, black, 0.24);
+  const c900 = mixRgb(baseRgb, black, 0.36);
+  const c950 = mixRgb(baseRgb, black, 0.5);
+
+  return {
+    '--brand-50': rgbToHex(c50.r, c50.g, c50.b),
+    '--brand-100': rgbToHex(c100.r, c100.g, c100.b),
+    '--brand-200': rgbToHex(c200.r, c200.g, c200.b),
+    '--brand-300': rgbToHex(c300.r, c300.g, c300.b),
+    '--brand-400': rgbToHex(c400.r, c400.g, c400.b),
+    '--brand-500': rgbToHex(c500.r, c500.g, c500.b),
+    '--brand-600': rgbToHex(baseRgb.r, baseRgb.g, baseRgb.b),
+    '--brand-700': rgbToHex(c700.r, c700.g, c700.b),
+    '--brand-800': rgbToHex(c800.r, c800.g, c800.b),
+    '--brand-900': rgbToHex(c900.r, c900.g, c900.b),
+    '--brand-950': rgbToHex(c950.r, c950.g, c950.b)
+  };
+};
+
+const customBrandVars = computed(() => buildScaleFromHex(customBrandHex.value));
+
+const brandPresets = computed(() => [
+  {
+    key: 'default',
+    labelKey: 'settings.themePresetDefault',
+    colors: {
+      '--brand-50': '#eff6ff',
+      '--brand-100': '#dbeafe',
+      '--brand-200': '#bfdbfe',
+      '--brand-300': '#93c5fd',
+      '--brand-400': '#60a5fa',
+      '--brand-500': '#3b82f6',
+      '--brand-600': '#2563eb',
+      '--brand-700': '#1d4ed8',
+      '--brand-800': '#1e40af',
+      '--brand-900': '#1e3a8a',
+      '--brand-950': '#172554'
+    }
+  },
+  {
+    key: 'emerald',
+    labelKey: 'settings.themePresetEmerald',
+    colors: {
+      '--brand-50': '#ecfdf5',
+      '--brand-100': '#d1fae5',
+      '--brand-200': '#a7f3d0',
+      '--brand-300': '#6ee7b7',
+      '--brand-400': '#34d399',
+      '--brand-500': '#10b981',
+      '--brand-600': '#059669',
+      '--brand-700': '#047857',
+      '--brand-800': '#065f46',
+      '--brand-900': '#064e3b',
+      '--brand-950': '#022c22'
+    }
+  },
+  {
+    key: 'amber',
+    labelKey: 'settings.themePresetAmber',
+    colors: {
+      '--brand-50': '#fffbeb',
+      '--brand-100': '#fef3c7',
+      '--brand-200': '#fde68a',
+      '--brand-300': '#fcd34d',
+      '--brand-400': '#fbbf24',
+      '--brand-500': '#f59e0b',
+      '--brand-600': '#d97706',
+      '--brand-700': '#b45309',
+      '--brand-800': '#92400e',
+      '--brand-900': '#78350f',
+      '--brand-950': '#451a03'
+    }
+  },
+  {
+    key: 'rose',
+    labelKey: 'settings.themePresetRose',
+    colors: {
+      '--brand-50': '#fff1f2',
+      '--brand-100': '#ffe4e6',
+      '--brand-200': '#fecdd3',
+      '--brand-300': '#fda4af',
+      '--brand-400': '#fb7185',
+      '--brand-500': '#f43f5e',
+      '--brand-600': '#e11d48',
+      '--brand-700': '#be123c',
+      '--brand-800': '#9f1239',
+      '--brand-900': '#881337',
+      '--brand-950': '#4c0519'
+    }
+  },
+  {
+    key: 'custom',
+    labelKey: 'settings.themePresetCustom',
+    colors: customBrandVars.value
+  }
+]);
+
+const applyBrandVars = (vars: Record<string, string>) => {
+  const root = document.documentElement;
+  Object.entries(vars).forEach(([key, value]) => {
+    root.style.setProperty(key, value);
+  });
+  window.dispatchEvent(new CustomEvent('brand-theme-updated'));
+};
+
+const persistBrandVars = (vars: Record<string, string>) => {
+  localStorage.setItem('print-designer-brand-vars', JSON.stringify(vars));
+};
+
+const applyBrandPreset = (presetKey: string) => {
+  const preset = brandPresets.value.find(p => p.key === presetKey) || brandPresets.value[0];
+  if (!preset.colors) return;
+  applyBrandVars(preset.colors);
+  persistBrandVars(preset.colors);
+  localStorage.setItem('print-designer-brand-key', preset.key);
+};
+
+const loadStoredBrandVars = () => {
+  const stored = localStorage.getItem('print-designer-brand-vars');
+  if (!stored) return;
+  try {
+    const vars = JSON.parse(stored) as Record<string, string>;
+    if (vars && typeof vars === 'object') {
+      applyBrandVars(vars);
+    }
+  } catch {
+    // Ignore invalid storage
+  }
+};
+
+loadStoredBrandVars();
 
 const handleLocalConnection = async () => {
   if (localConnecting.value) return;
@@ -94,6 +259,22 @@ watch(selectedTheme, (val) => {
   setTheme(val);
 });
 
+watch(() => props.show, (val) => {
+  designerStore.setDisableGlobalShortcuts(val);
+});
+
+watch(customBrandHex, (val) => {
+  if (!val) return;
+  localStorage.setItem('print-designer-brand-custom-hex', val);
+  if (selectedBrandKey.value === 'custom') {
+    applyBrandPreset('custom');
+  }
+});
+
+watch(selectedBrandKey, (val) => {
+  applyBrandPreset(val);
+}, { immediate: true });
+
 watch([activeTab, remoteStatus], ([tab, status]) => {
   if (tab !== 'remote' || status !== 'connected') return;
   fetchRemoteClients();
@@ -102,6 +283,25 @@ watch([activeTab, remoteStatus], ([tab, status]) => {
 const close = () => {
   emit('update:show', false);
 };
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (!props.show) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    close();
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+  if (props.show) {
+    designerStore.setDisableGlobalShortcuts(false);
+  }
+});
 </script>
 
 <template>
@@ -185,6 +385,47 @@ const close = () => {
                   </label>
                 </div>
                 <p class="text-xs text-gray-500 mt-2">{{ t('settings.themeDesc') }}</p>
+              </div>
+
+              <div class="border-t border-gray-200 pt-4">
+                <div class="mb-2 font-medium text-gray-900">{{ t('settings.themeColor') }}</div>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="preset in brandPresets.filter(p => p.key !== 'custom')"
+                    :key="preset.key"
+                    type="button"
+                    class="flex items-center gap-2 px-3 py-2 border rounded text-xs transition-colors"
+                    :class="selectedBrandKey === preset.key ? 'border-blue-600 text-blue-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'"
+                    @click="selectedBrandKey = preset.key"
+                  >
+                    <span class="inline-block w-3.5 h-3.5 rounded-full" :style="{ backgroundColor: preset.colors['--brand-600'] }"></span>
+                    <span>{{ t(preset.labelKey) }}</span>
+                  </button>
+
+                  <ColorPicker
+                    :model-value="customBrandHex"
+                    @update:model-value="(val) => { if (val) { customBrandHex = val; selectedBrandKey = 'custom'; } }"
+                    :default-color="customBrandHex"
+                    :teleport-to-body="true"
+                  >
+                    <template #trigger="{ color, open }">
+                      <button
+                        type="button"
+                        class="flex items-center gap-2 px-3 py-2 border rounded text-xs transition-colors"
+                        :class="selectedBrandKey === 'custom' ? 'border-blue-600 text-blue-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'"
+                        @click="selectedBrandKey = 'custom'"
+                      >
+                        <span
+                          class="inline-block w-3.5 h-3.5 rounded-full border border-gray-200"
+                          :class="{ 'ring-2 ring-blue-500 ring-offset-1': open }"
+                          :style="{ backgroundColor: color || customBrandHex }"
+                        ></span>
+                        <span>{{ t('settings.themePresetCustom') }}</span>
+                      </button>
+                    </template>
+                  </ColorPicker>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">{{ t('settings.themeColorDesc') }}</p>
               </div>
 
               <div class="border-t border-gray-200 pt-4">

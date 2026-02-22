@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { reactive, watch, computed, ref } from 'vue';
+import { reactive, watch, computed, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import X from '~icons/material-symbols/close';
 import { usePrintSettings } from '@/composables/usePrintSettings';
 import type { PrintOptions, PrintMode, LocalPrinterCaps } from '@/composables/usePrintSettings';
+import { useDesignerStore } from '@/stores/designer';
 
 const props = defineProps<{
   show: boolean;
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const designerStore = useDesignerStore();
 const {
   localPrinters,
   remotePrinters,
@@ -54,6 +56,13 @@ watch(() => props.show, (val) => {
   Object.assign(form, JSON.parse(JSON.stringify(props.options)) as PrintOptions);
   selectedClientId.value = remoteSelectedClientId.value;
   loadPrinters();
+  designerStore.setDisableGlobalShortcuts(true);
+});
+
+watch(() => props.show, (val) => {
+  if (!val) {
+    designerStore.setDisableGlobalShortcuts(false);
+  }
 });
 
 watch(() => props.mode, () => {
@@ -186,6 +195,14 @@ const close = () => {
   emit('update:show', false);
 };
 
+const handleKeydown = (e: KeyboardEvent) => {
+  if (!props.show) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    close();
+  }
+};
+
 const confirm = () => {
   emit('confirm', JSON.parse(JSON.stringify(form)) as PrintOptions);
 };
@@ -194,6 +211,17 @@ const modeTitle = computed(() => {
   if (props.mode === 'local') return t('printDialog.titleLocal');
   if (props.mode === 'remote') return t('printDialog.titleRemote');
   return t('printDialog.title');
+});
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+  if (props.show) {
+    designerStore.setDisableGlobalShortcuts(false);
+  }
 });
 </script>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useDesignerStore } from '@/stores/designer';
 import { startCase } from 'lodash';
 import { formatShortcut } from '@/utils/os';
 import X from '~icons/material-symbols/close';
@@ -8,7 +9,7 @@ import KeyboardIcon from '~icons/material-symbols/keyboard';
 import InfoIcon from '~icons/material-symbols/info';
 import pkg from '../../../../package.json';
 
-defineProps<{
+const props = defineProps<{
   show: boolean
 }>();
 
@@ -17,12 +18,36 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const designerStore = useDesignerStore();
 
 const activeTab = ref<'shortcuts' | 'about'>('shortcuts');
 
 const close = () => {
   emit('update:show', false);
 };
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (!props.show) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    close();
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+});
+
+watch(() => props.show, (val) => {
+  designerStore.setDisableGlobalShortcuts(val);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+  if (props.show) {
+    designerStore.setDisableGlobalShortcuts(false);
+  }
+});
 
 const dependencies = Object.entries(pkg.dependencies).map(([name, version]) => ({
   name,

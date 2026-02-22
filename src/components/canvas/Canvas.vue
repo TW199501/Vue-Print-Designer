@@ -151,8 +151,8 @@ const selectionBoxStyle = computed(() => {
     top: `${y}px`,
     width: `${width}px`,
     height: `${height}px`,
-    border: '1px solid #3b82f6',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    border: '1px solid var(--brand-500)',
+    backgroundColor: 'var(--brand-100)',
     pointerEvents: 'none' as const,
     zIndex: 1000,
   };

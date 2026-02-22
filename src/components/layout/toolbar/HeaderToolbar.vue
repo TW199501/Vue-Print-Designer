@@ -613,7 +613,7 @@ onUnmounted(() => {
         <button 
           @click="handleSave" 
           :disabled="templateStore.isSaving"
-          class="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white rounded-l-md hover:bg-indigo-700 transition-colors text-sm border-r border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-l-md hover:bg-blue-700 transition-colors text-sm border-r border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Loading v-if="templateStore.isSaving" class="w-4 h-4 animate-spin" />
           <Save v-else class="w-4 h-4" />
@@ -621,7 +621,7 @@ onUnmounted(() => {
         </button>
         <button 
           @click="showExportMenu = !showExportMenu"
-          class="px-2 py-1.5 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700 transition-colors text-sm flex items-center"
+          class="px-2 py-1.5 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 transition-colors text-sm flex items-center"
         >
           <ChevronDown class="w-5 h-5" />
         </button>
