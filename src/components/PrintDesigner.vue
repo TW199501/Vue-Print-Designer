@@ -680,6 +680,12 @@ const rulerIndicators = computed(() => {
             :zoom="store.zoom"
             :content-offset-x="offsetX" 
             :content-offset-y="offsetY"
+            :canvas-background="store.canvasBackground"
+            :show-header-line="store.showHeaderLine"
+            :show-footer-line="store.showFooterLine"
+            :header-height="store.headerHeight"
+            :footer-height="store.footerHeight"
+            :watermark="store.watermark"
             @update:scroll="handleMinimapScroll"
           />
         </div>
