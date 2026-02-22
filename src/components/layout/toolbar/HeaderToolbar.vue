@@ -553,7 +553,7 @@ onUnmounted(() => {
         <Unlock v-if="isLocked" class="w-4 h-4 text-red-500" />
         <Lock v-else class="w-4 h-4" />
       </button>
-      <button @click="store.removeSelectedElements()" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed text-red-600" :title="t('common.delete') + ' (' + formatShortcut(['Del']) + ')'">
+      <button @click="store.removeSelectedElements()" :disabled="!store.selectedElementId || isLocked" class="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed" :title="t('common.delete') + ' (' + formatShortcut(['Del']) + ')'">
         <Trash2 class="w-4 h-4" />
       </button>
     </div>
