@@ -362,7 +362,7 @@ watch(() => store.canvasSize, (newSize) => {
       <div class="border-t border-gray-200 pt-3 mt-3">
         <button 
           @click="store.addPage(); showPaperSettings = false" 
-          class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-md transition-colors text-sm font-medium"
+          class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md transition-colors text-sm font-medium"
         >
           <Plus class="w-4 h-4" />
           <span>{{ t('editor.addNewPage') }}</span>
