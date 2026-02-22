@@ -307,11 +307,13 @@ const handlePrintConfirm = async (options: PrintOptions) => {
 };
 
 const handleExport = async () => {
-  await exportPdf();
+  const baseName = getExportBaseName();
+  await exportPdf(undefined, `${baseName}.pdf`);
 };
 
 const handleExportImages = async () => {
-  await exportImages();
+  const baseName = getExportBaseName();
+  await exportImages(undefined, baseName);
 };
 
 const handleSave = () => {
@@ -342,6 +344,17 @@ const handleSaveConfirm = (name: string) => {
     templateStore.saveCurrentTemplate(name);
   }
   showSaveNameModal.value = false;
+};
+
+const getExportBaseName = () => {
+  const current = templateStore.templates.find(t => t.id === templateStore.currentTemplateId);
+  const rawName = (current?.name || 'print-design').trim();
+  const safeName = rawName.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim() || 'print-design';
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${safeName}-${yyyy}${mm}${dd}`;
 };
 
 onMounted(() => {

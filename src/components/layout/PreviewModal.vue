@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { usePrint } from '@/utils/print';
+import { useTemplateStore } from '@/stores/templates';
 import { useDesignerStore } from '@/stores/designer';
 import Printer from '~icons/material-symbols/print';
 import FilePdf from '~icons/material-symbols/picture-as-pdf';
@@ -27,6 +28,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const store = useDesignerStore();
 const { exportPdf: exportPdfHtml, getPdfBlob, exportImages, getImageBlob } = usePrint();
+const templateStore = useTemplateStore();
 const previewContainer = ref<HTMLElement | null>(null);
 const wrapperRef = ref<HTMLElement | null>(null);
 const zoomPercent = ref(100);
@@ -114,15 +116,26 @@ const handlePrint = () => {
 const handlePdf = () => {
   if (previewContainer.value) {
     const pages = Array.from(previewContainer.value.querySelectorAll('.print-page')) as HTMLElement[];
-    exportPdfHtml(pages);
+    exportPdfHtml(pages, `${getExportBaseName()}.pdf`);
   }
 };
 
 const handleExportImages = async () => {
   if (previewContainer.value) {
     const pages = Array.from(previewContainer.value.querySelectorAll('.print-page')) as HTMLElement[];
-    await exportImages(pages);
+    await exportImages(pages, getExportBaseName());
   }
+};
+
+const getExportBaseName = () => {
+  const current = templateStore.templates.find(t => t.id === templateStore.currentTemplateId);
+  const rawName = (current?.name || 'print-design').trim();
+  const safeName = rawName.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim() || 'print-design';
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${safeName}-${yyyy}${mm}${dd}`;
 };
 
 const handleZoomIn = () => {

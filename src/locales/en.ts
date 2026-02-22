@@ -404,6 +404,8 @@ export default {
     themeDesc: 'Defaults to following system; you can force Light or Dark.',
     autoSave: 'Auto Save',
     autoSaveDesc: 'Automatically save changes (saved templates only).',
+    exportImageMerged: 'Export Image As Single',
+    exportImageMergedDesc: 'When off, export each page as a separate image inside a ZIP file.',
     languageDesc: 'Choose the interface language.',
     connectionDesc: 'Connection settings placeholder.',
     printMode: 'Print Mode',

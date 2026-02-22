@@ -60,6 +60,7 @@ export interface LocalPrinterCaps {
 interface PrintSettingsState {
   printMode: ReturnType<typeof ref<PrintMode>>;
   silentPrint: ReturnType<typeof ref<boolean>>;
+  exportImageMerged: ReturnType<typeof ref<boolean>>;
   localSettings: LocalConnectionSettings;
   remoteSettings: RemoteConnectionSettings;
   localStatus: ReturnType<typeof ref<ConnectionStatus>>;
@@ -94,6 +95,7 @@ const storageKeys = {
   printMode: 'print-designer-print-mode',
   preferredPrintMode: 'print-designer-preferred-print-mode',
   silentPrint: 'print-designer-silent-print',
+  exportImageMerged: 'print-designer-export-image-merged',
   localSettings: 'print-designer-local-settings',
   remoteSettings: 'print-designer-remote-settings',
   localPrintOptions: 'print-designer-local-print-options',
@@ -233,6 +235,7 @@ const createState = (): PrintSettingsState => {
   const storedPreferred = localStorage.getItem(storageKeys.preferredPrintMode) as PrintMode | null;
   const printMode = ref<PrintMode>(storedPreferred || (localStorage.getItem(storageKeys.printMode) as PrintMode) || 'browser');
   const silentPrint = ref(localStorage.getItem(storageKeys.silentPrint) === 'true');
+  const exportImageMerged = ref(localStorage.getItem(storageKeys.exportImageMerged) !== 'false');
 
   const localSettings = reactive(loadJson(storageKeys.localSettings, defaultLocalSettings));
   if (!localSettings.wsAddress) {
@@ -308,6 +311,10 @@ const createState = (): PrintSettingsState => {
 
   watch(silentPrint, (value) => {
     localStorage.setItem(storageKeys.silentPrint, String(value));
+  });
+
+  watch(exportImageMerged, (value) => {
+    localStorage.setItem(storageKeys.exportImageMerged, String(value));
   });
 
   watch(localSettings, (value) => {
@@ -776,6 +783,7 @@ const createState = (): PrintSettingsState => {
   return {
     printMode,
     silentPrint,
+    exportImageMerged,
     localSettings,
     remoteSettings,
     localStatus,

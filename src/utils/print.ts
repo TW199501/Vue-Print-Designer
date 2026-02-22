@@ -1,6 +1,7 @@
 import { nextTick } from 'vue';
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image-more';
+import JSZip from 'jszip';
 import { Canvg } from 'canvg';
 import cloneDeep from 'lodash/cloneDeep';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,7 +23,8 @@ export const usePrint = () => {
     remotePrintOptions,
     localWsUrl,
     remoteWsUrl,
-    remoteSelectedClientId
+    remoteSelectedClientId,
+    exportImageMerged
   } = usePrintSettings();
 
   const createRepeatedPages = (originalPages: Page[]): Page[] => {
@@ -1156,15 +1158,34 @@ export const usePrint = () => {
             
             if (pageImages.length === 0) return;
 
-            const finalImage = await stitchImages(pageImages);
-            
-            // Download single stitched image
-            const link = document.createElement('a');
-            link.href = finalImage;
-            link.download = `${filenamePrefix}.jpg`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            if (exportImageMerged.value) {
+              const finalImage = await stitchImages(pageImages);
+
+              // Download single stitched image
+              const link = document.createElement('a');
+              link.href = finalImage;
+              link.download = `${filenamePrefix}.jpg`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            } else {
+              const zip = new JSZip();
+              await Promise.all(pageImages.map(async (dataUrl, index) => {
+                const response = await fetch(dataUrl);
+                const blob = await response.blob();
+                zip.file(`${filenamePrefix}-${index + 1}.jpg`, blob);
+              }));
+
+              const zipBlob = await zip.generateAsync({ type: 'blob' });
+              const zipUrl = URL.createObjectURL(zipBlob);
+              const link = document.createElement('a');
+              link.href = zipUrl;
+              link.download = `${filenamePrefix}.zip`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(zipUrl);
+            }
             
         } finally {
             if (tempWrapper && tempWrapper.parentNode) {
