@@ -34,7 +34,7 @@ export const useTemplateStore = defineStore('templates', {
               data: t.data || {},
               updatedAt: t.updatedAt || Date.now()
             }))
-            .sort((a, b) => b.updatedAt - a.updatedAt);
+            .sort((a: Template, b: Template) => b.updatedAt - a.updatedAt);
           return;
         } catch (e) {
           console.error('Failed to load templates', e);
@@ -45,7 +45,7 @@ export const useTemplateStore = defineStore('templates', {
       if (stored) {
         try {
           this.templates = JSON.parse(stored);
-          this.templates.sort((a, b) => b.updatedAt - a.updatedAt);
+          this.templates.sort((a: Template, b: Template) => b.updatedAt - a.updatedAt);
         } catch (e) {
           console.error('Failed to parse templates', e);
           this.templates = [];
