@@ -153,4 +153,6 @@ npm run build:wc
 
 ## License
 
-MIT
+Apache-2.0
+
+品牌与 Logo 使用请遵循 [TRADEMARKS.md](TRADEMARKS.md)。如需移除或替换品牌标识，请参考 [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md)。
