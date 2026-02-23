@@ -3,7 +3,7 @@ import { reactive, watch, computed, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import X from '~icons/material-symbols/close';
 import { usePrintSettings } from '@/composables/usePrintSettings';
-import type { PrintOptions, PrintMode, LocalPrinterCaps } from '@/composables/usePrintSettings';
+import type { PrintOptions, PrintMode, LocalPrinterCaps, LocalPrinterInfo, RemotePrinterInfo } from '@/composables/usePrintSettings';
 import { useDesignerStore } from '@/stores/designer';
 
 const props = defineProps<{
@@ -54,7 +54,7 @@ const form = reactive<PrintOptions>({
 watch(() => props.show, (val) => {
   if (!val) return;
   Object.assign(form, JSON.parse(JSON.stringify(props.options)) as PrintOptions);
-  selectedClientId.value = remoteSelectedClientId.value;
+  selectedClientId.value = remoteSelectedClientId.value || '';
   loadPrinters();
   designerStore.setDisableGlobalShortcuts(true);
 });
@@ -71,8 +71,10 @@ watch(() => props.mode, () => {
 });
 
 const activePrinters = computed(() => {
-  return props.mode === 'remote' ? remotePrinters.value : localPrinters.value;
+  return (props.mode === 'remote' ? remotePrinters.value : localPrinters.value) || [];
 });
+
+const remoteClientsSafe = computed(() => remoteClients.value || []);
 
 const localCaps = computed<LocalPrinterCaps | undefined>(() => {
   if (props.mode !== 'local' || !form.printer) return undefined;
@@ -84,6 +86,17 @@ const paperSizeOptions = computed(() => {
   const caps = localCaps.value;
   const sizes = caps?.printerPaperNames?.length ? caps.printerPaperNames : caps?.paperSizes || [];
   return Array.from(new Set(sizes)).filter(Boolean);
+});
+
+const printerOptions = computed(() => {
+  return activePrinters.value.map((printer) => {
+    if (props.mode === 'local') {
+      const item = printer as LocalPrinterInfo;
+      return { key: item.name, label: item.name };
+    }
+    const item = printer as RemotePrinterInfo;
+    return { key: item.printer_name, label: item.printer_name };
+  });
 });
 
 const colorSupported = computed(() => {
@@ -98,7 +111,7 @@ const duplexSupported = computed(() => {
 
 const selectedRemotePrinter = computed(() => {
   if (props.mode !== 'remote') return undefined;
-  return remotePrinters.value.find(p => p.printer_name === form.printer);
+  return (remotePrinters.value || []).find(p => p.printer_name === form.printer);
 });
 
 const loadPrinters = async () => {
@@ -107,8 +120,8 @@ const loadPrinters = async () => {
   try {
     if (props.mode === 'remote') {
       await fetchRemoteClients();
-      if (!selectedClientId.value || !remoteClients.value.some(c => c.client_id === selectedClientId.value)) {
-        selectedClientId.value = remoteSelectedClientId.value;
+      if (!selectedClientId.value || !remoteClientsSafe.value.some(c => c.client_id === selectedClientId.value)) {
+        selectedClientId.value = remoteSelectedClientId.value || '';
       }
 
       if (selectedClientId.value) {
@@ -174,7 +187,7 @@ watch(() => form.printer, async (next, prev) => {
       form.paperSize = paperSizeOptions.value[0];
     }
   } else if (props.mode === 'remote') {
-    const info = remotePrinters.value.find(p => p.printer_name === next);
+    const info = (remotePrinters.value || []).find(p => p.printer_name === next);
     if (info?.paper_spec && !form.paperSize) {
       form.paperSize = info.paper_spec;
     }
@@ -249,7 +262,7 @@ onUnmounted(() => {
                 >
                   <option value="">{{ t('printDialog.remoteClientPlaceholder') }}</option>
                   <option
-                    v-for="client in remoteClients"
+                    v-for="client in remoteClientsSafe"
                     :key="client.client_id"
                     :value="client.client_id"
                     :disabled="client.online === false"
@@ -269,11 +282,11 @@ onUnmounted(() => {
                 >
                   <option value="">{{ t('printDialog.printerSelect') }}</option>
                   <option
-                    v-for="printer in activePrinters"
-                    :key="props.mode === 'local' ? (printer as any).name : (printer as any).printer_name"
-                    :value="props.mode === 'local' ? (printer as any).name : (printer as any).printer_name"
+                    v-for="printer in printerOptions"
+                    :key="printer.key"
+                    :value="printer.key"
                   >
-                    {{ props.mode === 'local' ? (printer as any).name : (printer as any).printer_name }}
+                    {{ printer.label }}
                   </option>
                 </select>
               </label>
@@ -283,7 +296,7 @@ onUnmounted(() => {
               </label>
             </div>
             <div v-if="printerLoadError" class="text-xs text-red-600">{{ printerLoadError }}</div>
-            <div v-else-if="props.mode === 'remote' && remoteClients.length === 0" class="text-xs text-gray-500">
+            <div v-else-if="props.mode === 'remote' && remoteClientsSafe.length === 0" class="text-xs text-gray-500">
               {{ t('printDialog.remoteClientEmpty') }}
             </div>
             <div v-else-if="activePrinters.length === 0" class="text-xs text-gray-500">{{ t('printDialog.printerEmpty') }}</div>

@@ -685,7 +685,7 @@ const rulerIndicators = computed(() => {
             :show-footer-line="store.showFooterLine"
             :header-height="store.headerHeight"
             :footer-height="store.footerHeight"
-            :watermark="store.watermark"
+            :watermark="store.watermark || null"
             @update:scroll="handleMinimapScroll"
           />
         </div>

@@ -76,7 +76,7 @@ export const usePrint = () => {
     const previousShowHeaderLine = mutateStore ? store.showHeaderLine : false;
     const previousShowFooterLine = mutateStore ? store.showFooterLine : false;
     const previousShowCornerMarkers = mutateStore ? store.showCornerMarkers : false;
-    const previousIsExporting = setExporting ? store.isExporting : false;
+    const previousIsExporting = setExporting ? Boolean(store.isExporting) : false;
     const previousHtmlOverflowX = document.documentElement.style.overflowX;
     const previousBodyOverflowX = document.body.style.overflowX;
 
@@ -186,6 +186,16 @@ export const usePrint = () => {
     testData: Record<string, any>;
   };
 
+  const fallbackWatermark: WatermarkSettings = {
+    enabled: false,
+    text: '',
+    angle: -30,
+    color: '#000000',
+    opacity: 0.1,
+    size: 24,
+    density: 160
+  };
+
   const buildPrintRenderPayload = (): PrintRenderPayload => ({
     pages: createRepeatedPages(store.pages),
     canvasSize: { ...store.canvasSize },
@@ -194,7 +204,7 @@ export const usePrint = () => {
     footerHeight: store.footerHeight,
     showHeaderLine: store.showHeaderLine,
     showFooterLine: store.showFooterLine,
-    watermark: cloneDeep(store.watermark),
+    watermark: cloneDeep(store.watermark || fallbackWatermark),
     unit: store.unit || 'mm',
     testData: cloneDeep(store.testData || {})
   });
@@ -539,6 +549,8 @@ export const usePrint = () => {
              // This handles sub-pixel rendering and spacing correctly
              const pageRect = page.getBoundingClientRect();
              const limitBottom = pageRect.top + pageHeight - footerHeight;
+             const wrapperRect = wrapper.getBoundingClientRect();
+             const wrapperTop = wrapperRect.top;
              
              // Check if table extends beyond limit
              const tableRect = table.getBoundingClientRect();

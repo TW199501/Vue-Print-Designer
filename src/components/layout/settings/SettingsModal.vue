@@ -54,10 +54,15 @@ const activeTab = ref<'basic' | 'language' | 'local' | 'remote'>('basic');
 const selectedLang = ref<string>(locale.value as string);
 const selectedBrandKey = ref<string>(localStorage.getItem('print-designer-brand-key') || 'default');
 const customBrandHex = ref<string>(localStorage.getItem('print-designer-brand-custom-hex') || '#3b82f6');
-const localConnected = computed(() => localStatus.value === 'connected');
-const remoteConnected = computed(() => remoteStatus.value === 'connected');
-const localConnecting = computed(() => localStatus.value === 'connecting');
-const remoteConnecting = computed(() => remoteStatus.value === 'connecting');
+const localStatusValue = computed(() => localStatus.value || 'disconnected');
+const remoteStatusValue = computed(() => remoteStatus.value || 'disconnected');
+const localRetryCountValue = computed(() => localRetryCount.value || 0);
+const remoteRetryCountValue = computed(() => remoteRetryCount.value || 0);
+const remoteClientsSafe = computed(() => remoteClients.value || []);
+const localConnected = computed(() => localStatusValue.value === 'connected');
+const remoteConnected = computed(() => remoteStatusValue.value === 'connected');
+const localConnecting = computed(() => localStatusValue.value === 'connecting');
+const remoteConnecting = computed(() => remoteStatusValue.value === 'connecting');
 const localHasConfig = computed(() => Boolean(localSettings.wsAddress));
 const remoteHasConfig = computed(() => Boolean(remoteSettings.apiBaseUrl && remoteSettings.username && remoteSettings.password));
 
@@ -120,7 +125,7 @@ const buildScaleFromHex = (hex: string) => {
   };
 };
 
-const customBrandVars = computed(() => buildScaleFromHex(customBrandHex.value));
+const customBrandVars = computed<Record<string, string>>(() => buildScaleFromHex(customBrandHex.value) || {});
 
 const brandPresets = computed(() => [
   {
@@ -551,16 +556,16 @@ onUnmounted(() => {
                 <div class="w-full pt-2">
                   <button
                     @click="handleLocalConnection"
-                    :disabled="localConnecting || localRetryCount > 0 || (!localConnected && !localHasConfig)"
+                    :disabled="localConnecting || localRetryCountValue > 0 || (!localConnected && !localHasConfig)"
                     class="w-full inline-flex items-center justify-center gap-2 px-3 h-9 rounded transition-colors text-sm shadow-sm disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
-                    :class="connectionButtonClass(localStatus)"
+                    :class="connectionButtonClass(localStatusValue)"
                   >
                     <LinkIcon v-if="localConnected" class="w-4 h-4" />
                     <LinkOffIcon v-else class="w-4 h-4" />
                     <span>{{ localButtonLabel }}</span>
                   </button>
-                  <div v-if="localRetryCount > 0 && !localConnected" class="mt-2 flex items-center justify-between text-xs text-gray-500">
-                    <span>{{ t('settings.retrying', { count: localRetryCount, max: 10 }) }}</span>
+                  <div v-if="localRetryCountValue > 0 && !localConnected" class="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>{{ t('settings.retrying', { count: localRetryCountValue, max: 10 }) }}</span>
                     <button @click="cancelLocalRetry" class="text-blue-600 hover:text-blue-700">
                       {{ t('settings.cancelRetry') }}
                     </button>
@@ -602,11 +607,11 @@ onUnmounted(() => {
                     <select
                       v-model="remoteSelectedClientId"
                       class="w-full px-3 py-2 border rounded bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                      :disabled="remoteStatus !== 'connected' || remoteClients.length === 0"
+                      :disabled="remoteStatusValue !== 'connected' || remoteClientsSafe.length === 0"
                     >
                       <option value="">{{ t('settings.remoteClientPlaceholder') }}</option>
                       <option
-                        v-for="client in remoteClients"
+                        v-for="client in remoteClientsSafe"
                         :key="client.client_id"
                         :value="client.client_id"
                         :disabled="client.online === false"
@@ -624,16 +629,16 @@ onUnmounted(() => {
                 <div class="w-full pt-2">
                   <button
                     @click="handleRemoteConnection"
-                    :disabled="remoteConnecting || remoteRetryCount > 0 || (!remoteConnected && !remoteHasConfig)"
+                    :disabled="remoteConnecting || remoteRetryCountValue > 0 || (!remoteConnected && !remoteHasConfig)"
                     class="w-full inline-flex items-center justify-center gap-2 px-3 h-9 rounded transition-colors text-sm shadow-sm disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
-                    :class="connectionButtonClass(remoteStatus)"
+                    :class="connectionButtonClass(remoteStatusValue)"
                   >
                     <LinkIcon v-if="remoteConnected" class="w-4 h-4" />
                     <LinkOffIcon v-else class="w-4 h-4" />
                     <span>{{ remoteButtonLabel }}</span>
                   </button>
-                  <div v-if="remoteRetryCount > 0 && !remoteConnected" class="mt-2 flex items-center justify-between text-xs text-gray-500">
-                    <span>{{ t('settings.retrying', { count: remoteRetryCount, max: 10 }) }}</span>
+                  <div v-if="remoteRetryCountValue > 0 && !remoteConnected" class="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>{{ t('settings.retrying', { count: remoteRetryCountValue, max: 10 }) }}</span>
                     <button @click="cancelRemoteRetry" class="text-blue-600 hover:text-blue-700">
                       {{ t('settings.cancelRetry') }}
                     </button>

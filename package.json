@@ -1,11 +1,27 @@
 {
   "name": "vue-print-designer",
-  "private": true,
+  "private": false,
   "version": "0.9.0",
   "type": "module",
+  "main": "dist/print-designer.umd.js",
+  "module": "dist/print-designer.es.js",
+  "types": "dist/web-component.d.ts",
+  "style": "dist/print-designer.css",
+  "exports": {
+    ".": {
+      "types": "./dist/web-component.d.ts",
+      "import": "./dist/print-designer.es.js",
+      "require": "./dist/print-designer.umd.js"
+    },
+    "./style.css": "./dist/print-designer.css"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "build:wc": "vue-tsc -b && vite build --config vite.config.wc.ts && node ./scripts/copy-wc-types.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

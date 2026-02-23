@@ -1,4 +1,4 @@
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch, type ComputedRef } from 'vue';
 
 export type PrintMode = 'browser' | 'local' | 'remote';
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -71,8 +71,8 @@ interface PrintSettingsState {
   remoteRetryCount: ReturnType<typeof ref<number>>;
   localPrintOptions: PrintOptions;
   remotePrintOptions: PrintOptions;
-  localWsUrl: ReturnType<typeof computed<string>>;
-  remoteWsUrl: ReturnType<typeof computed<string>>;
+  localWsUrl: ComputedRef<string>;
+  remoteWsUrl: ComputedRef<string>;
   remoteAuthToken: ReturnType<typeof ref<string>>;
   localPrinters: ReturnType<typeof ref<LocalPrinterInfo[]>>;
   remotePrinters: ReturnType<typeof ref<RemotePrinterInfo[]>>;
@@ -767,7 +767,7 @@ const createState = (): PrintSettingsState => {
   };
 
   const autoConnectIfReady = () => {
-    const hasLocalConfig = Boolean(localSettings.host && localSettings.port);
+    const hasLocalConfig = Boolean(localSettings.wsAddress);
     const hasRemoteConfig = Boolean(remoteSettings.apiBaseUrl && remoteSettings.username && remoteSettings.password);
 
     if (hasLocalConfig) {

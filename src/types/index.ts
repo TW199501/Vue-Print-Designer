@@ -7,6 +7,13 @@ export interface WatermarkSettings {
   size: number;
   density: number;
 }
+
+export interface BrandingSettings {
+  title?: string;
+  logoUrl?: string;
+  showTitle: boolean;
+  showLogo: boolean;
+}
 export interface Position {
   x: number;
   y: number;
@@ -152,6 +159,7 @@ export interface DesignerState {
   currentPageIndex: number;
   customElements: CustomElementTemplate[];
   testData: Record<string, any>;
+  branding: BrandingSettings;
   editingCustomElementId?: string | null;
   customElementEditSnapshot?: CustomElementEditSnapshot | null;
   selectedElementId: string | null;

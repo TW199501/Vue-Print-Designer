@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
 import cloneDeep from 'lodash/cloneDeep';
-import { type DesignerState, type PrintElement, type Page, type Guide, ElementType, type CustomElementTemplate, type WatermarkSettings, type CustomElementEditSnapshot } from '@/types';
+import { type DesignerState, type PrintElement, type Page, type Guide, ElementType, type CustomElementTemplate, type WatermarkSettings, type CustomElementEditSnapshot, type BrandingSettings } from '@/types';
 
 const defaultWatermark: WatermarkSettings = {
   enabled: false,
@@ -11,6 +11,13 @@ const defaultWatermark: WatermarkSettings = {
   opacity: 0.1,
   size: 24,
   density: 160
+};
+
+const defaultBranding: BrandingSettings = {
+  title: '',
+  logoUrl: '',
+  showTitle: true,
+  showLogo: true
 };
 
 const loadWatermark = (): WatermarkSettings => {
@@ -27,6 +34,7 @@ export const useDesignerStore = defineStore('designer', {
   state: (): DesignerState => ({
     unit: (localStorage.getItem('print-designer-unit') as 'mm' | 'px' | 'pt') || 'mm',
     watermark: loadWatermark(),
+    branding: { ...defaultBranding },
     pages: [{ id: uuidv4(), elements: [] }],
     currentPageIndex: 0,
     customElements: JSON.parse(localStorage.getItem('print-designer-custom-elements') || '[]'),
@@ -64,6 +72,13 @@ export const useDesignerStore = defineStore('designer', {
     tableSelection: null,
   }),
   actions: {
+    setBranding(update: Partial<BrandingSettings>) {
+      if (!update || typeof update !== 'object') return;
+      const next = { ...this.branding, ...update };
+      if (update.showTitle !== undefined) next.showTitle = Boolean(update.showTitle);
+      if (update.showLogo !== undefined) next.showLogo = Boolean(update.showLogo);
+      this.branding = next;
+    },
     setWatermark(update: Partial<WatermarkSettings>) {
       this.watermark = { ...(this.watermark || defaultWatermark), ...update };
       localStorage.setItem('print-designer-watermark', JSON.stringify(this.watermark));

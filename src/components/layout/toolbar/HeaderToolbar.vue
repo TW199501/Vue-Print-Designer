@@ -60,6 +60,7 @@ const { t } = useI18n();
 const store = useDesignerStore();
 const templateStore = useTemplateStore();
 const { printMode, silentPrint, localPrintOptions, remotePrintOptions } = usePrintSettings();
+const printModeValue = computed(() => printMode.value || 'browser');
 
 const showJsonModal = ref(false);
 const jsonContent = ref('');
@@ -289,7 +290,7 @@ const handlePrint = async () => {
     showPrintDialog.value = true;
     return;
   }
-  await print(pages, { mode: printMode.value });
+  await print(pages, { mode: printModeValue.value });
 };
 
 const handlePrintConfirm = async (options: PrintOptions) => {
@@ -303,7 +304,7 @@ const handlePrintConfirm = async (options: PrintOptions) => {
   const content = pendingPrintContent.value || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
   pendingPrintContent.value = null;
   showPrintDialog.value = false;
-  await print(content, { mode: printMode.value, options });
+  await print(content, { mode: printModeValue.value, options });
 };
 
 const handleExport = async () => {
@@ -698,7 +699,7 @@ onUnmounted(() => {
 
   <PrintDialog
     v-model:show="showPrintDialog"
-    :mode="printMode"
+    :mode="printModeValue"
     :options="activePrintOptions"
     @confirm="handlePrintConfirm"
   />
