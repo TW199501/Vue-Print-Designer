@@ -155,7 +155,11 @@ const projectName = startCase(pkg.name);
             <!-- About Tab -->
             <div v-if="activeTab === 'about'" class="space-y-6">
               <div class="text-center mb-8">
-                <div class="text-4xl mb-2">🖨️</div>
+                <img
+                  src="/src/assets/logo.png"
+                  alt="Vue Print Designer"
+                  class="w-12 h-12 mx-auto mb-2"
+                />
                 <h2 class="text-xl font-bold text-gray-800">{{ projectName }}</h2>
                 <p class="text-gray-500 mt-1">{{ t('help.version') }} {{ version }}</p>
               </div>
