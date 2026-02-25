@@ -76,7 +76,7 @@ npm run build
 详细参数、CRUD 与 JSON 示例请看： [docs/zh/guide/web-components-guide.md](docs/zh/guide/web-components-guide.md)
 
 ```bash
-npm install @your-scope/print-designer
+npm i vue-print-designer
 ```
 
 ### 1) 使用组件（Vue 3 / Vite）

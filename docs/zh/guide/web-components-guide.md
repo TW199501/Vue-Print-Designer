@@ -14,7 +14,7 @@
 安装：
 
 ```bash
-npm install @your-scope/print-designer
+npm i vue-print-designer
 ```
 
 在入口文件中引入：

@@ -14,7 +14,7 @@
 Install:
 
 ```bash
-npm install @your-scope/print-designer
+npm i vue-print-designer
 ```
 
 Import in your entry file:

@@ -78,7 +78,7 @@ Note: Web Components **supports Vue 2** as a custom element, no Vue 2 component 
 Parameters, CRUD, and JSON examples: [docs/en/guide/web-components-guide.md](docs/en/guide/web-components-guide.md)
 
 ```bash
-npm install @your-scope/print-designer
+npm i vue-print-designer
 ```
 
 ### 1) Use the component
