@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./src/assets/logo.png" alt="Vue Print Designer" width="96" height="96" />
+    <img src="https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/src/assets/logo.png" alt="Vue Print Designer" width="96" height="96" />
 </p>
 
 <h1 align="center">Vue Print Designer</h1>
@@ -14,9 +14,9 @@ Vue Print Designer is a visual print designer for business forms, labels, receip
 
 |  |  |
 | --- | --- |
-| **Designer main view and canvas**<br>![Designer main view](docs/images/1.png) | **Print preview**<br>![Print preview](docs/images/2.png) |
-| **Print parameter settings**<br>![Print parameters](docs/images/3.png) | **System settings and preferences**<br>![System settings](docs/images/4.png) |
-| **Shortcut reference**<br>![Shortcuts](docs/images/5.png) | **Advanced table editing**<br>![Advanced table](docs/images/6.png) |
+| **Designer main view and canvas**<br>![Designer main view](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/1.png) | **Print preview**<br>![Print preview](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/2.png) |
+| **Print parameter settings**<br>![Print parameters](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/3.png) | **System settings and preferences**<br>![System settings](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/4.png) |
+| **Shortcut reference**<br>![Shortcuts](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/5.png) | **Advanced table editing**<br>![Advanced table](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/6.png) |
 
 ## What Problems We Solve
 

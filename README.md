@@ -1,7 +1,7 @@
 
 
 <p align="center">
-    <img src="./src/assets/logo.png" alt="Vue Print Designer" width="96" height="96" />
+    <img src="https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/src/assets/logo.png" alt="Vue Print Designer" width="96" height="96" />
 </p>
 
 <h1 align="center">Vue Print Designer</h1>
@@ -16,9 +16,9 @@ Vue Print Designer 是一款可视化打印设计器，面向业务表单、标�
 
 |  |  |
 | --- | --- |
-| **设计器主界面与画布视图**<br>![设计器主界面](docs/images/1.png) | **打印预览**<br>![打印预览](docs/images/2.png) |
-| **打印参数配置**<br>![打印参数](docs/images/3.png) | **系统设置与偏好**<br>![系统设置](docs/images/4.png) |
-| **快捷键说明**<br>![快捷键](docs/images/5.png) | **高级表格编辑**<br>![高级表格](docs/images/6.png) |
+| **设计器主界面与画布视图**<br>![设计器主界面](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/1.png) | **打印预览**<br>![打印预览](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/2.png) |
+| **打印参数配置**<br>![打印参数](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/3.png) | **系统设置与偏好**<br>![系统设置](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/4.png) |
+| **快捷键说明**<br>![快捷键](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/5.png) | **高级表格编辑**<br>![高级表格](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/6.png) |
 
 ## 我们解决了什么问题
 
