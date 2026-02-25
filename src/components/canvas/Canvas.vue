@@ -630,7 +630,7 @@ const getGlobalElements = () => {
           <div 
             class="absolute right-0 -top-4 text-xs bg-white/80 px-1 pointer-events-none"
             :class="index === 0 ? 'text-red-400' : 'text-gray-400'"
-          >Header</div>
+          >{{ t('canvas.headerLabel') }}</div>
         </div>
       </template>
 
@@ -657,7 +657,7 @@ const getGlobalElements = () => {
           <div 
             class="absolute right-0 -bottom-4 text-xs bg-white/80 px-1 pointer-events-none"
             :class="index === 0 ? 'text-red-400' : 'text-gray-400'"
-          >Footer</div>
+          >{{ t('canvas.footerLabel') }}</div>
         </div>
       </template>
 

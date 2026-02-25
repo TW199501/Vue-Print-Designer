@@ -113,6 +113,8 @@ export default {
     pastePage: '粘贴页',
     deletePage: '删除页',
     newText: '新文本',
+    headerLabel: '页眉',
+    footerLabel: '页脚',
     defaultTableHeaders: {
       id: 'ID',
       name: '名称',
