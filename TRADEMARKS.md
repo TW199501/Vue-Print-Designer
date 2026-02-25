@@ -15,16 +15,16 @@ This project is open source under the Apache-2.0 license. The project name, logo
 
 - Remove or alter the logo, project name, or branding.
 - Remove or alter copyright or attribution notices.
+- Remove, bypass, or obscure the commercial license requirement or notice.
 - Outside of this project, you must not use the logo or project name in marketing, product names, or branding that suggests official sponsorship, approval, partnership, or affiliation.
 - 删除或修改 Logo、项目名称或品牌标识。
 - 删除或修改版权与署名信息。
+- 不得移除、规避或隐藏商业授权要求或相关声明。
 - 在本项目之外，不得将 Logo 或项目名称用于营销、产品命名或品牌标识，且不得暗示官方赞助、认可、合作或隶属关系。
 
 说明 / Clarification:
 
-- Keeping the original logo/name for attribution is allowed.
 - Using the logo/name outside this project to market your product as officially endorsed or affiliated is not allowed.
-- 保留原始 Logo/名称用于署名或指代本项目是允许的。
 - 在本项目之外将 Logo/名称用于营销并暗示官方背书或合作是不允许的。
 
 ## Commercial branding changes / 商业改动
