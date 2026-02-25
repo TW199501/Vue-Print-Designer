@@ -15,6 +15,7 @@
     --brand-800: #1e40af;
     --brand-900: #1e3a8a;
     --brand-950: #172554;
+    --brand-500-alpha-10: rgb(59 130 246 / 0.1);
   }
   input[type='radio'] {
     accent-color: var(--brand-600);
@@ -27,6 +28,39 @@
   }
   .theme-hover-border:hover {
     border-color: var(--brand-500);
+  }
+  .theme-text {
+    color: var(--brand-500);
+  }
+  .theme-text-hover:hover {
+    color: var(--brand-700);
+  }
+  .theme-text-strong {
+    color: var(--brand-700);
+  }
+  .theme-border {
+    border-color: var(--brand-500);
+  }
+  .theme-border-strong {
+    border-color: var(--brand-600);
+  }
+  .theme-border-soft {
+    border-color: var(--brand-400);
+  }
+  .theme-border-hover {
+    border-color: var(--brand-500);
+  }
+  .group:hover .theme-border-hover {
+    border-color: var(--brand-400);
+  }
+  .theme-bg {
+    background-color: var(--brand-500);
+  }
+  .theme-bg-strong {
+    background-color: var(--brand-600);
+  }
+  .theme-bg-soft {
+    background-color: rgba(0, 0, 0, 0.7);
   }
   .exporting .marker {
     display: none !important;

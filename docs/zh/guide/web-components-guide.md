@@ -14,15 +14,15 @@
 安装：
 
 ```bash
-npm install @your-scope/print-designer
+npm i vue-print-designer
 ```
 
 在入口文件中引入：
 
 ```ts
 // main.ts
-import '@your-scope/print-designer'
-import '@your-scope/print-designer/style.css'
+import 'vue-print-designer'
+import 'vue-print-designer/style.css'
 ```
 
 使用自定义元素：
@@ -259,7 +259,7 @@ const vars = el.getVariables()
 
 ```ts
 const data = el.getTemplateData()
-el.loadTemplateData(data)
+el.loadTemplateData({ id: 'tpl_1', name: 'A4 模板', data })
 ```
 
 ### 9) 模板 CRUD
@@ -401,7 +401,7 @@ el.addEventListener('error', (e) => {
 
 ```ts
 const el = document.querySelector('print-designer') as any
-el.loadTemplateData(/* API 返回 */)
+el.loadTemplateData({ id: 'tpl_1', name: 'A4 模板', data: /* API 返回 */ })
 el.setVariables({ orderNo: 'A001' }, { merge: true })
 ```
 
@@ -525,6 +525,8 @@ const pdfBlob = await el.export({ type: 'pdfBlob' })
 
 ```json
 {
+  "id": "tpl_1",
+  "name": "A4 模板",
   "pages": [
     {
       "id": "page_1",

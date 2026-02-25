@@ -152,7 +152,7 @@ const selectionBoxStyle = computed(() => {
     width: `${width}px`,
     height: `${height}px`,
     border: '1px solid var(--brand-500)',
-    backgroundColor: 'var(--brand-100)',
+    backgroundColor: 'var(--brand-500-alpha-10)',
     pointerEvents: 'none' as const,
     zIndex: 1000,
   };
@@ -630,7 +630,7 @@ const getGlobalElements = () => {
           <div 
             class="absolute right-0 -top-4 text-xs bg-white/80 px-1 pointer-events-none"
             :class="index === 0 ? 'text-red-400' : 'text-gray-400'"
-          >Header</div>
+          >{{ t('canvas.headerLabel') }}</div>
         </div>
       </template>
 
@@ -657,7 +657,7 @@ const getGlobalElements = () => {
           <div 
             class="absolute right-0 -bottom-4 text-xs bg-white/80 px-1 pointer-events-none"
             :class="index === 0 ? 'text-red-400' : 'text-gray-400'"
-          >Footer</div>
+          >{{ t('canvas.footerLabel') }}</div>
         </div>
       </template>
 

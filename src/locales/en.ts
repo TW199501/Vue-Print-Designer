@@ -113,6 +113,8 @@ export default {
     pastePage: 'Paste Page',
     deletePage: 'Delete Page',
     newText: 'New Text',
+    headerLabel: 'Header',
+    footerLabel: 'Footer',
     defaultTableHeaders: {
       id: 'ID',
       name: 'Name',
