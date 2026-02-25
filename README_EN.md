@@ -5,10 +5,12 @@
 <h1 align="center">Vue Print Designer</h1>
 
 <p align="center">
-    <a href="./README.md">中文</a> | English
+    <a href="https://github.com/0ldFive/Vue-Print-Designer/blob/master/README.md">中文</a> | English
 </p>
 
 Vue Print Designer is a visual print designer for business forms, labels, receipts, and waybills. It supports templating and variables, provides silent printing and cloud printing, and works with multiple export/print pipelines.
+
+<h2>LIVE DEMO: <a href="https://0ldfive.github.io/Vue-Print-Designer/">https://0ldfive.github.io/Vue-Print-Designer/</a></h2>
 
 ## UI Preview
 
@@ -96,13 +98,13 @@ Recommended integration points:
 - Custom elements CRUD: `customElements` in `useDesignerStore`
 - Variables and template data: instance methods `setVariables` / `loadTemplateData`
 
-Custom element extension guide: [docs/en/guide/custom-element.md](docs/en/guide/custom-element.md)
+Custom element extension guide: [docs/en/guide/custom-element.md](https://github.com/0ldFive/Vue-Print-Designer/blob/master/docs/en/guide/custom-element.md)
 
 ### Option B: npm Package (Web Components)
 
 Works with any stack (Vue/React/Angular/Vanilla). Web Components **supports Vue 2** as a custom element, no Vue 2 component adapter required.
 
-Parameters, CRUD, and JSON examples: [docs/en/guide/web-components-guide.md](docs/en/guide/web-components-guide.md)
+Parameters, CRUD, and JSON examples: [docs/en/guide/web-components-guide.md](https://github.com/0ldFive/Vue-Print-Designer/blob/master/docs/en/guide/web-components-guide.md)
 
 ```bash
 npm i vue-print-designer
@@ -209,4 +211,4 @@ Built-in Chinese (zh) and English (en). The default follows browser language and
 
 Apache-2.0
 
-Please follow [TRADEMARKS.md](TRADEMARKS.md) for brand and logo usage. For removing or replacing branding, see [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md).
+Please follow [TRADEMARKS.md](https://github.com/0ldFive/Vue-Print-Designer/blob/master/TRADEMARKS.md) for brand and logo usage. For removing or replacing branding, see [COMMERCIAL_LICENSE.md](https://github.com/0ldFive/Vue-Print-Designer/blob/master/COMMERCIAL_LICENSE.md).

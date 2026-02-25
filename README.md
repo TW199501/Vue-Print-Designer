@@ -7,10 +7,12 @@
 <h1 align="center">Vue Print Designer</h1>
 
 <p align="center">
-    中文 | <a href="./README_EN.md">English</a>
+    中文 | <a href="https://github.com/0ldFive/Vue-Print-Designer/blob/master/README_EN.md">English</a>
 </p>
 
 Vue Print Designer 是一款可视化打印设计器，面向业务表单、标签、票据、快递单等场景，支持模板化、变量化，并提供静默打印与云打印能力，同时兼容多种导出/打印方式。
+
+<h2>在线演示: <a href="https://0ldfive.github.io/Vue-Print-Designer/">https://0ldfive.github.io/Vue-Print-Designer/</a></h2>
 
 ## 界面预览
 
@@ -98,13 +100,13 @@ npm run build:wc
 - 自定义元素 CRUD：`useDesignerStore` 中的 `customElements`
 - 变量与模板数据：组件实例方法 `setVariables` / `loadTemplateData`
 
-自定义元素扩展请查看：[自定义元素扩展指南](docs/zh/guide/custom-element.md)
+自定义元素扩展请查看：[自定义元素扩展指南](https://github.com/0ldFive/Vue-Print-Designer/blob/master/docs/zh/guide/custom-element.md)
 
 ### 方式二：npm 组件（Web Components）
 
 适合任何技术栈（Vue/React/Angular/原生）。Web Components 方式**支持 Vue 2**（作为自定义元素使用），无需 Vue 2 组件适配。
 
-详细参数、CRUD 与 JSON 示例请查看：[Web Components API 用户手册](docs/zh/guide/web-components-guide.md)
+详细参数、CRUD 与 JSON 示例请查看：[Web Components API 用户手册](https://github.com/0ldFive/Vue-Print-Designer/blob/master/docs/zh/guide/web-components-guide.md)
 
 ```bash
 npm i vue-print-designer
@@ -212,4 +214,4 @@ src/
 
 Apache-2.0
 
-品牌与 Logo 使用请遵循 [TRADEMARKS.md](TRADEMARKS.md)。如需移除或替换品牌标识，请参考 [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md)。
+品牌与 Logo 使用请遵循 [TRADEMARKS.md](https://github.com/0ldFive/Vue-Print-Designer/blob/master/TRADEMARKS.md)。如需移除或替换品牌标识，请参考 [COMMERCIAL_LICENSE.md](https://github.com/0ldFive/Vue-Print-Designer/blob/master/COMMERCIAL_LICENSE.md)。
