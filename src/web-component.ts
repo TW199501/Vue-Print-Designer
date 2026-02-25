@@ -16,7 +16,7 @@ import { useDesignerStore } from './stores/designer';
 import { useTemplateStore } from './stores/templates';
 import cloneDeep from 'lodash/cloneDeep';
 import { v4 as uuidv4 } from 'uuid';
-import { setCrudConfig, setCrudMode, type CrudMode, type CrudEndpoints } from './utils/crudConfig';
+import { setCrudConfig, setCrudMode, getCrudConfig, buildEndpoint, type CrudMode, type CrudEndpoints } from './utils/crudConfig';
 
 export type DesignerExportRequest = {
   type: 'pdf' | 'images' | 'pdfBlob' | 'imageBlob';
@@ -334,9 +334,10 @@ class PrintDesignerElement extends HTMLElement {
     return template ? cloneDeep(template) : null;
   }
 
-  upsertTemplate(template: { id?: string; name: string; data?: any; updatedAt?: number }, options: { setCurrent?: boolean } = {}) {
+  async upsertTemplate(template: { id?: string; name: string; data?: any; updatedAt?: number }, options: { setCurrent?: boolean } = {}) {
     if (!this.templateStore) return null;
     if (!template || typeof template.name !== 'string') return null;
+    const { mode, endpoints, headers, fetcher } = getCrudConfig();
     const id = template.id || uuidv4();
     const index = this.templateStore.templates.findIndex((t) => t.id === id);
     const next = {
@@ -353,8 +354,33 @@ class PrintDesignerElement extends HTMLElement {
     if (options.setCurrent) {
       this.templateStore.currentTemplateId = id;
     }
+    if (mode === 'remote') {
+      try {
+        const url = buildEndpoint(endpoints.templates?.upsert || '');
+        const res = await (fetcher || fetch)(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(next)
+        });
+        const result = await res.json();
+        const remoteId = result?.id || next.id;
+        if (remoteId !== next.id) {
+          const targetIndex = this.templateStore.templates.findIndex((t) => t.id === next.id);
+          const updated = { ...next, id: remoteId };
+          if (targetIndex >= 0) this.templateStore.templates[targetIndex] = updated;
+          else this.templateStore.templates.unshift(updated);
+          if (this.templateStore.currentTemplateId === next.id) {
+            this.templateStore.currentTemplateId = remoteId;
+          }
+        }
+        return remoteId;
+      } catch (e) {
+        console.error('Failed to upsert template', e);
+        return next.id;
+      }
+    }
     this.templateStore.saveToLocalStorage();
-    return id;
+    return next.id;
   }
 
   setTemplates(templates: Array<{ id: string; name: string; data?: any; updatedAt?: number }>, options: { currentTemplateId?: string } = {}) {
@@ -394,9 +420,10 @@ class PrintDesignerElement extends HTMLElement {
     return this.designerStore.customElements.map((el) => ({ id: el.id, name: el.name }));
   }
 
-  upsertCustomElement(customElement: { id?: string; name: string; element: any }) {
+  async upsertCustomElement(customElement: { id?: string; name: string; element: any }) {
     if (!this.designerStore) return null;
     if (!customElement || typeof customElement.name !== 'string' || !customElement.element) return null;
+    const { mode, endpoints, headers, fetcher } = getCrudConfig();
     const id = customElement.id || uuidv4();
     const index = this.designerStore.customElements.findIndex((el) => el.id === id);
     const next = { id, name: customElement.name, element: cloneDeep(customElement.element) };
@@ -405,8 +432,30 @@ class PrintDesignerElement extends HTMLElement {
     } else {
       this.designerStore.customElements.push(next);
     }
+    if (mode === 'remote') {
+      try {
+        const url = buildEndpoint(endpoints.customElements?.upsert || '');
+        const res = await (fetcher || fetch)(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(next)
+        });
+        const result = await res.json();
+        const remoteId = result?.id || next.id;
+        if (remoteId !== next.id) {
+          const targetIndex = this.designerStore.customElements.findIndex((el) => el.id === next.id);
+          const updated = { ...next, id: remoteId };
+          if (targetIndex >= 0) this.designerStore.customElements.splice(targetIndex, 1, updated);
+          else this.designerStore.customElements.push(updated);
+        }
+        return remoteId;
+      } catch (e) {
+        console.error('Failed to upsert custom element', e);
+        return next.id;
+      }
+    }
     this.designerStore.saveCustomElements();
-    return id;
+    return next.id;
   }
 
   setCustomElements(customElements: Array<{ id: string; name: string; element: any }>) {

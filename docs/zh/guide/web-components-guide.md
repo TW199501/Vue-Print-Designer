@@ -268,7 +268,7 @@ el.loadTemplateData(data)
 const list = el.getTemplates({ includeData: false })
 const detail = el.getTemplate('template-id')
 
-const id = el.upsertTemplate({ name: 'A4 模板', data: { pages: [] } }, { setCurrent: true })
+const id = await el.upsertTemplate({ name: 'A4 模板', data: { pages: [] } }, { setCurrent: true })
 el.setTemplates([{ id: 't1', name: 'T1', data: {} }])
 el.deleteTemplate(id)
 el.loadTemplate(id)
@@ -286,7 +286,7 @@ el.loadTemplate(id)
 
 ```ts
 const list = el.getCustomElements({ includeElement: false })
-const id = el.upsertCustomElement({ name: 'Barcode', element: { /* element data */ } })
+const id = await el.upsertCustomElement({ name: 'Barcode', element: { /* element data */ } })
 
 el.setCustomElements([{ id: 'c1', name: 'C1', element: { /* element data */ } }])
 el.deleteCustomElement(id)
@@ -444,7 +444,7 @@ const pdfBlob = await el.export({ type: 'pdfBlob' })
 }
 ```
 
-**3) 保存模板**
+**3) 保存模板（新增/编辑）**
 
 `POST /api/print/templates`
 
@@ -458,7 +458,17 @@ const pdfBlob = await el.export({ type: 'pdfBlob' })
 }
 ```
 
-**4) 获取自定义元素列表**
+**4) 删除模板**
+
+`DELETE /api/print/templates/{id}`
+
+返回示例：
+
+```json
+{ "success": true }
+```
+
+**5) 获取自定义元素列表**
 
 `GET /api/print/custom-elements`
 
@@ -470,7 +480,22 @@ const pdfBlob = await el.export({ type: 'pdfBlob' })
 ]
 ```
 
-**5) 保存自定义元素**
+**6) 获取自定义元素详情**
+
+`GET /api/print/custom-elements/{id}`
+
+返回示例：
+
+```json
+{
+  "id": "ce_1",
+  "name": "条码元素",
+  "element": { "type": "barcode", "x": 20, "y": 20, "width": 200, "height": 60, "style": { "fontSize": 12 } },
+  "updatedAt": 1700000000000
+}
+```
+
+**7) 保存自定义元素（新增/编辑）**
 
 `POST /api/print/custom-elements`
 
@@ -482,6 +507,16 @@ const pdfBlob = await el.export({ type: 'pdfBlob' })
   "name": "条码元素",
   "element": { "type": "barcode", "x": 20, "y": 20, "width": 200, "height": 60, "style": { "fontSize": 12 } }
 }
+```
+
+**8) 删除自定义元素**
+
+`DELETE /api/print/custom-elements/{id}`
+
+返回示例：
+
+```json
+{ "success": true }
 ```
 
 ## 模板与自定义元素 JSON 示例

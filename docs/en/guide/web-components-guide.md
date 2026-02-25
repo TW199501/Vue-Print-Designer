@@ -268,7 +268,7 @@ el.loadTemplateData(data)
 const list = el.getTemplates({ includeData: false })
 const detail = el.getTemplate('template-id')
 
-const id = el.upsertTemplate({ name: 'A4 Template', data: { pages: [] } }, { setCurrent: true })
+const id = await el.upsertTemplate({ name: 'A4 Template', data: { pages: [] } }, { setCurrent: true })
 el.setTemplates([{ id: 't1', name: 'T1', data: {} }])
 el.deleteTemplate(id)
 el.loadTemplate(id)
@@ -286,7 +286,7 @@ Parameters:
 
 ```ts
 const list = el.getCustomElements({ includeElement: false })
-const id = el.upsertCustomElement({ name: 'Barcode', element: { /* element data */ } })
+const id = await el.upsertCustomElement({ name: 'Barcode', element: { /* element data */ } })
 
 el.setCustomElements([{ id: 'c1', name: 'C1', element: { /* element data */ } }])
 el.deleteCustomElement(id)
@@ -440,7 +440,7 @@ Response:
 }
 ```
 
-**3) Save template**
+**3) Save template (create/update)**
 
 `POST /api/print/templates`
 
@@ -454,7 +454,17 @@ Request:
 }
 ```
 
-**4) List custom elements**
+**4) Delete template**
+
+`DELETE /api/print/templates/{id}`
+
+Response:
+
+```json
+{ "success": true }
+```
+
+**5) List custom elements**
 
 `GET /api/print/custom-elements`
 
@@ -466,7 +476,22 @@ Response:
 ]
 ```
 
-**5) Save custom element**
+**6) Get custom element**
+
+`GET /api/print/custom-elements/{id}`
+
+Response:
+
+```json
+{
+  "id": "ce_1",
+  "name": "Barcode Element",
+  "element": { "type": "barcode", "x": 20, "y": 20, "width": 200, "height": 60, "style": { "fontSize": 12 } },
+  "updatedAt": 1700000000000
+}
+```
+
+**7) Save custom element (create/update)**
 
 `POST /api/print/custom-elements`
 
@@ -478,6 +503,16 @@ Request:
   "name": "Barcode Element",
   "element": { "type": "barcode", "x": 20, "y": 20, "width": 200, "height": 60, "style": { "fontSize": 12 } }
 }
+```
+
+**8) Delete custom element**
+
+`DELETE /api/print/custom-elements/{id}`
+
+Response:
+
+```json
+{ "success": true }
 ```
 
 ## Template and Custom Element JSON Examples
