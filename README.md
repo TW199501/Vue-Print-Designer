@@ -12,7 +12,7 @@
 
 Vue Print Designer 是一款可视化打印设计器，面向业务表单、标签、票据、快递单等场景，支持模板化、变量化，并提供静默打印与云打印能力，同时兼容多种导出/打印方式。
 
-<h2>在线演示: <a href="https://0ldfive.github.io/Vue-Print-Designer/">https://0ldfive.github.io/Vue-Print-Designer/</a></h2>
+<h2>在线演示: <a href="https://0ldfive.github.io/Vue-Print-Designer/" target="_blank" rel="noopener noreferrer">https://0ldfive.github.io/Vue-Print-Designer/</a></h2>
 
 ## 界面预览
 

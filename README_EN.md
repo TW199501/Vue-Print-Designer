@@ -10,7 +10,7 @@
 
 Vue Print Designer is a visual print designer for business forms, labels, receipts, and waybills. It supports templating and variables, provides silent printing and cloud printing, and works with multiple export/print pipelines.
 
-<h2>LIVE DEMO: <a href="https://0ldfive.github.io/Vue-Print-Designer/">https://0ldfive.github.io/Vue-Print-Designer/</a></h2>
+<h2>LIVE DEMO: <a href="https://0ldfive.github.io/Vue-Print-Designer/" target="_blank" rel="noopener noreferrer">https://0ldfive.github.io/Vue-Print-Designer/</a></h2>
 
 ## UI Preview
 
