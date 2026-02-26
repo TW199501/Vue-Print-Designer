@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
+import { ref, watch, computed, onMounted, onUnmounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '@/composables/useTheme';
 import { useAutoSave } from '@/composables/useAutoSave';
@@ -27,6 +27,7 @@ const { t, locale } = useI18n();
 const { theme: selectedTheme, setTheme } = useTheme();
 const { autoSave } = useAutoSave();
 const designerStore = useDesignerStore();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 const {
   printMode,
   silentPrint,
@@ -311,8 +312,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="show" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50" @click.self="close">
+  <Teleport :to="modalContainer || 'body'">
+    <div v-if="show" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 pointer-events-auto" @click.self="emit('update:show', false)">
       <div class="bg-white rounded-lg shadow-xl w-[700px] max-w-full h-[500px] flex overflow-hidden">
         <!-- Sidebar Tabs -->
         <div class="w-48 bg-gray-50 border-r border-gray-200 flex flex-col">

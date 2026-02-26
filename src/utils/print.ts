@@ -1,4 +1,5 @@
-import { nextTick } from 'vue';
+import { nextTick, createApp, h } from 'vue';
+import { createPinia } from 'pinia';
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image-more';
 import JSZip from 'jszip';
@@ -8,6 +9,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { useDesignerStore } from '@/stores/designer';
 import { ElementType, type Page, type WatermarkSettings } from '@/types';
 import { usePrintSettings, type PrintMode, type PrintOptions } from '@/composables/usePrintSettings';
+import i18n from '@/locales';
+import PrintRenderer from '@/components/print/PrintRenderer.vue';
+import baseStyles from '@/style.css?inline';
 
 import { pxToMm } from '@/utils/units';
 
@@ -215,10 +219,11 @@ export const usePrint = () => {
     testData: cloneDeep(store.testData || {})
   });
 
-  const waitForMessage = (token: string, type: string, timeoutMs = 10000) => new Promise<any>((resolve, reject) => {
+  const waitForMessage = (token: string, type: string, timeoutMs = 15000) => new Promise<any>((resolve, reject) => {
     const origin = window.location.origin;
     const timeoutId = window.setTimeout(() => {
       window.removeEventListener('message', handler);
+      window.removeEventListener(`print-renderer:${type}`, customHandler as any);
       reject(new Error(`Print renderer timeout: ${type}`));
     }, timeoutMs);
 
@@ -228,10 +233,21 @@ export const usePrint = () => {
       if (!data || data.type !== type || data.token !== token) return;
       window.clearTimeout(timeoutId);
       window.removeEventListener('message', handler);
+      window.removeEventListener(`print-renderer:${type}`, customHandler as any);
       resolve(data);
     };
 
+    const customHandler = (event: CustomEvent) => {
+      if (event.detail && event.detail.token === token) {
+        window.clearTimeout(timeoutId);
+        window.removeEventListener('message', handler);
+        window.removeEventListener(`print-renderer:${type}`, customHandler as any);
+        resolve({ type, token });
+      }
+    };
+
     window.addEventListener('message', handler);
+    window.addEventListener(`print-renderer:${type}`, customHandler as any);
   });
 
   const renderPagesViaIframe = async () => {
@@ -239,24 +255,42 @@ export const usePrint = () => {
     const iframe = document.createElement('iframe');
     iframe.setAttribute('data-print-renderer', 'true');
     iframe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;border:0;visibility:hidden;';
-    iframe.src = `${window.location.origin}${window.location.pathname}?print=1&printToken=${encodeURIComponent(token)}`;
     document.body.appendChild(iframe);
 
+    const frameDoc = iframe.contentDocument;
+    const frameWin = iframe.contentWindow;
+    if (!frameDoc || !frameWin) throw new Error('Print renderer not available');
+
+    // Inject styles
+    const style = frameDoc.createElement('style');
+    style.textContent = baseStyles;
+    frameDoc.head.appendChild(style);
+
+    const mountEl = frameDoc.createElement('div');
+    mountEl.id = 'app';
+    frameDoc.body.appendChild(mountEl);
+
+    const payload = buildPrintRenderPayload();
+    const app = createApp({
+      render: () => h(PrintRenderer, { payload, token })
+    });
+
+    // Use a fresh Pinia instance for isolation to avoid polluting the main app's state
+    app.use(createPinia());
+    app.use(i18n);
+
+    app.mount(mountEl);
+
     const cleanup = () => {
+      app.unmount();
       if (iframe.parentNode) {
         iframe.parentNode.removeChild(iframe);
       }
     };
 
     try {
-      await waitForMessage(token, 'print-renderer-ready');
-      const payload = buildPrintRenderPayload();
-      iframe.contentWindow?.postMessage({ type: 'print-renderer-payload', token, payload }, window.location.origin);
+      // Wait for rendering to complete
       await waitForMessage(token, 'print-renderer-rendered');
-
-      const frameDoc = iframe.contentDocument;
-      const frameWin = iframe.contentWindow;
-      if (!frameDoc || !frameWin) throw new Error('Print renderer not available');
 
       const pages = Array.from(frameDoc.querySelectorAll('.print-page')) as HTMLElement[];
       return {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import { startCase } from 'lodash';
@@ -19,6 +19,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const designerStore = useDesignerStore();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 
 const activeTab = ref<'shortcuts' | 'about'>('shortcuts');
 
@@ -59,8 +60,8 @@ const projectName = startCase(pkg.name);
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="show" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50" @click.self="close">
+  <Teleport :to="modalContainer || 'body'">
+    <div v-if="show" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 pointer-events-auto" @click.self="close">
       <div class="bg-white rounded-lg shadow-xl w-[700px] max-w-full h-[500px] flex overflow-hidden">
         <!-- Sidebar Tabs -->
         <div class="w-48 bg-gray-50 border-r border-gray-200 flex flex-col">

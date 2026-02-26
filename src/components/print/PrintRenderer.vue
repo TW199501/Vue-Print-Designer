@@ -4,14 +4,21 @@ import cloneDeep from 'lodash/cloneDeep';
 import { useDesignerStore } from '@/stores/designer';
 import Canvas from '@/components/canvas/Canvas.vue';
 
+const props = defineProps<{
+  payload?: any;
+  token?: string;
+}>();
+
 const store = useDesignerStore();
-const token = new URLSearchParams(window.location.search).get('printToken') || '';
+const token = props.token || new URLSearchParams(window.location.search).get('printToken') || '';
 const origin = window.location.origin;
 
 const postToParent = (type: string) => {
-  if (window.parent) {
+  if (window.parent && window.parent !== window) {
     window.parent.postMessage({ type, token }, origin);
   }
+  // Also dispatch a custom event for local usage
+  window.dispatchEvent(new CustomEvent(`print-renderer:${type}`, { detail: { token } }));
 };
 
 const waitForFonts = async (timeoutMs = 2000) => {
@@ -90,7 +97,12 @@ onMounted(() => {
   document.body.style.margin = '0';
   document.body.style.background = '#ffffff';
   window.addEventListener('message', onMessage);
-  postToParent('print-renderer-ready');
+  
+  if (props.payload) {
+    applyPayload(props.payload);
+  } else {
+    postToParent('print-renderer-ready');
+  }
 });
 
 onUnmounted(() => {

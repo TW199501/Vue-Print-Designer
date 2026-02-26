@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { computed, ref, onMounted, onUnmounted, nextTick, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { PrintElement } from '@/types';
 import { useDesignerStore } from '@/stores/designer';
@@ -12,6 +12,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const store = useDesignerStore();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 
 function isCellSelected(rowIndex: number, colField: string, section: 'body' | 'footer' = 'body') {
   if (store.tableSelection && store.tableSelection.elementId !== props.element.id) return false;
@@ -570,11 +571,11 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
     </table>
     
     <!-- Header Edit Form -->
-    <Teleport to="body">
+    <Teleport :to="modalContainer || 'body'">
       <div 
         v-if="editingColIndex !== null || editingFooterCell" 
         ref="editFormRef"
-        class="fixed z-[9999] bg-white shadow-xl border border-gray-200 rounded-lg p-4 w-64 flex flex-col gap-3"
+        class="fixed z-[9999] bg-white shadow-xl border border-gray-200 rounded-lg p-4 w-64 flex flex-col gap-3 pointer-events-auto"
         :style="{ top: `${editFormPosition.top}px`, left: `${editFormPosition.left}px` }"
         @click.stop
       >

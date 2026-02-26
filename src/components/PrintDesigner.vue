@@ -27,8 +27,13 @@ const { isDark } = useTheme();
 const { t } = useI18n();
 const scrollContainer = ref<HTMLElement | null>(null);
 const rootContainer = ref<HTMLElement | null>(null);
+const modalContainer = ref<HTMLElement | null>(null);
 let resizeObserver: ResizeObserver | null = null;
 const canvasContainer = ref<HTMLElement | null>(null);
+
+// Provide modal container for Teleport
+import { provide } from 'vue';
+provide('modal-container', modalContainer);
 const canvasWrapper = ref<HTMLElement | null>(null);
 const showSaveAsModal = ref(false);
 const brandTick = ref(0);
@@ -703,5 +708,8 @@ const rulerIndicators = computed(() => {
       @close="showSaveAsModal = false"
       @save="handleSaveCustomEditAs"
     />
+
+    <!-- Modal Container for Teleport -->
+    <div ref="modalContainer" class="print-designer-modals fixed inset-0 pointer-events-none z-[9999]"></div>
   </div>
 </template>

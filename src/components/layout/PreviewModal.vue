@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { usePrint } from '@/utils/print';
 import { useTemplateStore } from '@/stores/templates';
@@ -27,6 +27,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const store = useDesignerStore();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 const { exportPdf: exportPdfHtml, getPdfBlob, exportImages, getImageBlob } = usePrint();
 const templateStore = useTemplateStore();
 const previewContainer = ref<HTMLElement | null>(null);
@@ -203,8 +204,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50" @click.self="handleClose">
+  <Teleport :to="modalContainer || 'body'">
+    <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 pointer-events-auto" @click.self="handleClose">
       <div class="bg-white rounded-lg shadow-xl w-[90vw] h-[90vh] flex flex-col overflow-hidden">
         <!-- Header -->
         <div class="relative flex items-center justify-between p-4 border-b border-gray-200">

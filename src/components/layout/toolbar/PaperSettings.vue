@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import { PAPER_SIZES, type PaperSizeKey } from '@/constants/paper';
@@ -12,6 +12,7 @@ import ColorPicker from '@/components/common/ColorPicker.vue';
 
 const { t } = useI18n();
 const store = useDesignerStore();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 
 const selectedPaper = ref<PaperSizeKey>('A4');
 const customWidth = ref(PAPER_SIZES.A4.width);
@@ -376,8 +377,8 @@ watch(() => store.canvasSize, (newSize) => {
       ></div>
     </div>
 
-    <Teleport to="body">
-      <div v-if="showAdvancedSettings" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50" @click.self="showAdvancedSettings = false">
+    <Teleport :to="modalContainer || 'body'">
+      <div v-if="showAdvancedSettings" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50 pointer-events-auto" @click.self="showAdvancedSettings = false">
         <div class="bg-white rounded-lg shadow-xl w-[640px] max-w-full max-h-[90vh] flex flex-col overflow-hidden">
           <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
             <h3 class="text-lg font-semibold text-gray-800">{{ t('editor.advancedSettings') }}</h3>

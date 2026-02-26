@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import Type from '~icons/material-symbols/text-fields';
@@ -24,6 +24,7 @@ import { buildTestDataFromElement, elementSupportsVariables } from '@/utils/vari
 
 const { t } = useI18n();
 const store = useDesignerStore();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 const activeTab = ref<'standard' | 'custom'>('standard');
 const customElements = computed(() => store.customElements);
 
@@ -329,32 +330,33 @@ onUnmounted(() => {
     </div>
 
     <!-- Context Menu Portal -->
-    <Teleport to="body">
-      <div 
-        v-if="activeMenuId"
-        class="fixed w-32 bg-white rounded shadow-lg border border-gray-100 z-[2001] py-1"
-        :style="menuPosition"
-        @click.stop
-      >
-        <template v-for="item in customElements" :key="item.id">
-          <template v-if="item.id === activeMenuId">
-            <button @click="handleEditElement(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-              <Edit class="w-3.5 h-3.5" /> {{ t('sidebar.editElement') }}
-            </button>
-            <button v-if="supportsTestData(item)" @click="handleTestData(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-              <DataObject class="w-3.5 h-3.5" /> {{ t('common.testData') }}
-            </button>
-            <button @click="handleRename(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-              <Edit class="w-3.5 h-3.5" /> {{ t('sidebar.rename') }}
-            </button>
-            <button @click="handleCopy(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-              <Copy class="w-3.5 h-3.5" /> {{ t('sidebar.copy') }}
-            </button>
-            <button @click="handleDelete(item)" class="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2">
-              <Delete class="w-3.5 h-3.5" /> {{ t('sidebar.delete') }}
-            </button>
+    <Teleport :to="modalContainer || 'body'">
+      <div v-if="activeMenuId" class="fixed inset-0 z-[2000] pointer-events-auto" @click="activeMenuId = null">
+        <div 
+          class="absolute w-32 bg-white rounded shadow-lg border border-gray-100 z-[2001] py-1 pointer-events-auto"
+          :style="menuPosition"
+          @click.stop
+        >
+          <template v-for="item in customElements" :key="item.id">
+            <template v-if="item.id === activeMenuId">
+              <button @click="handleEditElement(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                <Edit class="w-3.5 h-3.5" /> {{ t('sidebar.editElement') }}
+              </button>
+              <button v-if="supportsTestData(item)" @click="handleTestData(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                <DataObject class="w-3.5 h-3.5" /> {{ t('common.testData') }}
+              </button>
+              <button @click="handleRename(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                <Edit class="w-3.5 h-3.5" /> {{ t('sidebar.rename') }}
+              </button>
+              <button @click="handleCopy(item)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                <Copy class="w-3.5 h-3.5" /> {{ t('sidebar.copy') }}
+              </button>
+              <button @click="handleDelete(item)" class="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2">
+                <Delete class="w-3.5 h-3.5" /> {{ t('sidebar.delete') }}
+              </button>
+            </template>
           </template>
-        </template>
+        </div>
       </div>
     </Teleport>
 

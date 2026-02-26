@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, watch, computed, ref, onMounted, onUnmounted } from 'vue';
+import { reactive, watch, computed, ref, onMounted, onUnmounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import X from '~icons/material-symbols/close';
 import { usePrintSettings } from '@/composables/usePrintSettings';
@@ -19,6 +19,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const designerStore = useDesignerStore();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 const {
   localPrinters,
   remotePrinters,
@@ -239,8 +240,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="show" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50" @click.self="close">
+  <Teleport :to="modalContainer || 'body'">
+    <div v-if="show" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 pointer-events-auto" @click.self="close">
       <div class="bg-white rounded-lg shadow-xl w-[700px] max-w-full max-h-[90vh] flex flex-col overflow-hidden">
         <div class="h-[56px] flex items-center justify-between px-4 border-b border-gray-200">
           <h3 class="text-lg font-semibold text-gray-800">{{ modeTitle }}</h3>

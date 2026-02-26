@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTemplateStore, type Template } from '@/stores/templates';
 import { useDesignerStore } from '@/stores/designer';
@@ -21,6 +21,7 @@ import { buildTestDataFromPages } from '@/utils/variables';
 const { t } = useI18n();
 const store = useTemplateStore();
 const designerStore = useDesignerStore();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 const isOpen = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
 
@@ -304,27 +305,28 @@ const handleModalSave = (name: string) => {
     </div>
 
     <!-- Row Menu Portal -->
-    <Teleport to="body">
-      <div 
-        v-if="activeMenuId"
-        class="row-menu-content fixed w-32 bg-white rounded shadow-lg border border-gray-100 z-[2001] py-1"
-        :style="menuPosition"
-        @click.stop
-      >
-        <template v-if="getActiveTemplate()">
-          <button @click="handleTestData(getActiveTemplate()!)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-            <DataObject class="w-3.5 h-3.5" /> {{ t('common.testData') }}
-          </button>
-          <button @click="handleEdit(getActiveTemplate()!)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-            <Edit class="w-3.5 h-3.5" /> {{ t('common.rename') }}
-          </button>
-          <button @click="handleCopy(getActiveTemplate()!)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-            <Copy class="w-3.5 h-3.5" /> {{ t('common.copy') }}
-          </button>
-          <button @click="handleDelete(getActiveTemplate()!)" class="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2">
-            <Trash2 class="w-3.5 h-3.5" /> {{ t('common.delete') }}
-          </button>
-        </template>
+    <Teleport :to="modalContainer || 'body'">
+      <div v-if="activeMenuId" class="fixed inset-0 z-[2000] pointer-events-auto" @click="activeMenuId = null">
+        <div 
+          class="row-menu-content absolute w-32 bg-white rounded shadow-lg border border-gray-100 z-[2001] py-1 pointer-events-auto"
+          :style="menuPosition"
+          @click.stop
+        >
+          <template v-if="getActiveTemplate()">
+            <button @click="handleTestData(getActiveTemplate()!)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+              <DataObject class="w-3.5 h-3.5" /> {{ t('common.testData') }}
+            </button>
+            <button @click="handleEdit(getActiveTemplate()!)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+              <Edit class="w-3.5 h-3.5" /> {{ t('common.rename') }}
+            </button>
+            <button @click="handleCopy(getActiveTemplate()!)" class="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+              <Copy class="w-3.5 h-3.5" /> {{ t('common.copy') }}
+            </button>
+            <button @click="handleDelete(getActiveTemplate()!)" class="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2">
+              <Trash2 class="w-3.5 h-3.5" /> {{ t('common.delete') }}
+            </button>
+          </template>
+        </div>
       </div>
     </Teleport>
 

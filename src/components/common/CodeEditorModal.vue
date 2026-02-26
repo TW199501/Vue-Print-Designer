@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onMounted, onUnmounted, computed } from 'vue';
+import { watch, onMounted, onUnmounted, computed, inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Editor } from '@guolao/vue-monaco-editor';
 import { useDesignerStore } from '@/stores/designer';
@@ -8,6 +8,7 @@ import Close from '~icons/material-symbols/close';
 
 const { t } = useI18n();
 const { isDark } = useTheme();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 
 const props = defineProps<{
   visible: boolean;
@@ -74,8 +75,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50" @click.self="handleClose">
+  <Teleport :to="modalContainer || 'body'">
+    <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 pointer-events-auto" @click.self="handleClose">
       <div class="bg-white rounded-lg shadow-xl w-[60vw] h-[80vh] flex flex-col overflow-hidden animate-fade-in">
         <!-- Header -->
         <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
