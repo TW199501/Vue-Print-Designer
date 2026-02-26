@@ -219,8 +219,9 @@ watch(() => store.canvasSize, (newSize) => {
         <div>
           <button
             @click="showAdvancedSettings = true"
-            class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md transition-colors text-sm font-medium"
+            class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md transition-colors text-sm font-medium"
           >
+            <Settings class="w-4 h-4" />
             {{ t('editor.advancedSettings') }}
           </button>
         </div>

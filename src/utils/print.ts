@@ -78,7 +78,9 @@ export const usePrint = () => {
     const previousShowCornerMarkers = mutateStore ? store.showCornerMarkers : false;
     const previousIsExporting = setExporting ? Boolean(store.isExporting) : false;
     const previousHtmlOverflowX = document.documentElement.style.overflowX;
+    const previousHtmlOverflowY = document.documentElement.style.overflowY;
     const previousBodyOverflowX = document.body.style.overflowX;
+    const previousBodyOverflowY = document.body.style.overflowY;
 
     if (mutateStore) {
       store.selectElement(null);
@@ -101,7 +103,9 @@ export const usePrint = () => {
     }
 
     document.documentElement.style.overflowX = 'hidden';
+    document.documentElement.style.overflowY = 'hidden';
     document.body.style.overflowX = 'hidden';
+    document.body.style.overflowY = 'hidden';
 
     if (!mutateStore && setExporting) {
       store.setIsExporting(true);
@@ -118,7 +122,9 @@ export const usePrint = () => {
         store.setIsExporting(previousIsExporting);
       }
       document.documentElement.style.overflowX = previousHtmlOverflowX;
+      document.documentElement.style.overflowY = previousHtmlOverflowY;
       document.body.style.overflowX = previousBodyOverflowX;
+      document.body.style.overflowY = previousBodyOverflowY;
       if (!mutateStore) return;
       store.setShowGrid(previousShowGrid);
       store.selectElement(previousSelection);

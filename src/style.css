@@ -65,6 +65,10 @@
   .exporting .marker {
     display: none !important;
   }
+  html.exporting,
+  body.exporting,
+  html.previewing,
+  body.previewing,
   .exporting {
     overflow: hidden !important;
   }
