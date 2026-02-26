@@ -7,5 +7,7 @@ const isPrintRenderer = new URLSearchParams(window.location.search).get('print')
 
 <template>
   <PrintRenderer v-if="isPrintRenderer" />
-  <PrintDesigner v-else />
+  <div v-else class="h-screen w-screen overflow-hidden">
+    <PrintDesigner />
+  </div>
 </template>

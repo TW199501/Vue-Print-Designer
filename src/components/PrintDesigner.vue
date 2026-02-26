@@ -26,6 +26,8 @@ const { autoSave } = useAutoSave();
 const { isDark } = useTheme();
 const { t } = useI18n();
 const scrollContainer = ref<HTMLElement | null>(null);
+const rootContainer = ref<HTMLElement | null>(null);
+let resizeObserver: ResizeObserver | null = null;
 const canvasContainer = ref<HTMLElement | null>(null);
 const canvasWrapper = ref<HTMLElement | null>(null);
 const showSaveAsModal = ref(false);
@@ -475,7 +477,7 @@ const rulerIndicators = computed(() => {
 </script>
 
 <template>
-  <div class="h-screen w-screen flex flex-col bg-gray-100 overflow-hidden">
+  <div ref="rootContainer" class="h-full w-full flex flex-col bg-gray-100 overflow-hidden">
     <Header />
     <div class="flex-1 flex overflow-hidden">
       <Sidebar />

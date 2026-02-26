@@ -109,6 +109,8 @@ class PrintDesignerElement extends HTMLElement {
     const shadow = this.ensureShadowRoot();
     if (!this.mountEl) {
       this.mountEl = document.createElement('div');
+      this.mountEl.style.width = '100%';
+      this.mountEl.style.height = '100%';
       shadow.appendChild(this.mountEl);
     }
 
