@@ -379,6 +379,7 @@ export default {
     title: 'Help Center',
     about: 'About',
     aboutProject: 'About {name}',
+    github: 'Project URL',
     dependencies: 'Open Source Dependencies',
     package: 'Package',
     version: 'Version'

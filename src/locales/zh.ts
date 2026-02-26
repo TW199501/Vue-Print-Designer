@@ -386,6 +386,7 @@ export default {
     title: '帮助中心',
     about: '关于',
     aboutProject: '关于 {name}',
+    github: '项目地址',
     dependencies: '开源依赖',
     package: '依赖包',
     version: '版本'
