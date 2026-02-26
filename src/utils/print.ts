@@ -1016,7 +1016,7 @@ export const usePrint = () => {
     return payload;
   };
 
-  const sendWsPrint = (url: string, payload: Record<string, any>, waitFor: 'status' | 'task_result') => new Promise<void>((resolve, reject) => {
+  const sendWsPrintOnce = (url: string, payload: Record<string, any>, waitFor: 'status' | 'task_result') => new Promise<void>((resolve, reject) => {
     let resolved = false;
     const socket = new WebSocket(url);
     const timeoutId = window.setTimeout(() => {
@@ -1067,6 +1067,121 @@ export const usePrint = () => {
     };
   });
 
+  let localSocket: WebSocket | null = null;
+  let localSocketUrl = '';
+  let localSocketPromise: Promise<WebSocket> | null = null;
+  let localQueue = Promise.resolve();
+
+  const resetLocalSocket = () => {
+    if (localSocket && localSocket.readyState === WebSocket.OPEN) {
+      localSocket.close();
+    }
+    localSocket = null;
+    localSocketUrl = '';
+    localSocketPromise = null;
+  };
+
+  const getLocalSocket = (url: string) => {
+    if (localSocket && localSocket.readyState === WebSocket.OPEN && localSocketUrl === url) {
+      return Promise.resolve(localSocket);
+    }
+    if (localSocketPromise) return localSocketPromise;
+
+    localSocketUrl = url;
+    localSocketPromise = new Promise<WebSocket>((resolve, reject) => {
+      const socket = new WebSocket(url);
+      const handleOpen = () => {
+        socket.removeEventListener('open', handleOpen);
+        socket.removeEventListener('error', handleError);
+        localSocket = socket;
+        localSocketPromise = null;
+        resolve(socket);
+      };
+      const handleError = () => {
+        socket.removeEventListener('open', handleOpen);
+        socket.removeEventListener('error', handleError);
+        resetLocalSocket();
+        reject(new Error('Print connection failed'));
+      };
+      socket.addEventListener('open', handleOpen);
+      socket.addEventListener('error', handleError);
+    });
+
+    return localSocketPromise;
+  };
+
+  const sendLocalWsPrint = (url: string, payload: Record<string, any>, waitFor: 'status') => {
+    localQueue = localQueue.then(() => new Promise<void>(async (resolve, reject) => {
+      let resolved = false;
+      let socket: WebSocket | null = null;
+      const timeoutId = window.setTimeout(() => {
+        if (resolved) return;
+        resolved = true;
+        resetLocalSocket();
+        reject(new Error('Print request timeout'));
+      }, 30000);
+
+      const cleanup = () => {
+        if (!socket) return;
+        socket.removeEventListener('message', handleMessage);
+        socket.removeEventListener('error', handleError);
+        socket.removeEventListener('close', handleClose);
+      };
+
+      const handleMessage = (event: MessageEvent) => {
+        if (resolved) return;
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.status === 'success' || msg.status === 'error') {
+            resolved = true;
+            window.clearTimeout(timeoutId);
+            cleanup();
+            if (msg.status === 'success') resolve();
+            else reject(new Error(msg.message || 'Print failed'));
+          }
+        } catch (error) {
+          resolved = true;
+          window.clearTimeout(timeoutId);
+          cleanup();
+          reject(error instanceof Error ? error : new Error('Print failed'));
+        }
+      };
+
+      const handleError = () => {
+        if (resolved) return;
+        resolved = true;
+        window.clearTimeout(timeoutId);
+        cleanup();
+        resetLocalSocket();
+        reject(new Error('Print connection failed'));
+      };
+
+      const handleClose = () => {
+        if (resolved) return;
+        resolved = true;
+        window.clearTimeout(timeoutId);
+        cleanup();
+        resetLocalSocket();
+        reject(new Error('Print connection closed'));
+      };
+
+      try {
+        socket = await getLocalSocket(url);
+        socket.addEventListener('message', handleMessage);
+        socket.addEventListener('error', handleError);
+        socket.addEventListener('close', handleClose);
+        socket.send(JSON.stringify(payload));
+      } catch (error) {
+        resolved = true;
+        window.clearTimeout(timeoutId);
+        cleanup();
+        reject(error instanceof Error ? error : new Error('Print connection failed'));
+      }
+    }));
+
+    return localQueue;
+  };
+
   const print = async (content: HTMLElement | string | HTMLElement[], request?: { mode?: PrintMode; options?: PrintOptions }) => {
     const mode = request?.mode || printMode.value;
 
@@ -1093,7 +1208,7 @@ export const usePrint = () => {
 
       if (mode === 'local') {
         const payload = buildPrintPayload(options, dataUrl, localSettings.secretKey.trim());
-        await sendWsPrint(localWsUrl.value, payload, 'status');
+        await sendLocalWsPrint(localWsUrl.value, payload, 'status');
         return;
       }
 
@@ -1104,7 +1219,7 @@ export const usePrint = () => {
       const payload = buildPrintPayload(options, dataUrl);
       payload.cmd = 'submit_task';
       payload.client_id = remoteSelectedClientId.value;
-      await sendWsPrint(remoteWsUrl.value, payload, 'task_result');
+      await sendWsPrintOnce(remoteWsUrl.value, payload, 'task_result');
     } catch (error) {
       console.error('Print failed', error);
       alert('Print failed');
