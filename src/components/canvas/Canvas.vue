@@ -446,7 +446,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
   // Find the page element that started the selection within the same shadow root or document
   const root = getQueryRoot();
-  const pageElement = (root.getElementById ? (root as Document).getElementById(`page-${currentSelectingPageIndex.value}`) : document.getElementById(`page-${currentSelectingPageIndex.value}`)) as HTMLElement;
+  const pageElement = root.getElementById(`page-${currentSelectingPageIndex.value}`) as HTMLElement;
   if (!pageElement) return;
 
   const rect = pageElement.getBoundingClientRect();

@@ -153,7 +153,7 @@ const handleMouseMove = (e: MouseEvent) => {
 const handleMouseUp = (e: MouseEvent) => {
   if (isDragging && hasSnapshot) {
      const root = getQueryRoot();
-     const elementsFromPoint = (root as Document).elementsFromPoint ? (root as Document).elementsFromPoint(e.clientX, e.clientY) : document.elementsFromPoint(e.clientX, e.clientY);
+     const elementsFromPoint = root.elementsFromPoint(e.clientX, e.clientY);
      const pageElement = elementsFromPoint.find(el => el.classList.contains('print-page')) as HTMLElement;
      
      if (pageElement) {
@@ -162,7 +162,7 @@ const handleMouseUp = (e: MouseEvent) => {
         
         if (!isNaN(pageIndex) && pageIndex !== props.pageIndex) {
            // Dropped on different page
-           const oldPageElement = (root as Document).getElementById ? (root as Document).getElementById(`page-${props.pageIndex}`) : document.getElementById(`page-${props.pageIndex}`);
+           const oldPageElement = root.getElementById(`page-${props.pageIndex}`);
            if (oldPageElement) {
               const oldRect = oldPageElement.getBoundingClientRect();
               const newRect = pageElement.getBoundingClientRect();
