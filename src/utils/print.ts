@@ -892,7 +892,7 @@ export const usePrint = () => {
   };
 
     const createPdfDocument = async (content: HTMLElement | string | HTMLElement[]) => {
-    const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
+    const restore = await prepareEnvironment({ mutateStore: false, setExporting: true });
 
     const width = store.canvasSize.width;
     const height = store.canvasSize.height;

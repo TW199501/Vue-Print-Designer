@@ -31,8 +31,9 @@ const modalContainer = ref<HTMLElement | null>(null);
 let resizeObserver: ResizeObserver | null = null;
 const canvasContainer = ref<HTMLElement | null>(null);
 
-// Provide modal container for Teleport
+// Provide root and modal container for children
 import { provide } from 'vue';
+provide('designer-root', rootContainer);
 provide('modal-container', modalContainer);
 const canvasWrapper = ref<HTMLElement | null>(null);
 const showSaveAsModal = ref(false);
@@ -56,6 +57,9 @@ const saveAsInitialName = computed(() => {
 });
 
 onMounted(() => {
+  // Reset isExporting flag on mount to ensure table truncation logic works in designer
+  store.setIsExporting(false);
+
   nextTick(() => {
     updateOffset();
   });
@@ -79,6 +83,13 @@ onMounted(() => {
       nextTick(updateOffset);
     }
   );
+
+  // Apply dark mode class to root container for Shadow DOM compatibility
+  watch(isDark, (val) => {
+    if (rootContainer.value) {
+      rootContainer.value.classList.toggle('dark', val);
+    }
+  }, { immediate: true });
 
   // Auto-save watcher
   watch(

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CheckIcon from '~icons/material-symbols/check';
 import CloseIcon from '~icons/material-symbols/close';
@@ -20,6 +20,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const modalContainer = inject('modal-container', ref<HTMLElement | null>(null));
 
 const isOpen = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
@@ -209,10 +210,11 @@ const close = () => {
 };
 
 const handleClickOutside = (e: MouseEvent) => {
-  const target = e.target as Node;
-  if (containerRef.value && containerRef.value.contains(target)) return;
-  if (dropdownRef.value && dropdownRef.value.contains(target)) return;
-  if (containerRef.value) {
+  const path = e.composedPath();
+  const isInsideTrigger = containerRef.value && path.includes(containerRef.value);
+  const isInsideDropdown = dropdownRef.value && path.includes(dropdownRef.value);
+
+  if (!isInsideTrigger && !isInsideDropdown) {
     close();
   }
 };
@@ -269,7 +271,7 @@ onUnmounted(() => {
     </slot>
 
     <!-- Dropdown -->
-    <Teleport v-if="isOpen && teleportToBody" to="body">
+    <Teleport v-if="isOpen && teleportToBody" :to="modalContainer || 'body'">
       <div 
         ref="dropdownRef"
         class="fixed z-[99999] bg-white rounded-lg shadow-xl border border-gray-200 p-3 w-[240px]"

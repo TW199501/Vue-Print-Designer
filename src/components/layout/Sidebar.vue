@@ -139,8 +139,17 @@ const toggleMenu = (event: MouseEvent, id: string) => {
   }
 };
 
-const closeMenu = () => {
-  activeMenuId.value = null;
+const handleGlobalClick = (e: MouseEvent) => {
+  const path = e.composedPath();
+  
+  // Find menu within the same shadow root or document
+  const root = (e.currentTarget as HTMLElement)?.getRootNode() as Document | ShadowRoot;
+  const menu = root?.querySelector?.('.sidebar-context-menu');
+  const isInsideMenu = menu && path.includes(menu);
+  
+  if (!isInsideMenu) {
+    activeMenuId.value = null;
+  }
 };
 
 const handleRename = (item: CustomElementTemplate) => {
@@ -245,13 +254,12 @@ const handleTestDataClose = () => {
   store.saveCustomElements();
 };
 
-// Close menu when clicking outside
 onMounted(() => {
-  document.addEventListener('click', closeMenu);
+  window.addEventListener('mousedown', handleGlobalClick);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', closeMenu);
+  window.removeEventListener('mousedown', handleGlobalClick);
 });
 </script>
 
@@ -333,7 +341,7 @@ onUnmounted(() => {
     <Teleport :to="modalContainer || 'body'">
       <div v-if="activeMenuId" class="fixed inset-0 z-[2000] pointer-events-auto" @click="activeMenuId = null">
         <div 
-          class="absolute w-32 bg-white rounded shadow-lg border border-gray-100 z-[2001] py-1 pointer-events-auto"
+          class="sidebar-context-menu absolute w-32 bg-white rounded shadow-lg border border-gray-100 z-[2001] py-1 pointer-events-auto"
           :style="menuPosition"
           @click.stop
         >

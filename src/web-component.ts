@@ -63,6 +63,48 @@ class PrintDesignerElement extends HTMLElement {
   private templateStore: ReturnType<typeof useTemplateStore> | null = null;
   private themeApi: ReturnType<typeof useTheme> | null = null;
   private mountEl: HTMLElement | null = null;
+  private headObserver: MutationObserver | null = null;
+
+  private syncMonacoStyles() {
+    const shadow = this.shadowRoot;
+    if (!shadow) return;
+
+    // Sync <style> tags
+    const monacoStyles = Array.from(document.querySelectorAll('style')).filter(style => 
+      style.textContent?.includes('.monaco-editor') || 
+      style.id?.startsWith('monaco-') ||
+      style.textContent?.includes('print-designer')
+    );
+    
+    monacoStyles.forEach(style => {
+      // Use the style ID if present, or a content-based hash if possible. 
+      // For simplicity, let's just use a special attribute to track clones.
+      const existingClone = Array.from(shadow.querySelectorAll('style')).find(s => 
+        s.textContent === style.textContent
+      );
+      
+      if (!existingClone) {
+        const clone = style.cloneNode(true) as HTMLStyleElement;
+        clone.setAttribute('data-monaco-clone', 'true');
+        shadow.appendChild(clone);
+      }
+    });
+
+    // Sync <link> tags
+    const monacoLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).filter(link => {
+      const href = link.getAttribute('href') || '';
+      return href.includes('monaco') || href.includes('print-designer');
+    }) as HTMLLinkElement[];
+
+    monacoLinks.forEach(link => {
+      const existingClone = shadow.querySelector(`link[href="${link.href}"]`);
+      if (!existingClone) {
+        const clone = link.cloneNode(true) as HTMLLinkElement;
+        clone.setAttribute('data-monaco-clone', 'true');
+        shadow.appendChild(clone);
+      }
+    });
+  }
 
   private ensureShadowRoot() {
     const shadow = this.shadowRoot || this.attachShadow({ mode: 'open' });
@@ -74,27 +116,20 @@ class PrintDesignerElement extends HTMLElement {
       shadow.appendChild(style);
     }
 
-    const existingLinks = new Set(
-      Array.from(shadow.querySelectorAll('link[data-print-designer-clone]')).map((node) =>
-        (node as HTMLLinkElement).href
-      )
-    );
-
-    const headLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]')) as HTMLLinkElement[];
-    headLinks.forEach((link) => {
-      const href = link.getAttribute('href') || '';
-      if (!href || !href.includes('print-designer')) return;
-      if (existingLinks.has(link.href)) return;
-      const clone = link.cloneNode(true) as HTMLLinkElement;
-      clone.setAttribute('data-print-designer-clone', 'true');
-      shadow.appendChild(clone);
-    });
+    // Designer styles and monaco styles will be synced via observer
+    this.syncMonacoStyles();
 
     return shadow;
   }
 
   connectedCallback() {
     if (this.app) return;
+
+    // Start observing head for Monaco styles
+    this.headObserver = new MutationObserver(() => {
+      this.syncMonacoStyles();
+    });
+    this.headObserver.observe(document.head, { childList: true, subtree: true });
 
     const pinia = createPinia();
     setActivePinia(pinia);
@@ -126,9 +161,14 @@ class PrintDesignerElement extends HTMLElement {
   }
 
   disconnectedCallback() {
-    if (!this.app) return;
-    this.app.unmount();
-    this.app = null;
+    if (this.headObserver) {
+      this.headObserver.disconnect();
+      this.headObserver = null;
+    }
+    if (this.app) {
+      this.app.unmount();
+      this.app = null;
+    }
     this.printApi = null;
     this.printSettings = null;
     this.designerStore = null;
@@ -166,12 +206,12 @@ class PrintDesignerElement extends HTMLElement {
     try {
       this.dispatchEvent(new CustomEvent('export', { detail: { request } }));
       if (type === 'pdf') {
-        await this.printApi.exportPdf(undefined, request.filename || 'print-design.pdf');
+        await this.printApi.exportPdf(this.getPrintPages(), request.filename || 'print-design.pdf');
         this.dispatchEvent(new CustomEvent('exported', { detail: { request } }));
         return;
       }
       if (type === 'images') {
-        await this.printApi.exportImages(undefined, request.filenamePrefix || 'print-design');
+        await this.printApi.exportImages(this.getPrintPages(), request.filenamePrefix || 'print-design');
         this.dispatchEvent(new CustomEvent('exported', { detail: { request } }));
         return;
       }

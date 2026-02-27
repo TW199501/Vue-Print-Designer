@@ -77,14 +77,14 @@ onUnmounted(() => {
 <template>
   <Teleport :to="modalContainer || 'body'">
     <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 pointer-events-auto" @click.self="handleClose">
-      <div class="bg-white rounded-lg shadow-xl w-[60vw] h-[80vh] flex flex-col overflow-hidden animate-fade-in">
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-[60vw] h-[80vh] flex flex-col overflow-hidden animate-fade-in">
         <!-- Header -->
-        <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
+        <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
           <div class="flex items-center gap-2">
-            <h3 class="text-lg font-semibold text-gray-800">{{ title }}</h3>
-            <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-600 text-xs font-mono">{{ language }}</span>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ title }}</h3>
+            <span class="px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-mono">{{ language }}</span>
           </div>
-          <button @click="handleClose" class="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+          <button @click="handleClose" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500 dark:text-gray-400">
             <Close class="w-4 h-4" />
           </button>
         </div>
@@ -101,10 +101,10 @@ onUnmounted(() => {
         </div>
 
         <!-- Footer -->
-        <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end rounded-b-lg">
+        <div class="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex justify-end rounded-b-lg">
           <button 
             @click="handleClose"
-            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+            class="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm"
           >
             {{ t('common.close') }}
           </button>

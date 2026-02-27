@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, nextTick } from 'vue';
+import { onMounted, onUnmounted, ref, nextTick, inject, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import type { PrintElement } from '@/types';
 import DeleteIcon from '~icons/material-symbols/delete';
 import CutIcon from '~icons/material-symbols/content-cut';
-import CopyIcon from '~icons/material-symbols/content-copy';
+import CopyIcon from '~icons/material-symbols/content-copy'; // Reverted icon name
 import PasteIcon from '~icons/material-symbols/content-paste';
 import LockIcon from '~icons/material-symbols/lock';
 import UnlockIcon from '~icons/material-symbols/lock-open';
@@ -14,6 +14,7 @@ import RedoIcon from '~icons/material-symbols/redo';
 
 const { t } = useI18n();
 const store = useDesignerStore();
+const designerRoot = inject<Ref<HTMLElement | null>>('designer-root');
 const showMenu = ref(false);
 const menuX = ref(0);
 const menuY = ref(0);
@@ -29,8 +30,12 @@ const handleMouseMove = (e: MouseEvent) => {
   currentMouseY.value = e.clientY;
 };
 
+const getQueryRoot = () => {
+  return (designerRoot?.value?.getRootNode() as Document | ShadowRoot) || document;
+};
+
 const getPasteTarget = (clientX: number, clientY: number) => {
-  const pages = document.querySelectorAll('.print-page');
+  const pages = getQueryRoot().querySelectorAll('.print-page');
   if (pages.length === 0) return undefined;
 
   let closestPage: HTMLElement | null = null;
@@ -282,7 +287,7 @@ const handleKeyup = (e: KeyboardEvent) => {
 const handleContextMenu = async (e: MouseEvent) => {
   // Check if the click is inside the designer area
   const target = e.target as Element;
-  const designerArea = document.querySelector('.overflow-auto'); // The scroll container (canvas area)
+  const designerArea = getQueryRoot().querySelector('.overflow-auto'); // The scroll container (canvas area)
 
   if (!designerArea || !designerArea.contains(target)) {
     // Not in designer area, show native context menu
@@ -313,7 +318,7 @@ const handleContextMenu = async (e: MouseEvent) => {
   }
 
   // Only allow paste when right-click occurs within any print page (canvas)
-  const pages = document.querySelectorAll('.print-page');
+  const pages = getQueryRoot().querySelectorAll('.print-page');
   let inside = false;
   pages.forEach((p) => {
     const rect = (p as HTMLElement).getBoundingClientRect();

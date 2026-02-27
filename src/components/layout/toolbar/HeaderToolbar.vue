@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, inject, type Ref } from 'vue';
 import { useDesignerStore } from '@/stores/designer';
 import Printer from '~icons/material-symbols/print';
 import Preview from '~icons/material-symbols/preview';
@@ -59,6 +59,12 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const store = useDesignerStore();
 const templateStore = useTemplateStore();
+
+const designerRoot = inject<Ref<HTMLElement | null>>('designer-root', ref(null));
+const getQueryRoot = () => {
+  return (designerRoot?.value?.getRootNode() as Document | ShadowRoot) || document;
+};
+
 const { printMode, silentPrint, localPrintOptions, remotePrintOptions } = usePrintSettings();
 const printModeValue = computed(() => printMode.value || 'browser');
 
@@ -94,7 +100,7 @@ const { getPrintHtml, print, exportPdf, getPdfBlob, exportImages, getImageBlob }
 const handleViewImageBlob = async () => {
   try {
       // Use real DOM elements to ensure computed styles are captured correctly
-      const pages = Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
+      const pages = Array.from(getQueryRoot().querySelectorAll('.print-page')) as HTMLElement[];
       const blob = await getImageBlob(pages);
       
       const reader = new FileReader();
@@ -113,7 +119,7 @@ const handleViewImageBlob = async () => {
 
 const handleViewPdfBlob = async () => {
   try {
-      const pages = Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
+      const pages = Array.from(getQueryRoot().querySelectorAll('.print-page')) as HTMLElement[];
       const blob = await getPdfBlob(pages);
       
       const reader = new FileReader();
@@ -284,7 +290,7 @@ const handlePreview = async () => {
 
 const handlePrint = async () => {
   // Use real DOM elements to ensure computed styles are captured correctly, similar to exportPdf
-  const pages = Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
+  const pages = Array.from(getQueryRoot().querySelectorAll('.print-page')) as HTMLElement[];
   if (printMode.value !== 'browser' && !silentPrint.value) {
     pendingPrintContent.value = pages;
     showPrintDialog.value = true;
@@ -301,7 +307,7 @@ const handlePrintConfirm = async (options: PrintOptions) => {
     Object.assign(remotePrintOptions, options);
   }
 
-  const content = pendingPrintContent.value || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
+  const content = pendingPrintContent.value || Array.from(getQueryRoot().querySelectorAll('.print-page')) as HTMLElement[];
   pendingPrintContent.value = null;
   showPrintDialog.value = false;
   await print(content, { mode: printModeValue.value, options });

@@ -51,10 +51,10 @@ onUnmounted(() => {
 <template>
   <Teleport :to="modalContainer || 'body'">
     <div v-if="show" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50 pointer-events-auto">
-      <div class="bg-white rounded-lg shadow-xl w-96 animate-in fade-in zoom-in duration-200 flex flex-col overflow-hidden">
-        <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
-          <h3 class="text-lg font-semibold text-gray-800">{{ title || t('input.title') }}</h3>
-          <button @click="emit('close')" class="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-96 animate-in fade-in zoom-in duration-200 flex flex-col overflow-hidden">
+        <div class="h-[60px] flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ title || t('input.title') }}</h3>
+          <button @click="emit('close')" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500 dark:text-gray-400">
             <Close class="w-4 h-4" />
           </button>
         </div>
@@ -65,7 +65,7 @@ onUnmounted(() => {
               ref="inputRef"
               v-model="value"
               type="text"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               :placeholder="placeholder || t('input.placeholder')"
               @keydown.enter="handleSave"
               @keydown.esc="emit('close')"
@@ -75,14 +75,14 @@ onUnmounted(() => {
           <div class="flex justify-end gap-2">
             <button 
               @click="emit('close')"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
             >
               {{ t('common.cancel') }}
             </button>
             <button 
               @click="handleSave"
               :disabled="!value.trim()"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ t('common.confirm') }}
             </button>

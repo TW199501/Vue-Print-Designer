@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, nextTick, inject, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import { ElementType } from '@/types';
@@ -19,6 +19,11 @@ import CopyIcon from '~icons/material-symbols/content-copy';
 import PasteIcon from '~icons/material-symbols/content-paste';
 
 const store = useDesignerStore();
+const designerRoot = inject<Ref<HTMLElement | null>>('designer-root');
+
+const getQueryRoot = () => {
+  return (designerRoot?.value?.getRootNode() as Document | ShadowRoot) || document;
+};
 const { t } = useI18n();
 
 const pages = computed(() => store.pages);
@@ -439,8 +444,9 @@ const handlePageMouseDown = (e: MouseEvent, pageIndex: number) => {
 const handleMouseMove = (e: MouseEvent) => {
   if (!isBoxSelecting.value || currentSelectingPageIndex.value === null) return;
 
-  // Find the page element that started the selection
-  const pageElement = document.getElementById(`page-${currentSelectingPageIndex.value}`);
+  // Find the page element that started the selection within the same shadow root or document
+  const root = getQueryRoot();
+  const pageElement = (root.getElementById ? (root as Document).getElementById(`page-${currentSelectingPageIndex.value}`) : document.getElementById(`page-${currentSelectingPageIndex.value}`)) as HTMLElement;
   if (!pageElement) return;
 
   const rect = pageElement.getBoundingClientRect();

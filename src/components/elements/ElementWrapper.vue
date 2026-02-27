@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, inject, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { PrintElement } from '@/types';
 import { ElementType } from '@/types';
@@ -18,6 +18,11 @@ const props = defineProps<{
 const { t } = useI18n();
 const store = useDesignerStore();
 const elementRef = ref<HTMLElement | null>(null);
+
+const designerRoot = inject<Ref<HTMLElement | null>>('designer-root', ref(null));
+const getQueryRoot = () => {
+  return (designerRoot?.value?.getRootNode() as Document | ShadowRoot) || document;
+};
 
 const style = computed(() => {
   const isMultiSelected = !props.isSelected && store.selectedElementIds.includes(props.element.id);
@@ -147,7 +152,8 @@ const handleMouseMove = (e: MouseEvent) => {
 
 const handleMouseUp = (e: MouseEvent) => {
   if (isDragging && hasSnapshot) {
-     const elementsFromPoint = document.elementsFromPoint(e.clientX, e.clientY);
+     const root = getQueryRoot();
+     const elementsFromPoint = (root as Document).elementsFromPoint ? (root as Document).elementsFromPoint(e.clientX, e.clientY) : document.elementsFromPoint(e.clientX, e.clientY);
      const pageElement = elementsFromPoint.find(el => el.classList.contains('print-page')) as HTMLElement;
      
      if (pageElement) {
@@ -156,7 +162,7 @@ const handleMouseUp = (e: MouseEvent) => {
         
         if (!isNaN(pageIndex) && pageIndex !== props.pageIndex) {
            // Dropped on different page
-           const oldPageElement = document.getElementById(`page-${props.pageIndex}`);
+           const oldPageElement = (root as Document).getElementById ? (root as Document).getElementById(`page-${props.pageIndex}`) : document.getElementById(`page-${props.pageIndex}`);
            if (oldPageElement) {
               const oldRect = oldPageElement.getBoundingClientRect();
               const newRect = pageElement.getBoundingClientRect();
