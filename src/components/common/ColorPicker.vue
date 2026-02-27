@@ -123,7 +123,9 @@ const handleDrag = (e: MouseEvent, type: 'sv' | 'hue' | 'alpha') => {
 
   update(e.clientX, e.clientY);
 
-  const onMouseMove = (ev: MouseEvent) => update(ev.clientX, ev.clientY);
+  const onMouseMove = (ev: MouseEvent) => {
+    update(ev.clientX, ev.clientY);
+  };
   const onMouseUp = () => {
     window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mouseup', onMouseUp);
@@ -196,8 +198,34 @@ const updatePosition = () => {
   dropdownStyle.value = style;
 };
 
-const toggleOpen = async () => {
+const handleClickOutside = (e: MouseEvent) => {
+  if (!isOpen.value) return;
+  const target = e.target as HTMLElement;
+  if (!target) return;
+  
+  // Find the container and dropdown for this specific instance
+  const container = containerRef.value;
+  const dropdown = dropdownRef.value;
+  
+  if (!container) return;
+
+  // Check if click is inside container or dropdown
+  // Use closest for more robust detection especially with Teleport and SVG icons
+  const isInsideTrigger = container.contains(target) || target.closest('.color-picker-trigger');
+  const isInsideDropdown = (dropdown && dropdown.contains(target)) || 
+                          target.closest('.color-picker-dropdown');
+
+  if (!isInsideTrigger && !isInsideDropdown) {
+    isOpen.value = false;
+  }
+};
+
+const toggleOpen = async (e?: MouseEvent) => {
   if (props.disabled) return;
+  if (e) {
+    e.stopPropagation();
+  }
+  
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     await nextTick();
@@ -207,16 +235,6 @@ const toggleOpen = async () => {
 
 const close = () => {
   isOpen.value = false;
-};
-
-const handleClickOutside = (e: MouseEvent) => {
-  const path = e.composedPath();
-  const isInsideTrigger = containerRef.value && path.includes(containerRef.value);
-  const isInsideDropdown = dropdownRef.value && path.includes(dropdownRef.value);
-
-  if (!isInsideTrigger && !isInsideDropdown) {
-    close();
-  }
 };
 
 watch(isOpen, (val) => {
@@ -248,42 +266,53 @@ const selectPreset = (color: string) => {
 };
 
 onMounted(() => {
-  window.addEventListener('mousedown', handleClickOutside); // changed to mousedown for better outside click handling
+  // Use mousedown instead of click to avoid issues with dragging
+  // And we don't need @mousedown.stop on everything if we handle it here correctly
+  document.addEventListener('mousedown', handleClickOutside);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('mousedown', handleClickOutside);
+  document.removeEventListener('mousedown', handleClickOutside);
 });
 </script>
 
 <template>
-  <div class="relative flex" ref="containerRef" @click="toggleOpen">
+  <div class="relative flex" ref="containerRef">
     <!-- Trigger -->
-    <slot name="trigger" :open="isOpen" :color="displayColor" :disabled="disabled">
-      <div 
-        class="w-6 h-6 rounded border border-gray-300 dark:border-gray-600 cursor-pointer flex items-center justify-center overflow-hidden transition-all hover:border-blue-500"
-        :class="{ 'opacity-50 cursor-not-allowed': disabled, 'ring-2 ring-blue-500 ring-offset-1': isOpen }"
-        :style="{ backgroundColor: isTransparent ? 'transparent' : displayColor }"
-      >
-        <div v-if="!modelValue" class="w-full h-[1px] bg-red-500 rotate-45 absolute"></div>
-        <div v-if="isTransparent" class="w-full h-full bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] opacity-50"></div>
-      </div>
-    </slot>
+    <div 
+      class="flex color-picker-trigger"
+      @click="toggleOpen" 
+      @mousedown.stop
+    >
+      <slot name="trigger" :open="isOpen" :color="displayColor" :disabled="disabled">
+        <div 
+          class="w-6 h-6 rounded border border-gray-300 dark:border-gray-600 cursor-pointer flex items-center justify-center overflow-hidden transition-all hover:border-blue-500"
+          :class="{ 'opacity-50 cursor-not-allowed': disabled, 'ring-2 ring-blue-500 ring-offset-1': isOpen }"
+          :style="{ backgroundColor: isTransparent ? 'transparent' : displayColor }"
+        >
+          <div v-if="!modelValue" class="w-full h-[1px] bg-red-500 rotate-45 absolute"></div>
+          <div v-if="isTransparent" class="w-full h-full bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] opacity-50"></div>
+        </div>
+      </slot>
+    </div>
 
     <!-- Dropdown -->
-    <Teleport v-if="isOpen && teleportToBody" :to="modalContainer || 'body'">
+    <Teleport :to="modalContainer || 'body'" :disabled="!teleportToBody">
       <div 
+        v-if="isOpen"
         ref="dropdownRef"
-        class="fixed z-[99999] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-3 w-[240px]"
+        class="color-picker-dropdown bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-3 w-[240px] pointer-events-auto"
+        :class="teleportToBody ? 'fixed z-[100000]' : 'absolute z-[100]'"
         :style="dropdownStyle"
         @click.stop
+        @mousedown.stop
       >
         <!-- Saturation/Value Panel -->
         <div 
           ref="svPanelRef"
           class="w-full h-32 rounded relative cursor-crosshair mb-3"
           :style="svPanelStyle"
-          @mousedown="(e) => handleDrag(e, 'sv')"
+          @mousedown.stop="(e) => handleDrag(e, 'sv')"
         >
           <div class="absolute inset-0 bg-gradient-to-r from-white to-transparent rounded"></div>
           <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent rounded"></div>
@@ -301,7 +330,7 @@ onUnmounted(() => {
               ref="hueSliderRef"
               class="h-3 rounded relative cursor-pointer border border-gray-200 dark:border-gray-700"
               style="background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)"
-              @mousedown="(e) => handleDrag(e, 'hue')"
+              @mousedown.stop="(e) => handleDrag(e, 'hue')"
             >
               <div 
                 class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white dark:bg-gray-100 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm -ml-1.5 pointer-events-none"
@@ -315,7 +344,7 @@ onUnmounted(() => {
                 ref="alphaSliderRef"
                 class="absolute inset-0 cursor-pointer rounded"
                 :style="alphaBackgroundStyle"
-                @mousedown="(e) => handleDrag(e, 'alpha')"
+                @mousedown.stop="(e) => handleDrag(e, 'alpha')"
               >
                 <div 
                   class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white dark:bg-gray-100 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm -ml-1.5 pointer-events-none"
@@ -382,117 +411,5 @@ onUnmounted(() => {
         </div>
       </div>
     </Teleport>
-
-    <div 
-      v-else-if="isOpen" 
-      ref="dropdownRef"
-      class="absolute z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-3 w-[240px]"
-      :style="dropdownStyle"
-      @click.stop
-    >
-      <!-- Saturation/Value Panel -->
-      <div 
-        ref="svPanelRef"
-        class="w-full h-32 rounded relative cursor-crosshair mb-3"
-        :style="svPanelStyle"
-        @mousedown="(e) => handleDrag(e, 'sv')"
-      >
-        <div class="absolute inset-0 bg-gradient-to-r from-white to-transparent rounded"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent rounded"></div>
-        <div 
-          class="absolute w-3 h-3 border-2 border-white rounded-full shadow-sm -ml-1.5 -mt-1.5 pointer-events-none"
-          :style="cursorStyle"
-        ></div>
-      </div>
-
-      <!-- Sliders -->
-      <div class="flex gap-2 mb-3">
-        <div class="flex-1 flex flex-col gap-2">
-          <!-- Hue Slider -->
-          <div 
-            ref="hueSliderRef"
-            class="h-3 rounded relative cursor-pointer border border-gray-200 dark:border-gray-700"
-            style="background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)"
-            @mousedown="(e) => handleDrag(e, 'hue')"
-          >
-            <div 
-              class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white dark:bg-gray-100 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm -ml-1.5 pointer-events-none"
-              :style="hueCursorStyle"
-            ></div>
-          </div>
-
-          <!-- Alpha Slider -->
-          <div class="relative h-3 rounded bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] border border-gray-200 dark:border-gray-700">
-            <div 
-              ref="alphaSliderRef"
-              class="absolute inset-0 cursor-pointer rounded"
-              :style="alphaBackgroundStyle"
-              @mousedown="(e) => handleDrag(e, 'alpha')"
-            >
-              <div 
-                class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white dark:bg-gray-100 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm -ml-1.5 pointer-events-none"
-                :style="alphaCursorStyle"
-              ></div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Current Color Preview -->
-        <div class="w-8 h-8 rounded border border-gray-200 dark:border-gray-700 overflow-hidden relative">
-             <div class="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwZ+5wNisxL//8n04mEeRAAAhNwX869V4DYAAAAASUVORK5CYII=')] opacity-50"></div>
-             <div class="absolute inset-0" :style="{ backgroundColor: rgbaValue }"></div>
-             <div v-if="hsv.a === 0" class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                 <div class="w-full h-[1px] bg-red-500 rotate-45"></div>
-             </div>
-        </div>
-      </div>
-
-      <!-- Inputs -->
-      <div class="flex gap-2 mb-3">
-        <div class="flex-1">
-          <input 
-            type="text" 
-            v-model="hexValue" 
-            class="w-full text-xs px-2 py-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded focus:border-blue-500 outline-none font-mono uppercase"
-            placeholder="#000000"
-          />
-        </div>
-        <div class="w-16 text-right text-xs text-gray-500 dark:text-gray-400 flex items-center justify-end">
-          {{ Math.round(hsv.a * 100) }}%
-        </div>
-      </div>
-
-      <!-- Presets -->
-      <div class="grid grid-cols-9 gap-1.5 mb-3">
-        <div 
-          v-for="color in PRESET_COLORS" 
-          :key="color"
-          class="w-4 h-4 rounded-sm cursor-pointer border border-transparent hover:scale-110 hover:border-gray-400 dark:hover:border-gray-500 hover:z-10 transition-all relative"
-          :class="{ 'ring-2 ring-blue-500 ring-offset-1 z-10': hexValue === color }"
-          :style="{ backgroundColor: color }"
-          @click="selectPreset(color)"
-          :title="color"
-        ></div>
-      </div>
-      
-      <!-- Footer Actions -->
-      <div class="flex justify-between border-t border-gray-100 dark:border-gray-700 pt-2">
-         <button 
-           @click="$emit('update:modelValue', undefined); close()"
-           class="text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 px-2 py-1 rounded transition-colors"
-         >
-           {{ t('colorPicker.clear') }}
-         </button>
-         <div v-if="allowTransparent">
-           <button 
-             @click="$emit('update:modelValue', 'transparent'); close()"
-             class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors"
-           >
-             {{ t('colorPicker.transparent') }}
-           </button>
-         </div>
-      </div>
-
-    </div>
   </div>
 </template>

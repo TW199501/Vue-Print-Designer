@@ -140,12 +140,15 @@ const toggleMenu = (event: MouseEvent, id: string) => {
 };
 
 const handleGlobalClick = (e: MouseEvent) => {
-  const path = e.composedPath();
+  if (!activeMenuId.value) return;
   
-  // Find menu within the same shadow root or document
-  const root = (e.currentTarget as HTMLElement)?.getRootNode() as Document | ShadowRoot;
-  const menu = root?.querySelector?.('.sidebar-context-menu');
-  const isInsideMenu = menu && path.includes(menu);
+  const path = e.composedPath();
+  const isInsideMenu = path.some(el => {
+    if (el instanceof Element) {
+      return el.classList.contains('sidebar-context-menu');
+    }
+    return false;
+  });
   
   if (!isInsideMenu) {
     activeMenuId.value = null;
