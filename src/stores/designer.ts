@@ -3,42 +3,58 @@ import { v4 as uuidv4 } from 'uuid';
 import cloneDeep from 'lodash/cloneDeep';
 import { type DesignerState, type PrintElement, type Page, type Guide, ElementType, type CustomElementTemplate, type WatermarkSettings, type CustomElementEditSnapshot, type BrandingSettings } from '@/types';
 import { getCrudConfig, buildEndpoint } from '@/utils/crudConfig';
-
-const defaultWatermark: WatermarkSettings = {
-  enabled: false,
-  text: '',
-  angle: -30,
-  color: '#000000',
-  opacity: 0.1,
-  size: 24,
-  density: 160
-};
-
-const defaultBranding: BrandingSettings = {
-  title: '',
-  logoUrl: '',
-  showTitle: true,
-  showLogo: true
-};
+import {
+  DEFAULT_BRANDING,
+  DEFAULT_CANVAS_BACKGROUND,
+  DEFAULT_CANVAS_SIZE,
+  DEFAULT_FOOTER_HEIGHT,
+  DEFAULT_HEADER_HEIGHT,
+  DEFAULT_WATERMARK,
+  applyElementDefaults,
+  applyPagesDefaults,
+  createDefaultPage,
+  normalizeCanvasSize,
+  normalizeUnit,
+  normalizeWatermark
+} from '@/utils/designerDefaults';
 
 const loadWatermark = (): WatermarkSettings => {
   const stored = localStorage.getItem('print-designer-watermark');
-  if (!stored) return { ...defaultWatermark };
+  if (!stored) return { ...DEFAULT_WATERMARK };
   try {
-    return { ...defaultWatermark, ...(JSON.parse(stored) as WatermarkSettings) };
+    return normalizeWatermark(JSON.parse(stored) as WatermarkSettings);
   } catch {
-    return { ...defaultWatermark };
+    return { ...DEFAULT_WATERMARK };
+  }
+};
+
+const loadCustomElements = (): CustomElementTemplate[] => {
+  const stored = localStorage.getItem('print-designer-custom-elements');
+  if (!stored) return [];
+  try {
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((el: any) => el && typeof el.id === 'string' && typeof el.name === 'string' && el.element)
+      .map((el: any) => ({
+        id: el.id,
+        name: el.name,
+        element: applyElementDefaults(el.element as PrintElement),
+        testData: (el && typeof el.testData === 'object' && !Array.isArray(el.testData)) ? el.testData : undefined
+      }));
+  } catch {
+    return [];
   }
 };
 
 export const useDesignerStore = defineStore('designer', {
   state: (): DesignerState => ({
-    unit: (localStorage.getItem('print-designer-unit') as 'mm' | 'px' | 'pt') || 'mm',
+    unit: normalizeUnit(localStorage.getItem('print-designer-unit')),
     watermark: loadWatermark(),
-    branding: { ...defaultBranding },
-    pages: [{ id: uuidv4(), elements: [] }],
+    branding: { ...DEFAULT_BRANDING },
+    pages: [createDefaultPage()],
     currentPageIndex: 0,
-    customElements: JSON.parse(localStorage.getItem('print-designer-custom-elements') || '[]'),
+    customElements: loadCustomElements(),
     testData: {},
     editingCustomElementId: null,
     customElementEditSnapshot: null,
@@ -47,20 +63,20 @@ export const useDesignerStore = defineStore('designer', {
     selectedGuideId: null,
     highlightedGuideId: null,
     highlightedEdge: null,
-    canvasSize: { width: 794, height: 1123 }, // A4 at 96 DPI (approx)
+    canvasSize: { ...DEFAULT_CANVAS_SIZE },
     zoom: 1,
     isDragging: false,
     showGrid: true,
     showMarginLines: true,
     showCornerMarkers: true,
-    headerHeight: 100,
-    footerHeight: 100,
+    headerHeight: DEFAULT_HEADER_HEIGHT,
+    footerHeight: DEFAULT_FOOTER_HEIGHT,
     showHeaderLine: false,
     showFooterLine: false,
     showMinimap: false,
     showHelp: false,
     showSettings: false,
-    canvasBackground: '#ffffff',
+    canvasBackground: DEFAULT_CANVAS_BACKGROUND,
     pageSpacingX: 0,
     pageSpacingY: 0,
     guides: [],
@@ -82,12 +98,12 @@ export const useDesignerStore = defineStore('designer', {
       this.branding = next;
     },
     setWatermark(update: Partial<WatermarkSettings>) {
-      this.watermark = { ...(this.watermark || defaultWatermark), ...update };
+      this.watermark = { ...(this.watermark || DEFAULT_WATERMARK), ...update };
       localStorage.setItem('print-designer-watermark', JSON.stringify(this.watermark));
     },
     setUnit(unit: 'mm' | 'px' | 'pt') {
-      this.unit = unit;
-      localStorage.setItem('print-designer-unit', unit);
+      this.unit = normalizeUnit(unit);
+      localStorage.setItem('print-designer-unit', this.unit);
     },
     setDragging(isDragging: boolean) {
       this.isDragging = isDragging;
@@ -111,9 +127,9 @@ export const useDesignerStore = defineStore('designer', {
       this.pageSpacingY = Math.max(0, Math.round(value));
     },
     resetCanvas() {
-      this.watermark = { ...defaultWatermark };
+      this.watermark = { ...DEFAULT_WATERMARK };
       localStorage.setItem('print-designer-watermark', JSON.stringify(this.watermark));
-      this.pages = [{ id: uuidv4(), elements: [] }];
+      this.pages = [createDefaultPage()];
       this.currentPageIndex = 0;
       this.testData = {};
       this.selectedElementId = null;
@@ -122,14 +138,14 @@ export const useDesignerStore = defineStore('designer', {
       this.guides = [];
       this.historyPast = [];
       this.historyFuture = [];
-      this.headerHeight = 100;
-      this.footerHeight = 100;
+      this.headerHeight = DEFAULT_HEADER_HEIGHT;
+      this.footerHeight = DEFAULT_FOOTER_HEIGHT;
       this.showHeaderLine = false;
       this.showFooterLine = false;
-      this.canvasBackground = '#ffffff';
+      this.canvasBackground = DEFAULT_CANVAS_BACKGROUND;
       this.pageSpacingX = 0;
       this.pageSpacingY = 0;
-      this.canvasSize = { width: 794, height: 1123 };
+      this.canvasSize = { ...DEFAULT_CANVAS_SIZE };
       this.zoom = 1;
       this.showGrid = true;
       this.showCornerMarkers = true;
@@ -176,7 +192,7 @@ export const useDesignerStore = defineStore('designer', {
       this.editingCustomElementId = id;
       this.resetCanvas();
 
-      const element = cloneDeep(template.element);
+      const element = applyElementDefaults(cloneDeep(template.element));
       element.id = uuidv4();
 
       this.pages = [{ id: uuidv4(), elements: [element] }];
@@ -194,10 +210,10 @@ export const useDesignerStore = defineStore('designer', {
       this.customElementEditSnapshot = null;
       if (!snapshot) return;
 
-      this.pages = snapshot.pages;
+      this.pages = applyPagesDefaults(snapshot.pages);
       this.historyPast = snapshot.historyPast || [];
       this.historyFuture = snapshot.historyFuture || [];
-      this.canvasSize = snapshot.canvasSize;
+      this.canvasSize = normalizeCanvasSize(snapshot.canvasSize);
       this.guides = snapshot.guides;
       this.zoom = snapshot.zoom;
       this.showGrid = snapshot.showGrid;
@@ -211,12 +227,12 @@ export const useDesignerStore = defineStore('designer', {
       this.canvasBackground = snapshot.canvasBackground;
       this.pageSpacingX = snapshot.pageSpacingX ?? this.pageSpacingX;
       this.pageSpacingY = snapshot.pageSpacingY ?? this.pageSpacingY;
-      this.unit = snapshot.unit || this.unit;
+      this.unit = snapshot.unit ? normalizeUnit(snapshot.unit) : this.unit;
       if (snapshot.unit) {
-        localStorage.setItem('print-designer-unit', snapshot.unit);
+        localStorage.setItem('print-designer-unit', normalizeUnit(this.unit));
       }
       if (snapshot.watermark) {
-        this.watermark = cloneDeep(snapshot.watermark);
+        this.watermark = normalizeWatermark(cloneDeep(snapshot.watermark));
         localStorage.setItem('print-designer-watermark', JSON.stringify(this.watermark));
       }
       this.testData = snapshot.testData || {};
@@ -236,7 +252,7 @@ export const useDesignerStore = defineStore('designer', {
       const element = this.selectedElement || this.pages[0]?.elements[0];
       if (!element) return false;
 
-      template.element = cloneDeep(element);
+      template.element = applyElementDefaults(cloneDeep(element));
       this.saveCustomElements();
       return true;
     },
@@ -260,8 +276,10 @@ export const useDesignerStore = defineStore('designer', {
       newPage.id = uuidv4();
 
       // Regenerate IDs for all elements
-      newPage.elements.forEach(el => {
-        el.id = uuidv4();
+      newPage.elements = (newPage.elements || []).map((el) => {
+        const normalized = applyElementDefaults(el);
+        normalized.id = uuidv4();
+        return normalized;
       });
 
       // Insert after targetIndex
@@ -270,7 +288,7 @@ export const useDesignerStore = defineStore('designer', {
     },
     addPage() {
       this.snapshot();
-      this.pages.push({ id: uuidv4(), elements: [] });
+      this.pages.push(createDefaultPage());
       this.currentPageIndex = this.pages.length - 1;
     },
     removePage(index: number) {
@@ -507,7 +525,7 @@ export const useDesignerStore = defineStore('designer', {
       if (this.historyPast.length === 0) return;
       const prev = this.historyPast.pop()!;
       this.historyFuture.push(cloneDeep(this.pages));
-      this.pages = cloneDeep(prev);
+      this.pages = applyPagesDefaults(cloneDeep(prev));
       // Ensure selected element indices still valid
       if (this.selectedElementId) {
         const exists = this.pages.some(p => p.elements.some(e => e.id === this.selectedElementId));
@@ -528,7 +546,7 @@ export const useDesignerStore = defineStore('designer', {
       if (this.historyFuture.length === 0) return;
       const next = this.historyFuture.pop()!;
       this.historyPast.push(cloneDeep(this.pages));
-      this.pages = cloneDeep(next);
+      this.pages = applyPagesDefaults(cloneDeep(next));
       if (this.currentPageIndex >= this.pages.length) {
         this.currentPageIndex = Math.max(0, this.pages.length - 1);
       }
@@ -937,7 +955,8 @@ export const useDesignerStore = defineStore('designer', {
     },
     addElement(element: Omit<PrintElement, 'id'>, pageIndex?: number) {
       this.snapshot();
-      const newElement = { ...element, id: uuidv4() };
+      const normalized = applyElementDefaults(element as PrintElement);
+      const newElement = { ...normalized, id: uuidv4() };
       const targetPageIdx = pageIndex !== undefined && pageIndex >= 0 && pageIndex < this.pages.length 
         ? pageIndex 
         : this.currentPageIndex;
@@ -1270,7 +1289,7 @@ export const useDesignerStore = defineStore('designer', {
     },
     setCanvasSize(width: number, height: number) {
       this.snapshot();
-      this.canvasSize = { width, height };
+      this.canvasSize = normalizeCanvasSize({ width, height });
     },
     setShowGrid(show: boolean) {
       this.showGrid = show;
@@ -1323,7 +1342,7 @@ export const useDesignerStore = defineStore('designer', {
       }
 
       for (const item of this.clipboard) {
-        const newEl = cloneDeep(item);
+        const newEl = applyElementDefaults(cloneDeep(item));
         newEl.id = uuidv4();
         
         if (position) {
@@ -1432,7 +1451,7 @@ export const useDesignerStore = defineStore('designer', {
         height: HEADER_HEIGHT + (remainingData.length * ROW_HEIGHT) // Initial height estimate
       };
 
-      this.pages[nextPageIdx].elements.push(newElement);
+      this.pages[nextPageIdx].elements.push(applyElementDefaults(newElement));
 
       // 8. Recursive Call (to handle multiple pages)
       // We need to wait for state update or just call it directly?
@@ -1455,7 +1474,7 @@ export const useDesignerStore = defineStore('designer', {
         const list = Array.isArray(data) ? data : data?.customElements || [];
         this.customElements = list
           .filter((el: any) => el && typeof el.id === 'string' && typeof el.name === 'string' && el.element)
-          .map((el: any) => ({ id: el.id, name: el.name, element: cloneDeep(el.element) }));
+          .map((el: any) => ({ id: el.id, name: el.name, element: applyElementDefaults(cloneDeep(el.element)) }));
       } catch (e) {
         console.error('Failed to load custom elements', e);
       }
@@ -1465,7 +1484,7 @@ export const useDesignerStore = defineStore('designer', {
       const template: CustomElementTemplate = {
         id: uuidv4(),
         name,
-        element: cloneDeep(element)
+        element: applyElementDefaults(cloneDeep(element))
       };
       if (mode === 'remote') {
         try {

@@ -5,6 +5,7 @@ import type { PrintElement } from '@/types';
 import { useDesignerStore } from '@/stores/designer';
 import cloneDeep from 'lodash/cloneDeep';
 import { normalizeVariableKey } from '@/utils/variables';
+import { isLegacyCustomScriptAllowed, sha256Hex } from '@/utils/securityPolicy';
 
 const props = defineProps<{
   element: PrintElement;
@@ -177,6 +178,36 @@ const saveHeaderEdit = () => {
 
 const isSelecting = ref(false);
 const startCell = ref<{ rowIndex: number; colField: string; section: 'body' | 'footer' } | null>(null);
+const blockedScriptHashes = ref<Set<string>>(new Set());
+
+const emitSecurityNotice = (code: string, script: string, error?: unknown) => {
+  const hash = sha256Hex(script);
+  if (code === 'CUSTOM_SCRIPT_BLOCKED' && blockedScriptHashes.value.has(hash)) return;
+  if (code === 'CUSTOM_SCRIPT_BLOCKED') {
+    blockedScriptHashes.value.add(hash);
+  }
+
+  window.dispatchEvent(new CustomEvent('designer:security', {
+    detail: {
+      scope: 'security',
+      code,
+      hash,
+      error: error instanceof Error ? error.message : undefined
+    }
+  }));
+};
+
+const getAllowedCustomScript = () => {
+  const script = props.element.customScript?.trim();
+  if (!script) return '';
+
+  if (!isLegacyCustomScriptAllowed(script)) {
+    emitSecurityNotice('CUSTOM_SCRIPT_BLOCKED', script);
+    return '';
+  }
+
+  return script;
+};
 
 const processedData = computed(() => {
   const cols = props.element.columns || [];
@@ -192,9 +223,10 @@ const processedData = computed(() => {
     }
   }
   
-  if (props.element.customScript) {
+  const allowedScript = getAllowedCustomScript();
+  if (allowedScript) {
     try {
-      const func = new Function('data', 'footerData', 'columns', 'type', props.element.customScript);
+      const func = new Function('data', 'footerData', 'columns', 'type', allowedScript);
       const result = func(cloneDeep(data), cloneDeep(footerData), cloneDeep(cols), 'global');
       if (result) {
         if (result.data) data = result.data;
@@ -202,6 +234,7 @@ const processedData = computed(() => {
         if (result.columns) return { ...result, columns: result.columns };
       }
     } catch (e) {
+      emitSecurityNotice('CUSTOM_SCRIPT_EXEC_FAILED', allowedScript, e);
       console.error('Custom script error', e);
     }
   }
@@ -466,7 +499,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
 
 <template>
   <div class="w-full h-full overflow-hidden" :style="{ backgroundColor: element.style.backgroundColor || 'transparent' }">
-    <table class="w-full border-collapse" :class="{ 'h-full': !store.isExporting }" :data-tfoot-repeat="element.tfootRepeat" :data-auto-paginate="element.autoPaginate" :data-custom-script="element.customScript">
+    <table class="w-full border-collapse" :class="{ 'h-full': !store.isExporting }" :data-tfoot-repeat="element.tfootRepeat" :data-auto-paginate="element.autoPaginate" :data-custom-script="getAllowedCustomScript()">
       <thead>
         <tr>
           <th 

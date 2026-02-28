@@ -526,6 +526,10 @@ onUnmounted(() => {
                   <input type="radio" value="zh" v-model="selectedLang" />
                   <span>{{ t('settings.zhLabel') }}</span>
                 </label>
+                <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer" :class="selectedLang === 'zh-TW' ? 'border-blue-600 text-blue-700' : 'border-gray-300'">
+                  <input type="radio" value="zh-TW" v-model="selectedLang" />
+                  <span>{{ t('settings.zhTwLabel') }}</span>
+                </label>
                 <label class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer" :class="selectedLang === 'en' ? 'border-blue-600 text-blue-700' : 'border-gray-300'">
                   <input type="radio" value="en" v-model="selectedLang" />
                   <span>{{ t('settings.enLabel') }}</span>

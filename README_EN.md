@@ -221,7 +221,7 @@ src/
 
 ## i18n
 
-Built-in Chinese (zh) and English (en). The default follows browser language and can be switched by API.
+Built-in Simplified Chinese (zh), Traditional Chinese (zh-TW), and English (en). The default follows browser language and can be switched by API.
 
 ## License
 

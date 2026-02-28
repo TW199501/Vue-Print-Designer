@@ -12,11 +12,14 @@ import {
   type LocalConnectionSettings,
   type RemoteConnectionSettings
 } from './composables/usePrintSettings';
+import type { SecurityPolicy } from './types';
 import { useDesignerStore } from './stores/designer';
 import { useTemplateStore } from './stores/templates';
 import cloneDeep from 'lodash/cloneDeep';
 import { v4 as uuidv4 } from 'uuid';
 import { setCrudConfig, setCrudMode, getCrudConfig, buildEndpoint, type CrudMode, type CrudEndpoints } from './utils/crudConfig';
+import { applyElementDefaults, applyPagesDefaults, normalizeCanvasSize, normalizeUnit, normalizeWatermark } from './utils/designerDefaults';
+import { isSecurityPolicyError, setSecurityPolicy as setRuntimeSecurityPolicy } from './utils/securityPolicy';
 
 export type DesignerExportRequest = {
   type: 'pdf' | 'images' | 'pdfBlob' | 'imageBlob';
@@ -190,7 +193,8 @@ class PrintDesignerElement extends HTMLElement {
       await this.printApi.print(pages, { mode: request.mode, options: request.options });
       this.dispatchEvent(new CustomEvent('printed', { detail: { request } }));
     } catch (error) {
-      this.dispatchEvent(new CustomEvent('error', { detail: { scope: 'print', error } }));
+      const scope = isSecurityPolicyError(error) ? 'security' : 'print';
+      this.dispatchEvent(new CustomEvent('error', { detail: { scope, error } }));
       throw error;
     }
   }
@@ -227,11 +231,16 @@ class PrintDesignerElement extends HTMLElement {
       }
       throw new Error('export type not supported');
     } catch (error) {
-      this.dispatchEvent(new CustomEvent('error', { detail: { scope: 'export', error } }));
+      const scope = isSecurityPolicyError(error) ? 'security' : 'export';
+      this.dispatchEvent(new CustomEvent('error', { detail: { scope, error } }));
       throw error;
     } finally {
       this.printSettings.exportImageMerged.value = previousMerged;
     }
+  }
+
+  setSecurityPolicy(policy: Partial<SecurityPolicy>) {
+    setRuntimeSecurityPolicy(policy);
   }
 
   setBranding(payload: { title?: string; logoUrl?: string; showTitle?: boolean; showLogo?: boolean } = {}) {
@@ -297,9 +306,9 @@ class PrintDesignerElement extends HTMLElement {
     if (!data) return false;
     this.designerStore.resetCanvas();
     if (Array.isArray(data.pages) && data.pages.length > 0) {
-      this.designerStore.pages = data.pages;
+      this.designerStore.pages = applyPagesDefaults(data.pages);
     }
-    if (data.canvasSize) this.designerStore.canvasSize = data.canvasSize;
+    if (data.canvasSize) this.designerStore.canvasSize = normalizeCanvasSize(data.canvasSize);
     if (data.guides) this.designerStore.guides = data.guides;
     if (data.zoom !== undefined) this.designerStore.zoom = data.zoom;
     if (data.showGrid !== undefined) this.designerStore.showGrid = data.showGrid;
@@ -311,8 +320,8 @@ class PrintDesignerElement extends HTMLElement {
     if (data.canvasBackground !== undefined) this.designerStore.canvasBackground = data.canvasBackground;
     if (data.pageSpacingX !== undefined) this.designerStore.pageSpacingX = data.pageSpacingX;
     if (data.pageSpacingY !== undefined) this.designerStore.pageSpacingY = data.pageSpacingY;
-    if (data.unit !== undefined) this.designerStore.unit = data.unit;
-    if (data.watermark !== undefined) this.designerStore.watermark = data.watermark;
+    if (data.unit !== undefined) this.designerStore.unit = normalizeUnit(data.unit);
+    if (data.watermark !== undefined) this.designerStore.watermark = normalizeWatermark(data.watermark);
     this.designerStore.testData = data.testData || {};
     this.designerStore.selectedElementId = null;
     this.designerStore.selectedGuideId = null;
@@ -468,7 +477,7 @@ class PrintDesignerElement extends HTMLElement {
     const { mode, endpoints, headers, fetcher } = getCrudConfig();
     const id = customElement.id || uuidv4();
     const index = this.designerStore.customElements.findIndex((el) => el.id === id);
-    const next = { id, name: customElement.name, element: cloneDeep(customElement.element) };
+    const next = { id, name: customElement.name, element: applyElementDefaults(cloneDeep(customElement.element)) };
     if (index >= 0) {
       this.designerStore.customElements.splice(index, 1, next);
     } else {
@@ -505,7 +514,7 @@ class PrintDesignerElement extends HTMLElement {
     if (!Array.isArray(customElements)) return;
     this.designerStore.customElements = customElements
       .filter((el) => el && typeof el.id === 'string' && typeof el.name === 'string' && el.element)
-      .map((el) => ({ id: el.id, name: el.name, element: cloneDeep(el.element) }));
+      .map((el) => ({ id: el.id, name: el.name, element: applyElementDefaults(cloneDeep(el.element)) }));
     this.designerStore.saveCustomElements();
   }
 

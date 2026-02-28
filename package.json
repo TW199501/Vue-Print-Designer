@@ -28,15 +28,17 @@
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "build:wc": "vue-tsc -b && vite build --config vite.config.wc.ts && node ./scripts/copy-wc-types.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:security": "node ./scripts/security-regression-check.mjs",
+    "audit:runtime": "npm audit --omit=dev --json"
   },
   "dependencies": {
     "@guolao/vue-monaco-editor": "^1.6.0",
     "canvg": "^4.0.3",
     "dom-to-image-more": "^3.7.2",
-    "jszip": "^3.10.1",
     "jsbarcode": "^3.12.3",
-    "jspdf": "^2.5.2",
+    "jspdf": "^4.2.0",
+    "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "pinia": "^2.3.0",
     "qrcode": "^1.5.4",

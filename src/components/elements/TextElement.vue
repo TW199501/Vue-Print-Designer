@@ -72,6 +72,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
             { label: 'properties.option.timesNewRoman', value: '"Times New Roman", serif' },
             { label: 'properties.option.courierNew', value: '"Courier New", monospace' },
             { label: 'properties.option.simSun', value: 'SimSun, serif' },
+            { label: 'properties.option.biauKai', value: '"DFKai-SB", "BiauKai", serif' },
             { label: 'properties.option.simHei', value: 'SimHei, sans-serif' }
           ]
         },

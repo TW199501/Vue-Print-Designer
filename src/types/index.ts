@@ -14,6 +14,15 @@ export interface BrandingSettings {
   showTitle: boolean;
   showLogo: boolean;
 }
+
+export interface SecurityPolicy {
+  // Disabled by default: legacy custom scripts are blocked unless explicitly enabled and trusted.
+  allowLegacyCustomScript: boolean;
+  // Lowercase SHA-256 hex allowlist for legacy custom scripts.
+  trustedScriptHashes: string[];
+  // Disabled by default: legacy WebSocket query auth is blocked unless explicitly enabled.
+  allowLegacyWsQueryAuth: boolean;
+}
 export interface Position {
   x: number;
   y: number;

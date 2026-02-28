@@ -12,21 +12,28 @@ import { usePrintSettings, type PrintMode, type PrintOptions } from '@/composabl
 import i18n from '@/locales';
 import PrintRenderer from '@/components/print/PrintRenderer.vue';
 import baseStyles from '@/style.css?inline';
+import {
+  assertSecureRemoteWsUrl,
+  isLegacyCustomScriptAllowed,
+  isSecurityPolicyError,
+  sha256Hex
+} from '@/utils/securityPolicy';
 
 import { pxToMm } from '@/utils/units';
 
 export const usePrint = () => {
+  type PrintableContent = HTMLElement | HTMLElement[];
   const store = useDesignerStore();
   const {
     printMode,
     localSettings,
-    remoteSettings,
     localStatus,
     remoteStatus,
     localPrintOptions,
     remotePrintOptions,
     localWsUrl,
     remoteWsUrl,
+    remoteAuthToken,
     remoteSelectedClientId,
     exportImageMerged
   } = usePrintSettings();
@@ -323,16 +330,12 @@ export const usePrint = () => {
     }
   };
 
-  const resolveRenderSource = async (content: HTMLElement | string | HTMLElement[]) => {
-    if (typeof content === 'string') {
-      return { content, cleanup: null as null | (() => void), getComputedStyleFn: window.getComputedStyle };
-    }
-
+  const resolveRenderSource = async (content: PrintableContent) => {
     const iframeResult = await renderPagesViaIframe();
     return { content: iframeResult.pages, cleanup: iframeResult.cleanup, getComputedStyleFn: iframeResult.getComputedStyleFn };
   };
 
-  const getPrintHtml = async (content?: HTMLElement[]): Promise<string> => {
+  const getPrintHtml = async (content?: HTMLElement[]): Promise<HTMLElement> => {
     const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
     const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
 
@@ -381,7 +384,7 @@ export const usePrint = () => {
             previewContainer.appendChild(clone);
         });
         
-        return previewContainer.outerHTML;
+        return previewContainer;
     } finally {
       if (tempWrapper && tempWrapper.parentNode) {
         tempWrapper.parentNode.removeChild(tempWrapper);
@@ -500,8 +503,24 @@ export const usePrint = () => {
     if (!tfoot) return;
 
     const customScript = table.getAttribute('data-custom-script');
+    const blockedHashes = (updatePageSums as any).__blockedHashes || ((updatePageSums as any).__blockedHashes = new Set<string>());
     
     if (customScript) {
+      if (!isLegacyCustomScriptAllowed(customScript)) {
+        const hash = sha256Hex(customScript);
+        if (!blockedHashes.has(hash)) {
+          blockedHashes.add(hash);
+          window.dispatchEvent(new CustomEvent('designer:security', {
+            detail: {
+              scope: 'security',
+              code: 'CUSTOM_SCRIPT_BLOCKED',
+              hash
+            }
+          }));
+        }
+        return;
+      }
+
       try {
         // 1. Extract Page Data
         const tbody = table.querySelector('tbody');
@@ -564,6 +583,14 @@ export const usePrint = () => {
         }
         return;
       } catch (e) {
+        window.dispatchEvent(new CustomEvent('designer:security', {
+          detail: {
+            scope: 'security',
+            code: 'CUSTOM_SCRIPT_EXEC_FAILED',
+            hash: sha256Hex(customScript),
+            error: e instanceof Error ? e.message : String(e)
+          }
+        }));
         console.error('Page sum script error:', e);
       }
     }
@@ -791,7 +818,7 @@ export const usePrint = () => {
   };
 
   const processContentForImage = async (
-    content: HTMLElement | string | HTMLElement[],
+    content: PrintableContent,
     width: number,
     height: number,
     convertSvg = true,
@@ -817,10 +844,7 @@ export const usePrint = () => {
     });
 
     let pages: HTMLElement[] = [];
-    if (typeof content === 'string') {
-        container.innerHTML = content;
-        pages = Array.from(container.children).filter(el => !['STYLE', 'LINK', 'SCRIPT'].includes(el.tagName)) as HTMLElement[];
-    } else if (Array.isArray(content)) {
+    if (Array.isArray(content)) {
         pages = content;
     } else {
         // Clone the element to avoid modifying the original
@@ -938,7 +962,7 @@ export const usePrint = () => {
     return pageImages;
   };
 
-    const createPdfDocument = async (content: HTMLElement | string | HTMLElement[]) => {
+    const createPdfDocument = async (content: PrintableContent) => {
     const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
 
     const width = store.canvasSize.width;
@@ -982,7 +1006,7 @@ export const usePrint = () => {
     }
     };
 
-  const exportPdf = async (content?: HTMLElement | string | HTMLElement[], filename = 'print-design.pdf') => {
+  const exportPdf = async (content?: PrintableContent, filename = 'print-design.pdf') => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
         const pdf = await createPdfDocument(targetContent);
@@ -993,7 +1017,7 @@ export const usePrint = () => {
     }
   };
 
-      const browserPrint = async (content: HTMLElement | string | HTMLElement[]) => {
+      const browserPrint = async (content: PrintableContent) => {
       try {
         const pdf = await createPdfDocument(content);
         const blob = pdf.output('blob');
@@ -1062,13 +1086,12 @@ export const usePrint = () => {
     reader.readAsDataURL(blob);
   });
 
-  const buildPrintPayload = (options: PrintOptions, content: string, key?: string) => {
+  const buildPrintPayload = (options: PrintOptions, content: string) => {
     const payload: Record<string, any> = {
       printer: options.printer,
       content
     };
 
-    if (key) payload.key = key;
     if (options.jobName || options.copies || options.intervalMs) {
       payload.job = {
         ...(options.jobName ? { name: options.jobName } : {}),
@@ -1103,7 +1126,12 @@ export const usePrint = () => {
     return payload;
   };
 
-  const sendWsPrintOnce = (url: string, payload: Record<string, any>, waitFor: 'status' | 'task_result') => new Promise<void>((resolve, reject) => {
+  const sendWsPrintOnce = (
+    url: string,
+    payload: Record<string, any>,
+    waitFor: 'status' | 'task_result',
+    authMessage?: Record<string, any>
+  ) => new Promise<void>((resolve, reject) => {
     let resolved = false;
     const socket = new WebSocket(url);
     const timeoutId = window.setTimeout(() => {
@@ -1114,6 +1142,9 @@ export const usePrint = () => {
     }, 30000);
 
     socket.onopen = () => {
+      if (authMessage) {
+        socket.send(JSON.stringify(authMessage));
+      }
       socket.send(JSON.stringify(payload));
     };
 
@@ -1197,7 +1228,12 @@ export const usePrint = () => {
     return localSocketPromise;
   };
 
-  const sendLocalWsPrint = (url: string, payload: Record<string, any>, waitFor: 'status') => {
+  const sendLocalWsPrint = (
+    url: string,
+    payload: Record<string, any>,
+    waitFor: 'status',
+    authMessage?: Record<string, any>
+  ) => {
     localQueue = localQueue.then(() => new Promise<void>(async (resolve, reject) => {
       let resolved = false;
       let socket: WebSocket | null = null;
@@ -1257,6 +1293,9 @@ export const usePrint = () => {
         socket.addEventListener('message', handleMessage);
         socket.addEventListener('error', handleError);
         socket.addEventListener('close', handleClose);
+        if (authMessage) {
+          socket.send(JSON.stringify(authMessage));
+        }
         socket.send(JSON.stringify(payload));
       } catch (error) {
         resolved = true;
@@ -1269,7 +1308,7 @@ export const usePrint = () => {
     return localQueue;
   };
 
-  const print = async (content: HTMLElement | string | HTMLElement[], request?: { mode?: PrintMode; options?: PrintOptions }) => {
+  const print = async (content: PrintableContent, request?: { mode?: PrintMode; options?: PrintOptions }) => {
     const mode = request?.mode || printMode.value;
 
     if (mode === 'browser') {
@@ -1294,8 +1333,11 @@ export const usePrint = () => {
       const dataUrl = await blobToDataUrl(pdfBlob);
 
       if (mode === 'local') {
-        const payload = buildPrintPayload(options, dataUrl, localSettings.secretKey.trim());
-        await sendLocalWsPrint(localWsUrl.value, payload, 'status');
+        const payload = buildPrintPayload(options, dataUrl);
+        const authMessage = localSettings.secretKey.trim()
+          ? { type: 'auth', key: localSettings.secretKey.trim() }
+          : undefined;
+        await sendLocalWsPrint(localWsUrl.value, payload, 'status', authMessage);
         return;
       }
 
@@ -1303,11 +1345,28 @@ export const usePrint = () => {
         alert('Client is required');
         return;
       }
+
+      assertSecureRemoteWsUrl(remoteWsUrl.value);
+      const remoteToken = (remoteAuthToken.value || '').trim();
+      if (!remoteToken) {
+        throw new Error('Remote auth token missing');
+      }
+
       const payload = buildPrintPayload(options, dataUrl);
       payload.cmd = 'submit_task';
       payload.client_id = remoteSelectedClientId.value;
-      await sendWsPrintOnce(remoteWsUrl.value, payload, 'task_result');
+      await sendWsPrintOnce(remoteWsUrl.value, payload, 'task_result', { cmd: 'auth', token: remoteToken });
     } catch (error) {
+      if (isSecurityPolicyError(error)) {
+        window.dispatchEvent(new CustomEvent('designer:security', {
+          detail: {
+            scope: 'security',
+            code: error.code,
+            message: error.message
+          }
+        }));
+        throw error;
+      }
       console.error('Print failed', error);
       alert('Print failed');
     }
@@ -1353,7 +1412,7 @@ export const usePrint = () => {
     return canvas.toDataURL('image/jpeg', 0.8);
   };
 
-  const exportImages = async (content?: HTMLElement | string | HTMLElement[], filenamePrefix = 'print-design') => {
+  const exportImages = async (content?: PrintableContent, filenamePrefix = 'print-design') => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
         const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
@@ -1416,7 +1475,7 @@ export const usePrint = () => {
     }
   };
 
-  const getImageBlob = async (content: HTMLElement | string | HTMLElement[]) => {
+  const getImageBlob = async (content: PrintableContent) => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
         const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
@@ -1456,7 +1515,7 @@ export const usePrint = () => {
     }
   };
 
-  const getPdfBlob = async (content: HTMLElement | string | HTMLElement[]) => {
+  const getPdfBlob = async (content: PrintableContent) => {
     try {
         const pdf = await createPdfDocument(content);
         return pdf.output('blob');

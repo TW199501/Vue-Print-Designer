@@ -1,4 +1,5 @@
 import { computed, reactive, ref, watch, type ComputedRef } from 'vue';
+import { assertSecureRemoteWsUrl, getSecurityPolicy, isSecurityPolicyError } from '@/utils/securityPolicy';
 
 export type PrintMode = 'browser' | 'local' | 'remote';
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -100,7 +101,6 @@ const storageKeys = {
   remoteSettings: 'print-designer-remote-settings',
   localPrintOptions: 'print-designer-local-print-options',
   remotePrintOptions: 'print-designer-remote-print-options',
-  remoteAuthToken: 'print-designer-remote-auth-token',
   remoteSelectedClientId: 'print-designer-remote-selected-client-id'
 };
 
@@ -171,6 +171,12 @@ const appendQueryParam = (url: string, key: string, value: string) => {
     return `${url}${separator}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
   }
 };
+
+const sanitizeRemoteSettingsForStorage = (value: RemoteConnectionSettings): Partial<RemoteConnectionSettings> => ({
+  wsAddress: value.wsAddress,
+  apiBaseUrl: value.apiBaseUrl,
+  username: value.username
+});
 
 const normalizeBaseUrl = (url: string) => url.replace(/\/+$/, '');
 
@@ -267,8 +273,10 @@ const createState = (): PrintSettingsState => {
   const localPrintOptions = reactive(loadJson(storageKeys.localPrintOptions, defaultPrintOptions));
   const remotePrintOptions = reactive(loadJson(storageKeys.remotePrintOptions, defaultPrintOptions));
 
-  const remoteAuthToken = ref(localStorage.getItem(storageKeys.remoteAuthToken) || '');
+  const remoteAuthToken = ref('');
   const remoteSelectedClientId = ref(localStorage.getItem(storageKeys.remoteSelectedClientId) || '');
+  // Cleanup legacy persisted token to reduce secret exposure risk.
+  localStorage.removeItem('print-designer-remote-auth-token');
 
   const localPrinters = ref<LocalPrinterInfo[]>([]);
   const remotePrinters = ref<RemotePrinterInfo[]>([]);
@@ -292,11 +300,13 @@ const createState = (): PrintSettingsState => {
 
   const localWsUrl = computed(() => {
     const base = buildWsUrlFromAddress(localSettings.wsAddress);
+    if (!getSecurityPolicy().allowLegacyWsQueryAuth) return base;
     return appendQueryParam(base, 'key', localSettings.secretKey.trim());
   });
 
   const remoteWsUrl = computed(() => {
     const base = buildWsUrlFromAddress(remoteSettings.wsAddress);
+    if (!getSecurityPolicy().allowLegacyWsQueryAuth) return base;
     return appendQueryParam(base, 'token', remoteAuthToken.value.trim());
   });
 
@@ -324,7 +334,7 @@ const createState = (): PrintSettingsState => {
   }, { deep: true });
 
   watch(remoteSettings, (value) => {
-    saveJson(storageKeys.remoteSettings, value);
+    saveJson(storageKeys.remoteSettings, sanitizeRemoteSettingsForStorage(value));
     remoteStatus.value = 'disconnected';
     remoteStatusMessage.value = '';
   }, { deep: true });
@@ -336,10 +346,6 @@ const createState = (): PrintSettingsState => {
   watch(remotePrintOptions, (value) => {
     saveJson(storageKeys.remotePrintOptions, value);
   }, { deep: true });
-
-  watch(remoteAuthToken, (value) => {
-    localStorage.setItem(storageKeys.remoteAuthToken, value);
-  });
 
   watch(remoteSelectedClientId, (value) => {
     localStorage.setItem(storageKeys.remoteSelectedClientId, value);
@@ -590,6 +596,9 @@ const createState = (): PrintSettingsState => {
         localStatus.value = 'connected';
         clearLocalRetry();
         localConnectPromise = null;
+        if (localSettings.secretKey.trim()) {
+          socket.send(JSON.stringify({ type: 'auth', key: localSettings.secretKey.trim() }));
+        }
         socket.send(JSON.stringify({ type: 'get_printers' }));
         resolve();
       });
@@ -655,6 +664,7 @@ const createState = (): PrintSettingsState => {
         }
 
         remoteAuthToken.value = loginData.token;
+        assertSecureRemoteWsUrl(remoteWsUrl.value);
 
         const socket = new WebSocket(remoteWsUrl.value);
         remoteSocket.value = socket;
@@ -664,6 +674,7 @@ const createState = (): PrintSettingsState => {
           socket.addEventListener('open', () => {
             remoteStatus.value = 'connected';
             clearRemoteRetry();
+            socket.send(JSON.stringify({ cmd: 'auth', token: remoteAuthToken.value.trim() }));
             socket.send(JSON.stringify({ cmd: 'get_clients' }));
             resolve();
           });
@@ -677,7 +688,17 @@ const createState = (): PrintSettingsState => {
       } catch (error) {
         remoteStatus.value = 'error';
         remoteStatusMessage.value = (error as Error).message || 'Remote connection failed';
-        scheduleRemoteReconnect();
+        if (isSecurityPolicyError(error)) {
+          window.dispatchEvent(new CustomEvent('designer:security', {
+            detail: {
+              scope: 'security',
+              code: error.code,
+              message: error.message
+            }
+          }));
+        } else {
+          scheduleRemoteReconnect();
+        }
       } finally {
         remoteConnectPromise = null;
       }

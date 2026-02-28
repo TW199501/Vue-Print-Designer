@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
 import { useDesignerStore } from '@/stores/designer';
 import Canvas from '@/components/canvas/Canvas.vue';
+import { applyPagesDefaults, normalizeCanvasSize, normalizeUnit, normalizeWatermark } from '@/utils/designerDefaults';
 
 const props = defineProps<{
   payload?: any;
@@ -58,8 +59,8 @@ const waitForImages = async (timeoutMs = 2000) => {
 
 const applyPayload = async (payload: any) => {
   store.$patch({
-    pages: cloneDeep(payload.pages || []),
-    canvasSize: payload.canvasSize || store.canvasSize,
+    pages: applyPagesDefaults(cloneDeep(payload.pages || [])),
+    canvasSize: normalizeCanvasSize(payload.canvasSize || store.canvasSize),
     canvasBackground: payload.canvasBackground || store.canvasBackground,
     headerHeight: payload.headerHeight ?? store.headerHeight,
     footerHeight: payload.footerHeight ?? store.footerHeight,
@@ -78,10 +79,10 @@ const applyPayload = async (payload: any) => {
   });
 
   if (payload.watermark) {
-    store.watermark = cloneDeep(payload.watermark);
+    store.watermark = normalizeWatermark(cloneDeep(payload.watermark));
   }
   if (payload.unit) {
-    store.unit = payload.unit;
+    store.unit = normalizeUnit(payload.unit);
   }
 
   store.setIsExporting(true);

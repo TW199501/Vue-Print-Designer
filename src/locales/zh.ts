@@ -87,6 +87,7 @@ export default {
       timesNewRoman: 'Times New Roman',
       courierNew: 'Courier New',
       simSun: '宋体',
+      biauKai: '标楷体',
       simHei: '黑体'
     },
     bold: '加粗',
@@ -324,6 +325,7 @@ export default {
       timesNewRoman: 'Times New Roman',
       courierNew: 'Courier New',
       simSun: '宋体',
+      biauKai: '标楷体',
       simHei: '黑体',
       page1: '第 1 页',
       oneTotal: '1/共几页',
@@ -469,7 +471,8 @@ export default {
     retrying: '重试中（{count}/{max}）',
     cancelRetry: '停止重试',
     selectLanguage: '选择语言',
-    zhLabel: '中文',
+    zhLabel: '简体中文',
+    zhTwLabel: '繁體中文',
     enLabel: 'English'
   },
   printDialog: {

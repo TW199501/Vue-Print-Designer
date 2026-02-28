@@ -577,3 +577,51 @@ const pdfBlob = await el.export({ type: 'pdfBlob' })
 - Web Components 支持 Vue 2、Vue 3、React、Angular 与原生。
 - 本地/云打印需要先配置连接参数。
 - 使用 Shadow DOM 时需确保 `print-designer.css` 已加载。
+
+## 安全強化與遷移（2026）
+
+### `setSecurityPolicy(policy)`
+
+為了降低動態腳本與弱認證路徑造成的風險，Web Component 新增安全策略設定：
+
+```ts
+el.setSecurityPolicy({
+  allowLegacyCustomScript: false,
+  trustedScriptHashes: [],
+  allowLegacyWsQueryAuth: false
+})
+```
+
+參數說明：
+
+| 欄位 | 型別 | 預設值 | 說明 |
+| --- | --- | --- | --- |
+| `allowLegacyCustomScript` | `boolean` | `false` | 是否允許舊版 `customScript` 執行流程 |
+| `trustedScriptHashes` | `string[]` | `[]` | 允許執行的 `customScript` SHA-256（hex）白名單 |
+| `allowLegacyWsQueryAuth` | `boolean` | `false` | 是否允許舊版 WebSocket Query 認證（`?key=` / `?token=`） |
+
+### `setPrintDefaults` 安全行為調整
+
+- `remoteSettings.password` 與遠端 `auth token` 不再持久化到 `localStorage`。
+- 遠端非 localhost 連線預設要求 `wss://`。
+- WebSocket Query 認證預設停用，改用連線後傳送 auth message。
+
+### 遷移指引（舊專案升級）
+
+1. 若既有模板使用 `customScript`，請先計算腳本 SHA-256，並加入 `trustedScriptHashes`。
+2. 僅在必要相容期間啟用：
+
+```ts
+el.setSecurityPolicy({
+  allowLegacyCustomScript: true,
+  trustedScriptHashes: ['<your-sha256-hex>']
+})
+```
+
+3. 若舊版列印服務仍依賴 Query 認證，可短期開啟：
+
+```ts
+el.setSecurityPolicy({ allowLegacyWsQueryAuth: true })
+```
+
+4. 建議最多保留 1 個版本相容期，下一版本移除 legacy fallback。

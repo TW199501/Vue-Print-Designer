@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import cloneDeep from 'lodash/cloneDeep';
 import { useDesignerStore } from './designer';
 import { getCrudConfig, buildEndpoint } from '@/utils/crudConfig';
+import { applyPagesDefaults, normalizeCanvasSize, normalizeUnit, normalizeWatermark } from '@/utils/designerDefaults';
 
 export interface Template {
   id: string;
@@ -254,8 +255,8 @@ export const useTemplateStore = defineStore('templates', {
           const designerStore = useDesignerStore();
           designerStore.resetCanvas();
           const data = t.data || {};
-          if (data.pages) designerStore.pages = data.pages;
-          if (data.canvasSize) designerStore.canvasSize = data.canvasSize;
+          if (data.pages) designerStore.pages = applyPagesDefaults(data.pages);
+          if (data.canvasSize) designerStore.canvasSize = normalizeCanvasSize(data.canvasSize);
           if (data.guides) designerStore.guides = data.guides;
           if (data.zoom !== undefined) designerStore.zoom = data.zoom;
           if (data.showGrid !== undefined) designerStore.showGrid = data.showGrid;
@@ -267,8 +268,8 @@ export const useTemplateStore = defineStore('templates', {
           if (data.canvasBackground !== undefined) designerStore.canvasBackground = data.canvasBackground;
           if (data.pageSpacingX !== undefined) designerStore.pageSpacingX = data.pageSpacingX;
           if (data.pageSpacingY !== undefined) designerStore.pageSpacingY = data.pageSpacingY;
-          if (data.unit !== undefined) designerStore.unit = data.unit;
-          if (data.watermark !== undefined) designerStore.watermark = data.watermark;
+          if (data.unit !== undefined) designerStore.unit = normalizeUnit(data.unit);
+          if (data.watermark !== undefined) designerStore.watermark = normalizeWatermark(data.watermark);
           designerStore.testData = data.testData || {};
           designerStore.selectedElementId = null;
           designerStore.selectedGuideId = null;
@@ -291,8 +292,8 @@ export const useTemplateStore = defineStore('templates', {
         const data = t.data;
         
         // Restore state
-        if (data.pages) designerStore.pages = data.pages;
-        if (data.canvasSize) designerStore.canvasSize = data.canvasSize;
+        if (data.pages) designerStore.pages = applyPagesDefaults(data.pages);
+        if (data.canvasSize) designerStore.canvasSize = normalizeCanvasSize(data.canvasSize);
         if (data.guides) designerStore.guides = data.guides;
         if (data.zoom !== undefined) designerStore.zoom = data.zoom;
         if (data.showGrid !== undefined) designerStore.showGrid = data.showGrid;
@@ -304,8 +305,8 @@ export const useTemplateStore = defineStore('templates', {
         if (data.canvasBackground !== undefined) designerStore.canvasBackground = data.canvasBackground;
         if (data.pageSpacingX !== undefined) designerStore.pageSpacingX = data.pageSpacingX;
         if (data.pageSpacingY !== undefined) designerStore.pageSpacingY = data.pageSpacingY;
-        if (data.unit !== undefined) designerStore.unit = data.unit;
-        if (data.watermark !== undefined) designerStore.watermark = data.watermark;
+        if (data.unit !== undefined) designerStore.unit = normalizeUnit(data.unit);
+        if (data.watermark !== undefined) designerStore.watermark = normalizeWatermark(data.watermark);
         designerStore.testData = data.testData || {};
         
         // Reset selection and history

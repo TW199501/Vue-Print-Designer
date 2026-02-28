@@ -3,6 +3,7 @@ import { computed, ref, onMounted, onUnmounted, nextTick, inject, type Ref } fro
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import { ElementType } from '@/types';
+import { getElementSizeDefaults, getElementStyleDefaults } from '@/utils/designerDefaults';
 import ElementWrapper from '../elements/ElementWrapper.vue';
 import TextElement from '../elements/TextElement.vue';
 import ImageElement from '../elements/ImageElement.vue';
@@ -191,6 +192,9 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
   const x = (event.clientX - rect.left) / store.zoom;
   const y = (event.clientY - rect.top) / store.zoom;
+  const elementType = Object.values(ElementType).includes(type as ElementType)
+    ? (type as ElementType)
+    : ElementType.TEXT;
 
   if (payload) {
     store.addElement({
@@ -202,72 +206,45 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     return;
   }
 
-  const widthMap: Partial<Record<ElementType, number>> = {
-    [ElementType.PAGE_NUMBER]: 52,
-    [ElementType.BARCODE]: 200,
-    [ElementType.QRCODE]: 100,
-    [ElementType.LINE]: 200,
-    [ElementType.RECT]: 100,
-    [ElementType.CIRCLE]: 100,
-  };
-
-  const heightMap: Partial<Record<ElementType, number>> = {
-    [ElementType.PAGE_NUMBER]: 20,
-    [ElementType.BARCODE]: 80,
-    [ElementType.QRCODE]: 100,
-    [ElementType.TABLE]: 150,
-    [ElementType.LINE]: 20,
-    [ElementType.RECT]: 100,
-    [ElementType.CIRCLE]: 100,
-  };
+  const defaultSize = getElementSizeDefaults(elementType);
 
   const newElement = {
-    type,
+    type: elementType,
     x,
     y,
-    width: widthMap[type as ElementType] || 200,
-    height: heightMap[type as ElementType] || 100,
+    width: defaultSize.width,
+    height: defaultSize.height,
     variable: '',
-    style: {
-      fontSize: 14,
-      color: '#000000',
-      ...(type === ElementType.RECT || type === ElementType.CIRCLE || type === ElementType.PAGE_NUMBER ? { backgroundColor: 'transparent' } : {}),
-      ...(type === ElementType.TABLE ? {
-        headerBackgroundColor: '#f3f4f6',
-        headerColor: '#000000',
-        footerBackgroundColor: '#f9fafb',
-        footerColor: '#000000'
-      } : {})
-    },
-    content: type === ElementType.TEXT ? t('canvas.newText') 
-      : type === ElementType.BARCODE ? '12345678'
-      : type === ElementType.QRCODE ? 'https://example.com'
+    style: getElementStyleDefaults(elementType),
+    content: elementType === ElementType.TEXT ? t('canvas.newText') 
+      : elementType === ElementType.BARCODE ? '12345678'
+      : elementType === ElementType.QRCODE ? 'https://example.com'
       : '',
-    format: type === ElementType.PAGE_NUMBER ? '1/Total' : undefined,
+    format: elementType === ElementType.PAGE_NUMBER ? '1/Total' : undefined,
     // Dummy data for table
-    columns: type === ElementType.TABLE ? [
+    columns: elementType === ElementType.TABLE ? [
       { field: 'id', header: t('canvas.defaultTableHeaders.id'), width: 50 },
       { field: 'name', header: t('canvas.defaultTableHeaders.name'), width: 100 },
       { field: 'qty', header: t('canvas.defaultTableHeaders.qty'), width: 60 },
       { field: 'price', header: t('canvas.defaultTableHeaders.price'), width: 80 },
       { field: 'total', header: t('canvas.defaultTableHeaders.total'), width: 80 },
     ] : undefined,
-    data: type === ElementType.TABLE ? Array.from({ length: 30 }, (_, i) => ({
+    data: elementType === ElementType.TABLE ? Array.from({ length: 30 }, (_, i) => ({
       id: i + 1,
       name: `${t('canvas.defaultTableData.item')} ${i + 1}`,
       qty: (i % 5) + 1,
       price: 100 + (i * 10),
       total: ((i % 5) + 1) * (100 + (i * 10))
     })) : undefined,
-    showFooter: type === ElementType.TABLE ? true : undefined,
-    tfootRepeat: type === ElementType.TABLE ? true : undefined,
-    autoPaginate: type === ElementType.TABLE ? true : undefined,
-    footerData: type === ElementType.TABLE ? [
+    showFooter: elementType === ElementType.TABLE ? true : undefined,
+    tfootRepeat: elementType === ElementType.TABLE ? true : undefined,
+    autoPaginate: elementType === ElementType.TABLE ? true : undefined,
+    footerData: elementType === ElementType.TABLE ? [
       { id: { value: t('canvas.defaultTableData.pageSum') }, qty: { value: '', field: '{#pageQty}' }, total: { value: '', field: '{#pageSum}' } },
       { id: { value: t('canvas.defaultTableData.total') }, qty: { value: '', field: '{#totalQty}' }, total: { value: '', field: '{#totalSum}' } },
       { id: { value: t('canvas.defaultTableData.inWords') }, total: { value: '', field: '{#totalCap}' } }
     ] : undefined,
-    customScript: type === ElementType.TABLE ? `// RMB Uppercase Conversion
+    customScript: elementType === ElementType.TABLE ? `// RMB Uppercase Conversion
 try {
   function digitUppercase(n) {
       var fraction = ['角', '分'];

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, inject } from 'vue';
+import { ref, onMounted, onUnmounted, watch, inject, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { usePrint } from '@/utils/print';
 import { useTemplateStore } from '@/stores/templates';
@@ -17,7 +17,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 const props = defineProps<{
   visible: boolean;
-  htmlContent: string;
+  previewNode: HTMLElement | null;
   width: number;
 }>();
 
@@ -38,6 +38,15 @@ const jsonContent = ref('');
 const modalTitle = ref('');
 const modalLanguage = ref('json');
 
+const renderPreviewNode = () => {
+  if (!previewContainer.value) return;
+  previewContainer.value.innerHTML = '';
+  if (!props.previewNode) return;
+
+  const clone = props.previewNode.cloneNode(true) as HTMLElement;
+  previewContainer.value.appendChild(clone);
+};
+
 const setPreviewingState = (active: boolean) => {
   document.documentElement.classList.toggle('previewing', active);
   document.body.classList.toggle('previewing', active);
@@ -49,6 +58,18 @@ watch(() => props.visible, (val) => {
   }
   store.setDisableGlobalShortcuts(val);
   setPreviewingState(val);
+  if (val) {
+    nextTick(() => {
+      renderPreviewNode();
+    });
+  }
+});
+
+watch(() => props.previewNode, () => {
+  if (!props.visible) return;
+  nextTick(() => {
+    renderPreviewNode();
+  });
 });
 
 const handleClose = () => {
@@ -241,7 +262,6 @@ onUnmounted(() => {
             ref="previewContainer"
             class="preview-content"
             :style="`width: ${width}px; zoom: ${zoomPercent / 100}`"
-            v-html="htmlContent"
           ></div>
         </div>
 

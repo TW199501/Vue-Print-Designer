@@ -7,6 +7,7 @@
 - Events
 - Print and Export Parameters
 - Common Scenarios
+- Security Hardening and Migration
 - Notes
 
 ## Quick Start
@@ -117,6 +118,14 @@ The component does not require a dedicated `init` method. Configure the followin
 | `setCrudEndpoints` | `options.headers` | `Record<string, string>` | No | Request headers |
 | `setCrudMode` | `mode` | `'local' \| 'remote'` | Yes | CRUD mode |
 
+**5) Security Policy (Recommended)**
+
+| Method | Param | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `setSecurityPolicy` | `allowLegacyCustomScript` | `boolean` | No | Allow legacy custom script execution (default `false`) |
+| `setSecurityPolicy` | `trustedScriptHashes` | `string[]` | No | SHA-256 hex allowlist for legacy scripts |
+| `setSecurityPolicy` | `allowLegacyWsQueryAuth` | `boolean` | No | Allow legacy WebSocket query auth (`?key=` / `?token=`), default `false` |
+
 ### 1) print(request?)
 
 Description: trigger printing. If `mode` is omitted, default mode is used.
@@ -175,6 +184,12 @@ el.setPrintDefaults({
   remotePrintOptions: { printer: 'Cloud Printer' }
 })
 ```
+
+Security defaults in current version:
+
+- `remoteSettings.password` and remote auth token are not persisted to `localStorage`.
+- Remote non-localhost WebSocket must use `wss://`.
+- Query-based WebSocket auth is disabled by default; use `setSecurityPolicy({ allowLegacyWsQueryAuth: true })` only for short-term migration.
 
 Parameters:
 
@@ -567,6 +582,48 @@ Response:
   }
 }
 ```
+
+## Security Hardening and Migration (2026)
+
+### `setSecurityPolicy(policy)`
+
+Use the security policy to explicitly control legacy compatibility paths:
+
+```ts
+el.setSecurityPolicy({
+  allowLegacyCustomScript: false,
+  trustedScriptHashes: [],
+  allowLegacyWsQueryAuth: false
+})
+```
+
+Field details:
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `allowLegacyCustomScript` | `boolean` | `false` | Enables legacy `customScript` execution path |
+| `trustedScriptHashes` | `string[]` | `[]` | SHA-256 hex allowlist for approved legacy scripts |
+| `allowLegacyWsQueryAuth` | `boolean` | `false` | Enables legacy query auth (`?key=` / `?token=`) for short-term fallback |
+
+### Migration Steps for Existing Integrations
+
+1. If old templates use `customScript`, compute SHA-256 hashes and add them to `trustedScriptHashes`.
+2. Enable legacy script execution only when needed:
+
+```ts
+el.setSecurityPolicy({
+  allowLegacyCustomScript: true,
+  trustedScriptHashes: ['<your-sha256-hex>']
+})
+```
+
+3. If your existing print gateway still requires query auth, use temporary fallback:
+
+```ts
+el.setSecurityPolicy({ allowLegacyWsQueryAuth: true })
+```
+
+4. Keep compatibility fallback for at most one release, then remove it.
 
 ## Notes
 

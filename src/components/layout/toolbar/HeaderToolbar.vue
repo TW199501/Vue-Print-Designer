@@ -137,10 +137,10 @@ const handleViewPdfBlob = async () => {
 };
 
 const showPreview = ref(false);
-const previewContent = ref('');
+const previewContent = ref<HTMLElement | null>(null);
 const showExportMenu = ref(false);
 const showPrintDialog = ref(false);
-const pendingPrintContent = ref<HTMLElement[] | HTMLElement | string | null>(null);
+const pendingPrintContent = ref<HTMLElement[] | HTMLElement | null>(null);
 
 const activePrintOptions = computed<PrintOptions>(() => {
   return printMode.value === 'remote' ? remotePrintOptions : localPrintOptions;
@@ -249,6 +249,7 @@ const fontOptions = computed(() => [
   { label: t('editor.fonts.timesNewRoman'), value: '"Times New Roman", serif' },
   { label: t('editor.fonts.courierNew'), value: '"Courier New", monospace' },
   { label: t('editor.fonts.simSun'), value: 'SimSun, serif' },
+  { label: t('editor.fonts.biauKai'), value: '"DFKai-SB", "BiauKai", serif' },
   { label: t('editor.fonts.simHei'), value: 'SimHei, sans-serif' }
 ]);
 
@@ -700,7 +701,7 @@ onUnmounted(() => {
 
   <PreviewModal 
     v-model:visible="showPreview"
-    :html-content="previewContent"
+    :preview-node="previewContent"
     :width="store.canvasSize.width"
   />
 

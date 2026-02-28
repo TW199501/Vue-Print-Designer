@@ -87,6 +87,7 @@ export default {
       timesNewRoman: 'Times New Roman',
       courierNew: 'Courier New',
       simSun: 'SimSun (宋体)',
+      biauKai: 'BiauKai (DFKai-SB)',
       simHei: 'SimHei (黑体)'
     },
     bold: 'Bold',
@@ -324,6 +325,7 @@ export default {
       timesNewRoman: 'Times New Roman',
       courierNew: 'Courier New',
       simSun: 'SimSun (宋体)',
+      biauKai: 'BiauKai (DFKai-SB)',
       simHei: 'SimHei (黑体)',
       page1: 'Page 1',
       oneTotal: '1/Total',
@@ -462,7 +464,8 @@ export default {
     retrying: 'Retrying ({count}/{max})',
     cancelRetry: 'Cancel Retry',
     selectLanguage: 'Select Language',
-    zhLabel: 'Chinese',
+    zhLabel: 'Simplified Chinese',
+    zhTwLabel: 'Traditional Chinese',
     enLabel: 'English'
   },
   printDialog: {
