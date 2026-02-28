@@ -116,6 +116,10 @@ watch(() => store.canvasSize, (newSize) => {
     selectedPaper.value = 'CUSTOM';
   }
 }, { immediate: true });
+
+watch(showAdvancedSettings, (val) => {
+  store.setDisableGlobalShortcuts(val);
+});
 </script>
 
 <template>
