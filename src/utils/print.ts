@@ -26,8 +26,8 @@ export const usePrint = () => {
     localPrintOptions,
     remotePrintOptions,
     localWsUrl,
-    remoteWsUrl,
     remoteSelectedClientId,
+    submitRemoteTask,
     exportImageMerged
   } = usePrintSettings();
 
@@ -1103,57 +1103,6 @@ export const usePrint = () => {
     return payload;
   };
 
-  const sendWsPrintOnce = (url: string, payload: Record<string, any>, waitFor: 'status' | 'task_result') => new Promise<void>((resolve, reject) => {
-    let resolved = false;
-    const socket = new WebSocket(url);
-    const timeoutId = window.setTimeout(() => {
-      if (resolved) return;
-      resolved = true;
-      socket.close();
-      reject(new Error('Print request timeout'));
-    }, 30000);
-
-    socket.onopen = () => {
-      socket.send(JSON.stringify(payload));
-    };
-
-    socket.onmessage = (event) => {
-      if (resolved) return;
-      try {
-        const msg = JSON.parse(event.data);
-        if (waitFor === 'status' && (msg.status === 'success' || msg.status === 'error')) {
-          resolved = true;
-          window.clearTimeout(timeoutId);
-          socket.close();
-          if (msg.status === 'success') resolve();
-          else reject(new Error(msg.message || 'Print failed'));
-          return;
-        }
-
-        if (waitFor === 'task_result' && msg.cmd === 'task_result') {
-          resolved = true;
-          window.clearTimeout(timeoutId);
-          socket.close();
-          resolve();
-          return;
-        }
-      } catch (error) {
-        resolved = true;
-        window.clearTimeout(timeoutId);
-        socket.close();
-        reject(error instanceof Error ? error : new Error('Print failed'));
-      }
-    };
-
-    socket.onerror = () => {
-      if (resolved) return;
-      resolved = true;
-      window.clearTimeout(timeoutId);
-      socket.close();
-      reject(new Error('Print connection failed'));
-    };
-  });
-
   let localSocket: WebSocket | null = null;
   let localSocketUrl = '';
   let localSocketPromise: Promise<WebSocket> | null = null;
@@ -1306,7 +1255,7 @@ export const usePrint = () => {
       const payload = buildPrintPayload(options, dataUrl);
       payload.cmd = 'submit_task';
       payload.client_id = remoteSelectedClientId.value;
-      await sendWsPrintOnce(remoteWsUrl.value, payload, 'task_result');
+      await submitRemoteTask(payload);
     } catch (error) {
       console.error('Print failed', error);
       alert('Print failed');

@@ -83,6 +83,7 @@ interface PrintSettingsState {
   fetchRemoteClients: () => Promise<RemoteClientInfo[]>;
   fetchRemotePrinters: (clientId?: string) => Promise<RemotePrinterInfo[]>;
   fetchLocalPrinterCaps: (printer: string) => Promise<LocalPrinterCaps | undefined>;
+  submitRemoteTask: (payload: Record<string, any>) => Promise<void>;
   cancelLocalRetry: () => void;
   cancelRemoteRetry: () => void;
   connectLocal: () => Promise<void>;
@@ -289,6 +290,8 @@ const createState = (): PrintSettingsState => {
   const remoteManualDisconnect = ref(false);
   const retryIntervalMs = 3000;
   const maxRetries = 10;
+  const remoteClientsPoller = ref<number | null>(null);
+  const remoteClientsPollIntervalMs = 30000;
 
   const localWsUrl = computed(() => {
     const base = buildWsUrlFromAddress(localSettings.wsAddress);
@@ -766,6 +769,41 @@ const createState = (): PrintSettingsState => {
     return remotePrinters.value;
   };
 
+  const submitRemoteTask = async (payload: Record<string, any>) => {
+    await connectRemote();
+    await sendWithWait<{ cmd: 'task_result'; task_id?: string; status?: string; message?: string }>(
+      remoteSocket,
+      remoteWaiters,
+      payload,
+      (msg): msg is { cmd: 'task_result'; task_id?: string; status?: string; message?: string } => msg?.cmd === 'task_result',
+      30000
+    );
+  };
+
+  const stopRemoteClientsPolling = () => {
+    if (remoteClientsPoller.value) {
+      window.clearInterval(remoteClientsPoller.value);
+      remoteClientsPoller.value = null;
+    }
+  };
+
+  const startRemoteClientsPolling = () => {
+    if (remoteClientsPoller.value) return;
+    remoteClientsPoller.value = window.setInterval(() => {
+      if (remoteStatus.value !== 'connected') return;
+      fetchRemoteClients().catch(() => {});
+    }, remoteClientsPollIntervalMs);
+  };
+
+  watch(remoteStatus, (status) => {
+    if (status === 'connected') {
+      fetchRemoteClients().catch(() => {});
+      startRemoteClientsPolling();
+      return;
+    }
+    stopRemoteClientsPolling();
+  }, { immediate: true });
+
 
 
   return {
@@ -794,6 +832,7 @@ const createState = (): PrintSettingsState => {
     fetchRemoteClients,
     fetchRemotePrinters,
     fetchLocalPrinterCaps,
+    submitRemoteTask,
     cancelLocalRetry,
     cancelRemoteRetry,
     connectLocal,
