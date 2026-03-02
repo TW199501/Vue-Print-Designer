@@ -290,6 +290,8 @@ const createState = (): PrintSettingsState => {
   const remoteManualDisconnect = ref(false);
   const retryIntervalMs = 3000;
   const maxRetries = 10;
+  const localPrintersPoller = ref<number | null>(null);
+  const localPrintersPollIntervalMs = 30000;
   const remoteClientsPoller = ref<number | null>(null);
   const remoteClientsPollIntervalMs = 30000;
 
@@ -769,6 +771,21 @@ const createState = (): PrintSettingsState => {
     return remotePrinters.value;
   };
 
+  const stopLocalPrintersPolling = () => {
+    if (localPrintersPoller.value) {
+      window.clearInterval(localPrintersPoller.value);
+      localPrintersPoller.value = null;
+    }
+  };
+
+  const startLocalPrintersPolling = () => {
+    if (localPrintersPoller.value) return;
+    localPrintersPoller.value = window.setInterval(() => {
+      if (localStatus.value !== 'connected') return;
+      fetchLocalPrinters().catch(() => {});
+    }, localPrintersPollIntervalMs);
+  };
+
   const submitRemoteTask = async (payload: Record<string, any>) => {
     await connectRemote();
     await sendWithWait<{ cmd: 'task_result'; task_id?: string; status?: string; message?: string }>(
@@ -802,6 +819,15 @@ const createState = (): PrintSettingsState => {
       return;
     }
     stopRemoteClientsPolling();
+  }, { immediate: true });
+
+  watch(localStatus, (status) => {
+    if (status === 'connected') {
+      fetchLocalPrinters().catch(() => {});
+      startLocalPrintersPolling();
+      return;
+    }
+    stopLocalPrintersPolling();
   }, { immediate: true });
 
 
