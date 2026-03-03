@@ -849,8 +849,17 @@ export const usePrint = () => {
 
             // MARK WRAPPERS for pagination logic BEFORE cleaning
             const wrappers = clone.querySelectorAll('.element-wrapper');
-            wrappers.forEach(w => w.setAttribute('data-print-wrapper', 'true'));
-
+            wrappers.forEach(w => {
+                const el = w as HTMLElement;
+                el.setAttribute('data-print-wrapper', 'true');
+                const top = parseFloat(el.style.top || '');
+                const height = parseFloat(el.style.height || '');
+                const resolvedTop = Number.isFinite(top) ? top : 0;
+                const resolvedHeight = Number.isFinite(height) ? height : el.getBoundingClientRect().height;
+                el.setAttribute('data-original-top', `${resolvedTop}`);
+                el.setAttribute('data-original-height', `${resolvedHeight}`);
+            });
+            
             // Clean up the clone
             cleanElement(clone);
             
