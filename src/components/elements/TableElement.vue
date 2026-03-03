@@ -179,9 +179,9 @@ const isSelecting = ref(false);
 const startCell = ref<{ rowIndex: number; colField: string; section: 'body' | 'footer' } | null>(null);
 
 const processedData = computed(() => {
-  const cols = props.element.columns || [];
-  let data = props.element.data || [];
-  let footerData = props.element.footerData || [];
+  const cols = Array.isArray(props.element.columns) ? props.element.columns : [];
+  let data = Array.isArray(props.element.data) ? props.element.data : [];
+  let footerData = Array.isArray(props.element.footerData) ? props.element.footerData : [];
 
   if (store.isExporting && props.element.variable) {
     const key = normalizeVariableKey(props.element.variable);
@@ -589,7 +589,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
               class="border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
               :placeholder="t('properties.label.headerNamePlaceholder')"
               @keydown.enter="saveHeaderEdit"
-              autoFocus
+              autofocus
             />
           </div>
           <div class="flex flex-col gap-1">
@@ -611,7 +611,7 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
               class="border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
               :placeholder="t('properties.label.displayTextPlaceholder')"
               @keydown.enter="saveHeaderEdit"
-              autoFocus
+              autofocus
             />
           </div>
           <div class="flex flex-col gap-1">
