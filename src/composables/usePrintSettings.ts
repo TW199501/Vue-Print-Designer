@@ -41,6 +41,17 @@ export interface RemotePrinterInfo {
   paper_spec?: string;
   is_ready?: boolean;
   supported_format?: string;
+  capabilities?: {
+    papers?: string[];
+    paperSizes?: string[];
+    printerPaperNames?: string[];
+    duplexSupported?: boolean;
+    colorSupported?: boolean;
+    config?: {
+      paperSize?: string;
+    };
+    [key: string]: any;
+  };
 }
 
 export interface RemoteClientInfo {
@@ -550,7 +561,13 @@ const createState = (): PrintSettingsState => {
           }
         }
         if (data?.cmd === 'printers_list') {
-          remotePrinters.value = Array.isArray(data.printers) ? data.printers : [];
+          const list = Array.isArray(data.printers) ? data.printers : [];
+          remotePrinters.value = list.map((p: RemotePrinterInfo) => {
+            if (!p.paper_spec && p.capabilities?.config?.paperSize) {
+              return { ...p, paper_spec: p.capabilities.config.paperSize };
+            }
+            return p;
+          });
         }
         resolveWaiters(remoteWaiters, data);
       } catch (error) {
@@ -767,7 +784,13 @@ const createState = (): PrintSettingsState => {
       (msg): msg is { cmd: 'printers_list'; printers: RemotePrinterInfo[] } => msg?.cmd === 'printers_list'
     );
 
-    remotePrinters.value = Array.isArray(data.printers) ? data.printers : [];
+    const list = Array.isArray(data.printers) ? data.printers : [];
+    remotePrinters.value = list.map((p: RemotePrinterInfo) => {
+      if (!p.paper_spec && p.capabilities?.config?.paperSize) {
+        return { ...p, paper_spec: p.capabilities.config.paperSize };
+      }
+      return p;
+    });
     return remotePrinters.value;
   };
 

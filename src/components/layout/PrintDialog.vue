@@ -83,10 +83,20 @@ const localCaps = computed<LocalPrinterCaps | undefined>(() => {
 });
 
 const paperSizeOptions = computed(() => {
-  if (props.mode !== 'local') return [];
-  const caps = localCaps.value;
-  const sizes = caps?.printerPaperNames?.length ? caps.printerPaperNames : caps?.paperSizes || [];
-  return Array.from(new Set(sizes)).filter(Boolean);
+  if (props.mode === 'local') {
+    const caps = localCaps.value;
+    const sizes = caps?.printerPaperNames?.length ? caps.printerPaperNames : caps?.paperSizes || [];
+    return Array.from(new Set(sizes)).filter(Boolean);
+  }
+  if (props.mode === 'remote') {
+    const caps = selectedRemotePrinter.value?.capabilities;
+    const sizes = caps?.printerPaperNames || caps?.papers || caps?.paperSizes || [];
+    if (sizes.length === 0 && selectedRemotePrinter.value?.paper_spec) {
+      return [selectedRemotePrinter.value.paper_spec];
+    }
+    return Array.from(new Set(sizes)).filter(Boolean);
+  }
+  return [];
 });
 
 const printerOptions = computed(() => {
@@ -101,13 +111,23 @@ const printerOptions = computed(() => {
 });
 
 const colorSupported = computed(() => {
-  if (props.mode !== 'local') return true;
-  return localCaps.value?.colorSupported !== false;
+  if (props.mode === 'local') {
+    return localCaps.value?.colorSupported !== false;
+  }
+  if (props.mode === 'remote') {
+    return selectedRemotePrinter.value?.capabilities?.colorSupported !== false;
+  }
+  return true;
 });
 
 const duplexSupported = computed(() => {
-  if (props.mode !== 'local') return true;
-  return localCaps.value?.duplexSupported !== false;
+  if (props.mode === 'local') {
+    return localCaps.value?.duplexSupported !== false;
+  }
+  if (props.mode === 'remote') {
+    return selectedRemotePrinter.value?.capabilities?.duplexSupported !== false;
+  }
+  return true;
 });
 
 const selectedRemotePrinter = computed(() => {
@@ -184,18 +204,24 @@ watch(() => form.printer, async (next, prev) => {
   if (!props.show || next === prev) return;
   if (props.mode === 'local') {
     await loadCaps(next);
-    if (paperSizeOptions.value.length && !form.paperSize) {
-      form.paperSize = paperSizeOptions.value[0];
-    }
-  } else if (props.mode === 'remote') {
-    const info = (remotePrinters.value || []).find(p => p.printer_name === next);
-    if (info?.paper_spec && !form.paperSize) {
-      form.paperSize = info.paper_spec;
-    }
+  }
+  
+  if (paperSizeOptions.value.length && !form.paperSize) {
+    form.paperSize = paperSizeOptions.value[0];
   }
 });
 
 watch(localCaps, (caps) => {
+  if (!caps) return;
+  if (caps.colorSupported === false && form.colorMode === 'color') {
+    form.colorMode = 'monochrome';
+  }
+  if (caps.duplexSupported === false && form.sidesMode.startsWith('duplex')) {
+    form.sidesMode = 'simplex';
+  }
+});
+
+watch(() => selectedRemotePrinter.value?.capabilities, (caps) => {
   if (!caps) return;
   if (caps.colorSupported === false && form.colorMode === 'color') {
     form.colorMode = 'monochrome';
@@ -301,13 +327,7 @@ onUnmounted(() => {
               {{ t('printDialog.remoteClientEmpty') }}
             </div>
             <div v-else-if="activePrinters.length === 0" class="text-xs text-gray-500">{{ t('printDialog.printerEmpty') }}</div>
-            <div v-if="props.mode === 'remote' && selectedRemotePrinter" class="text-xs text-gray-500">
-              {{ t('printDialog.remotePrinterInfo', {
-                type: selectedRemotePrinter.printer_type || '-',
-                paper: selectedRemotePrinter.paper_spec || '-',
-                format: selectedRemotePrinter.supported_format || '-'
-              }) }}
-            </div>
+
             <div class="grid grid-cols-3 gap-4">
               <label class="flex flex-col gap-1">
                 <span class="text-xs text-gray-500">{{ t('printDialog.copies') }}</span>
