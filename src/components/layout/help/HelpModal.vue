@@ -168,7 +168,7 @@ const projectName = startCase(pkg.name);
                     target="_blank"
                     rel="noopener noreferrer"
                     class="group inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[11px] text-gray-700 shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                    :title="t('help.github')"
+                    title="https://github.com/0ldFive/Vue-Print-Designer"
                   >
                     <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm transition-colors group-hover:text-blue-700">
                       <svg viewBox="0 0 16 16" aria-hidden="true" class="w-3.5 h-3.5">
@@ -177,7 +177,7 @@ const projectName = startCase(pkg.name);
                     </span>
                     <span class="text-gray-500 group-hover:text-blue-600">0ldFive/Vue-Print-Designer</span>
                     <span class="text-gray-400">|</span>
-                    <span class="text-gray-600">{{ t('help.version') }} {{ version }}</span>
+                    <span class="text-gray-600 group-hover:text-blue-600">{{ t('help.version') }} {{ version }}</span>
                   </a>
                 </div>
               </div>
