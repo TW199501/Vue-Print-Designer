@@ -3,15 +3,26 @@ import type {
   DesignerPrintRequest,
   DesignerPrintDefaults
 } from './web-component';
+import type {
+  LocalPrinterInfo,
+  RemotePrinterInfo,
+  LocalPrinterCaps,
+  RemoteClientInfo
+} from './composables/usePrintSettings';
 
 export interface PrintDesignerElement extends HTMLElement {
   print(request?: DesignerPrintRequest): Promise<void>;
   export(request: DesignerExportRequest): Promise<void | Blob>;
   setPrintDefaults(payload?: DesignerPrintDefaults): void;
+  fetchLocalPrinters(): Promise<LocalPrinterInfo[]>;
+  fetchLocalPrinterCaps(printer: string): Promise<LocalPrinterCaps | undefined>;
+  fetchRemotePrinters(clientId?: string): Promise<RemotePrinterInfo[]>;
+  fetchRemoteClients(): Promise<RemoteClientInfo[]>;
 
   setBranding(payload?: { title?: string; logoUrl?: string; showTitle?: boolean; showLogo?: boolean }): void;
   setBrandVars(vars: Record<string, string>, options?: { persist?: boolean }): void;
   setTheme(theme: string): void;
+  setDesignerFont(fontFamily: string, options?: { persist?: boolean }): void;
   setLanguage(lang: 'zh' | 'en'): void;
 
   getVariables(): Record<string, any>;

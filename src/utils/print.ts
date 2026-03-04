@@ -157,6 +157,31 @@ export const usePrint = () => {
     };
   };
 
+  const lockViewportScroll = () => {
+    const previousHtmlOverflowX = document.documentElement.style.overflowX;
+    const previousHtmlOverflowY = document.documentElement.style.overflowY;
+    const previousHtmlScrollbarGutter = document.documentElement.style.scrollbarGutter;
+    const previousBodyOverflowX = document.body.style.overflowX;
+    const previousBodyOverflowY = document.body.style.overflowY;
+    const previousBodyScrollbarGutter = document.body.style.scrollbarGutter;
+
+    document.documentElement.style.overflowX = 'hidden';
+    document.documentElement.style.overflowY = 'hidden';
+    document.documentElement.style.scrollbarGutter = 'stable';
+    document.body.style.overflowX = 'hidden';
+    document.body.style.overflowY = 'hidden';
+    document.body.style.scrollbarGutter = 'stable';
+
+    return () => {
+      document.documentElement.style.overflowX = previousHtmlOverflowX;
+      document.documentElement.style.overflowY = previousHtmlOverflowY;
+      document.documentElement.style.scrollbarGutter = previousHtmlScrollbarGutter;
+      document.body.style.overflowX = previousBodyOverflowX;
+      document.body.style.overflowY = previousBodyOverflowY;
+      document.body.style.scrollbarGutter = previousBodyScrollbarGutter;
+    };
+  };
+
   const cleanElement = (element: HTMLElement) => {
     // Remove interactive classes
     element.classList.remove(
@@ -1063,6 +1088,7 @@ export const usePrint = () => {
 
     const createPdfDocument = async (content: HTMLElement | string | HTMLElement[]) => {
     const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
+    const restoreViewport = lockViewportScroll();
 
     const width = store.canvasSize.width;
     const height = store.canvasSize.height;
@@ -1101,6 +1127,7 @@ export const usePrint = () => {
       if (cleanup) {
         cleanup();
       }
+      restoreViewport();
       restore();
     }
     };
@@ -1453,6 +1480,7 @@ export const usePrint = () => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
         const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
+        const restoreViewport = lockViewportScroll();
         
         const width = store.canvasSize.width;
         const height = store.canvasSize.height;
@@ -1504,6 +1532,7 @@ export const usePrint = () => {
           if (cleanup) {
             cleanup();
           }
+            restoreViewport();
             restore();
         }
     } catch (error) {
@@ -1516,6 +1545,7 @@ export const usePrint = () => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
         const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
+        const restoreViewport = lockViewportScroll();
         
         const width = store.canvasSize.width;
         const height = store.canvasSize.height;
@@ -1544,6 +1574,7 @@ export const usePrint = () => {
           if (cleanup) {
             cleanup();
           }
+            restoreViewport();
             restore();
         }
     } catch (error) {

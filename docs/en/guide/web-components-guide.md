@@ -83,6 +83,8 @@ The component does not require a dedicated `init` method. Configure the followin
 | `setBrandVars` | `vars` | `Record<string, string>` | Yes | Theme CSS variables |
 | `setBrandVars` | `options.persist` | `boolean` | No | Persist to local storage |
 | `setTheme` | `theme` | `'light' \| 'dark' \| 'system'` | Yes | Theme mode |
+| `setDesignerFont` | `fontFamily` | `string` | Yes | Designer font family |
+| `setDesignerFont` | `options.persist` | `boolean` | No | Persist to local storage |
 
 **2) Templates and Variables**
 
@@ -107,6 +109,15 @@ The component does not require a dedicated `init` method. Configure the followin
 | `setPrintDefaults` | `remoteSettings.password` | `string` | No | Remote password |
 | `setPrintDefaults` | `localPrintOptions` | `PrintOptions` | No | Local print options |
 | `setPrintDefaults` | `remotePrintOptions` | `PrintOptions` | No | Remote print options |
+
+**3.1) Printer and Client Queries (Local/Remote)**
+
+| Method | Param | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `fetchLocalPrinters` | - | - | No | Get local client printer list |
+| `fetchLocalPrinterCaps` | `printer` | `string` | Yes | Get local printer capabilities |
+| `fetchRemoteClients` | - | - | No | Get remote print client list |
+| `fetchRemotePrinters` | `clientId` | `string` | No | Get remote printer list |
 
 **4) Remote CRUD (Optional)**
 
@@ -192,7 +203,26 @@ Parameters:
 | `localPrintOptions` | `PrintOptions` | No | Local print options |
 | `remotePrintOptions` | `PrintOptions` | No | Remote print options |
 
-### 4) setBranding(payload?)
+### 4) fetchLocalPrinters() / fetchLocalPrinterCaps(printer) / fetchRemoteClients() / fetchRemotePrinters(clientId?)
+
+Description: query printers, printer capabilities, and clients for local/remote print modes.
+
+```ts
+const localPrinters = await el.fetchLocalPrinters()
+const localCaps = await el.fetchLocalPrinterCaps(localPrinters[0]?.name || '')
+
+const clients = await el.fetchRemoteClients()
+const remotePrinters = await el.fetchRemotePrinters(clients[0]?.client_id)
+```
+
+Parameters:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `printer` | `string` | Yes | Local printer name (for `fetchLocalPrinterCaps`) |
+| `clientId` | `string` | No | Remote client ID (for `fetchRemotePrinters`) |
+
+### 5) setBranding(payload?)
 
 Description: set title, logo, and visibility.
 
@@ -205,7 +235,7 @@ el.setBranding({
 })
 ```
 
-### 5) setBrandVars(vars, options?)
+### 6) setBrandVars(vars, options?)
 
 Description: set brand CSS variables.
 
@@ -223,7 +253,7 @@ Parameters:
 | `vars` | `Record<string, string>` | Yes | CSS variables |
 | `options.persist` | `boolean` | No | Persist to local storage |
 
-### 6) setTheme(theme)
+### 7) setTheme(theme)
 
 Description: switch theme.
 
@@ -237,7 +267,22 @@ Parameters:
 | --- | --- | --- | --- |
 | `theme` | `'light' \| 'dark' \| 'system'` | Yes | Theme mode |
 
-### 7) setVariables(vars, options?) / getVariables()
+### 8) setDesignerFont(fontFamily, options?)
+
+Description: set designer font family. Pass an empty string to reset to default inherited font.
+
+```ts
+el.setDesignerFont('"Microsoft YaHei", "PingFang SC", sans-serif', { persist: true })
+```
+
+Parameters:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `fontFamily` | `string` | Yes | Font family string |
+| `options.persist` | `boolean` | No | Persist to local storage |
+
+### 9) setVariables(vars, options?) / getVariables()
 
 Description: set or get variable data.
 
@@ -253,7 +298,7 @@ Parameters:
 | `vars` | `Record<string, any>` | Yes | Variables map |
 | `options.merge` | `boolean` | No | Merge or overwrite |
 
-### 8) getTemplateData() / loadTemplateData(data)
+### 10) getTemplateData() / loadTemplateData(data)
 
 Description: read/write current template data.
 
@@ -262,7 +307,7 @@ const data = el.getTemplateData()
 el.loadTemplateData({ id: 'tpl_1', name: 'A4 Template', data })
 ```
 
-### 9) Templates CRUD
+### 11) Templates CRUD
 
 ```ts
 const list = el.getTemplates({ includeData: false })
@@ -282,7 +327,7 @@ Parameters:
 | `upsertTemplate.setCurrent` | `boolean` | No | Set as current template |
 | `setTemplates.currentTemplateId` | `string` | No | Current template ID |
 
-### 10) Custom Elements CRUD
+### 12) Custom Elements CRUD
 
 ```ts
 const list = el.getCustomElements({ includeElement: false })
@@ -298,7 +343,7 @@ Parameters:
 | --- | --- | --- | --- |
 | `getCustomElements.includeElement` | `boolean` | No | Include element details |
 
-### 11) setCrudMode(mode)
+### 13) setCrudMode(mode)
 
 Description: switch CRUD mode.
 
@@ -313,7 +358,7 @@ Parameters:
 | --- | --- | --- | --- |
 | `mode` | `'local' \| 'remote'` | Yes | CRUD mode |
 
-### 12) setCrudEndpoints(endpoints, options?)
+### 14) setCrudEndpoints(endpoints, options?)
 
 Description: configure CRUD endpoints and headers.
 
@@ -350,7 +395,7 @@ Parameters:
 | `options.baseUrl` | `string` | No | Base URL (same as `endpoints.baseUrl`) |
 | `options.headers` | `Record<string, string>` | No | Request headers (auth, etc) |
 
-### 13) setLanguage(lang)
+### 15) setLanguage(lang)
 
 Description: switch language. You can also use `lang="en"` attribute to set initial language.
 

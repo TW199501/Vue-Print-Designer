@@ -83,6 +83,8 @@ el.setCrudMode('remote')
 | `setBrandVars` | `vars` | `Record<string, string>` | 是 | 主题色变量集合 |
 | `setBrandVars` | `options.persist` | `boolean` | 否 | 是否持久化 |
 | `setTheme` | `theme` | `'light' \| 'dark' \| 'system'` | 是 | 主题模式 |
+| `setDesignerFont` | `fontFamily` | `string` | 是 | 设计器字体 |
+| `setDesignerFont` | `options.persist` | `boolean` | 否 | 是否持久化 |
 
 **2) 模板与变量**
 
@@ -107,6 +109,15 @@ el.setCrudMode('remote')
 | `setPrintDefaults` | `remoteSettings.password` | `string` | 否 | 远程密码 |
 | `setPrintDefaults` | `localPrintOptions` | `PrintOptions` | 否 | 本地打印参数 |
 | `setPrintDefaults` | `remotePrintOptions` | `PrintOptions` | 否 | 远程打印参数 |
+
+**3.1) 打印机与客户端查询（本地/云）**
+
+| 方法 | 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `fetchLocalPrinters` | - | - | 否 | 获取本地客户端打印机列表 |
+| `fetchLocalPrinterCaps` | `printer` | `string` | 是 | 获取本地打印机能力 |
+| `fetchRemoteClients` | - | - | 否 | 获取云打印客户端列表 |
+| `fetchRemotePrinters` | `clientId` | `string` | 否 | 获取云打印机列表 |
 
 **4) 远程 CRUD（可选）**
 
@@ -192,7 +203,26 @@ el.setPrintDefaults({
 | `localPrintOptions` | `PrintOptions` | 否 | 本地打印参数 |
 | `remotePrintOptions` | `PrintOptions` | 否 | 远程打印参数 |
 
-### 4) setBranding(payload?)
+### 4) fetchLocalPrinters() / fetchLocalPrinterCaps(printer) / fetchRemoteClients() / fetchRemotePrinters(clientId?)
+
+说明：用于本地与云打印场景下获取打印机、打印机能力、客户端列表。
+
+```ts
+const localPrinters = await el.fetchLocalPrinters()
+const localCaps = await el.fetchLocalPrinterCaps(localPrinters[0]?.name || '')
+
+const clients = await el.fetchRemoteClients()
+const remotePrinters = await el.fetchRemotePrinters(clients[0]?.client_id)
+```
+
+参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `printer` | `string` | 是 | 本地打印机名称（用于 `fetchLocalPrinterCaps`） |
+| `clientId` | `string` | 否 | 云客户端 ID（用于 `fetchRemotePrinters`） |
+
+### 5) setBranding(payload?)
 
 说明：设置标题、logo 以及显示开关。
 
@@ -205,7 +235,7 @@ el.setBranding({
 })
 ```
 
-### 5) setBrandVars(vars, options?)
+### 6) setBrandVars(vars, options?)
 
 说明：设置品牌色 CSS 变量。
 
@@ -223,7 +253,7 @@ el.setBrandVars({
 | `vars` | `Record<string, string>` | 是 | CSS 变量集合 |
 | `options.persist` | `boolean` | 否 | 是否持久化到本地存储 |
 
-### 6) setTheme(theme)
+### 7) setTheme(theme)
 
 说明：切换主题。
 
@@ -237,7 +267,22 @@ el.setTheme('light')
 | --- | --- | --- | --- |
 | `theme` | `'light' \| 'dark' \| 'system'` | 是 | 主题模式 |
 
-### 7) setVariables(vars, options?) / getVariables()
+### 8) setDesignerFont(fontFamily, options?)
+
+说明：设置设计器字体。传入空字符串可恢复默认字体继承。
+
+```ts
+el.setDesignerFont('"Microsoft YaHei", "PingFang SC", sans-serif', { persist: true })
+```
+
+参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `fontFamily` | `string` | 是 | 字体族字符串 |
+| `options.persist` | `boolean` | 否 | 是否持久化到本地存储 |
+
+### 9) setVariables(vars, options?) / getVariables()
 
 说明：设置或获取变量数据。
 
@@ -253,7 +298,7 @@ const vars = el.getVariables()
 | `vars` | `Record<string, any>` | 是 | 变量对象 |
 | `options.merge` | `boolean` | 否 | 合并或覆盖 |
 
-### 8) getTemplateData() / loadTemplateData(data)
+### 10) getTemplateData() / loadTemplateData(data)
 
 说明：读写当前画布模板数据。
 
@@ -262,7 +307,7 @@ const data = el.getTemplateData()
 el.loadTemplateData({ id: 'tpl_1', name: 'A4 模板', data })
 ```
 
-### 9) 模板 CRUD
+### 11) 模板 CRUD
 
 ```ts
 const list = el.getTemplates({ includeData: false })
@@ -282,7 +327,7 @@ el.loadTemplate(id)
 | `upsertTemplate.setCurrent` | `boolean` | 否 | 是否设为当前模板 |
 | `setTemplates.currentTemplateId` | `string` | 否 | 当前模板 ID |
 
-### 10) 自定义元素 CRUD
+### 12) 自定义元素 CRUD
 
 ```ts
 const list = el.getCustomElements({ includeElement: false })
@@ -298,7 +343,7 @@ el.deleteCustomElement(id)
 | --- | --- | --- | --- |
 | `getCustomElements.includeElement` | `boolean` | 否 | 是否包含元素详情 |
 
-### 11) setCrudMode(mode)
+### 13) setCrudMode(mode)
 
 说明：切换 CRUD 模式。
 
@@ -313,7 +358,7 @@ el.setCrudMode('remote')
 | --- | --- | --- | --- |
 | `mode` | `'local' \| 'remote'` | 是 | CRUD 模式 |
 
-### 12) setCrudEndpoints(endpoints, options?)
+### 14) setCrudEndpoints(endpoints, options?)
 
 说明：配置云端 CRUD 接口地址与请求头。
 
@@ -350,7 +395,7 @@ el.setCrudEndpoints({
 | `options.baseUrl` | `string` | 否 | 接口域名（同 baseUrl） |
 | `options.headers` | `Record<string, string>` | 否 | 请求头（如鉴权） |
 
-### 13) setLanguage(lang)
+### 15) setLanguage(lang)
 
 说明：切换语言。也可以通过 HTML 属性 `lang="zh"` 设置初始语言。
 

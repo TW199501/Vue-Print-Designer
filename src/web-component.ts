@@ -10,7 +10,11 @@ import {
   type PrintMode,
   type PrintOptions,
   type LocalConnectionSettings,
-  type RemoteConnectionSettings
+  type RemoteConnectionSettings,
+  type LocalPrinterInfo,
+  type RemotePrinterInfo,
+  type LocalPrinterCaps,
+  type RemoteClientInfo
 } from './composables/usePrintSettings';
 import { useDesignerStore } from './stores/designer';
 import { useTemplateStore } from './stores/templates';
@@ -40,6 +44,8 @@ export type DesignerPrintDefaults = {
   remotePrintOptions?: Partial<PrintOptions>;
 };
 
+const designerFontStorageKey = 'print-designer-font-family';
+
 const applyStoredBrandVars = () => {
   const stored = localStorage.getItem('print-designer-brand-vars');
   if (!stored) return;
@@ -54,6 +60,8 @@ const applyStoredBrandVars = () => {
     // Ignore invalid storage
   }
 };
+
+const getStoredDesignerFont = () => localStorage.getItem(designerFontStorageKey)?.trim() || '';
 
 class PrintDesignerElement extends HTMLElement {
   private app: ReturnType<typeof createApp> | null = null;
@@ -173,6 +181,10 @@ class PrintDesignerElement extends HTMLElement {
       this.mountEl.style.height = '100%';
       shadow.appendChild(this.mountEl);
     }
+    const storedDesignerFont = getStoredDesignerFont();
+    if (storedDesignerFont) {
+      this.mountEl.style.fontFamily = storedDesignerFont;
+    }
 
     app.mount(this.mountEl);
 
@@ -281,6 +293,23 @@ class PrintDesignerElement extends HTMLElement {
     this.themeApi.setTheme(theme);
   }
 
+  setDesignerFont(fontFamily: string, options: { persist?: boolean } = {}) {
+    if (!this.mountEl) return;
+    const normalized = (fontFamily || '').trim();
+    if (normalized) {
+      this.mountEl.style.fontFamily = normalized;
+    } else {
+      this.mountEl.style.removeProperty('font-family');
+    }
+    if (options.persist !== false) {
+      if (normalized) {
+        localStorage.setItem(designerFontStorageKey, normalized);
+      } else {
+        localStorage.removeItem(designerFontStorageKey);
+      }
+    }
+  }
+
   getVariables() {
     if (!this.designerStore) return {};
     return cloneDeep(this.designerStore.testData || {});
@@ -370,6 +399,26 @@ class PrintDesignerElement extends HTMLElement {
     if (payload.remotePrintOptions) {
       Object.assign(this.printSettings.remotePrintOptions, payload.remotePrintOptions);
     }
+  }
+
+  async fetchLocalPrinters(): Promise<LocalPrinterInfo[]> {
+    if (!this.printSettings) return [];
+    return this.printSettings.fetchLocalPrinters();
+  }
+
+  async fetchLocalPrinterCaps(printer: string): Promise<LocalPrinterCaps | undefined> {
+    if (!this.printSettings || !printer) return undefined;
+    return this.printSettings.fetchLocalPrinterCaps(printer);
+  }
+
+  async fetchRemotePrinters(clientId?: string): Promise<RemotePrinterInfo[]> {
+    if (!this.printSettings) return [];
+    return this.printSettings.fetchRemotePrinters(clientId);
+  }
+
+  async fetchRemoteClients(): Promise<RemoteClientInfo[]> {
+    if (!this.printSettings) return [];
+    return this.printSettings.fetchRemoteClients();
   }
 
   setCrudMode(mode: CrudMode) {
