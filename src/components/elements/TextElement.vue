@@ -22,7 +22,7 @@ const resolvedText = computed(() => {
     }
   }
 
-  return props.element.variable || props.element.content || 'Double click to edit';
+  return props.element.variable || props.element.content;
 });
 </script>
 

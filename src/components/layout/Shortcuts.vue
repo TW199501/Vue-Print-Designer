@@ -285,11 +285,14 @@ const handleKeyup = (e: KeyboardEvent) => {
 };
 
 const handleContextMenu = async (e: MouseEvent) => {
-  // Check if the click is inside the designer area
-  const target = e.target as Element;
   const designerArea = getQueryRoot().querySelector('.overflow-auto'); // The scroll container (canvas area)
+  const path = e.composedPath();
+  const isInsideDesigner = !!designerArea && path.some((node) => {
+    if (node === designerArea) return true;
+    return node instanceof Element && designerArea.contains(node);
+  });
 
-  if (!designerArea || !designerArea.contains(target)) {
+  if (!isInsideDesigner) {
     // Not in designer area, show native context menu
     return;
   }

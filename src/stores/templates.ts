@@ -11,6 +11,37 @@ export interface Template {
   updatedAt: number;
 }
 
+const sanitizeElement = (element: any) => {
+  if (!element || typeof element !== 'object') return null;
+  if (typeof element.id !== 'string' || !element.id) return null;
+  if (typeof element.type !== 'string' || !element.type) return null;
+  return {
+    ...element,
+    style: element.style && typeof element.style === 'object' ? element.style : {}
+  };
+};
+
+const sanitizePages = (pages: any) => {
+  if (!Array.isArray(pages)) return [];
+  return pages
+    .filter((page) => page && typeof page === 'object')
+    .map((page, index) => ({
+      ...page,
+      id: typeof page.id === 'string' && page.id ? page.id : `page-${index + 1}`,
+      elements: Array.isArray(page.elements)
+        ? page.elements.map(sanitizeElement).filter(Boolean)
+        : []
+    }));
+};
+
+const sanitizeTemplateData = (data: any) => {
+  const base = data && typeof data === 'object' ? data : {};
+  return {
+    ...base,
+    pages: sanitizePages(base.pages)
+  };
+};
+
 export const useTemplateStore = defineStore('templates', {
   state: () => ({
     templates: [] as Template[],
@@ -31,7 +62,7 @@ export const useTemplateStore = defineStore('templates', {
             .map((t: any) => ({
               id: t.id,
               name: t.name,
-              data: t.data || {},
+              data: sanitizeTemplateData(t.data),
               updatedAt: t.updatedAt || Date.now()
             }))
             .sort((a: Template, b: Template) => b.updatedAt - a.updatedAt);
@@ -44,7 +75,16 @@ export const useTemplateStore = defineStore('templates', {
       const stored = localStorage.getItem('print-designer-templates');
       if (stored) {
         try {
-          this.templates = JSON.parse(stored);
+          const parsed = JSON.parse(stored);
+          const list = Array.isArray(parsed) ? parsed : [];
+          this.templates = list
+            .filter((t: any) => t && typeof t.id === 'string' && typeof t.name === 'string')
+            .map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              data: sanitizeTemplateData(t.data),
+              updatedAt: t.updatedAt || Date.now()
+            }));
           this.templates.sort((a: Template, b: Template) => b.updatedAt - a.updatedAt);
         } catch (e) {
           console.error('Failed to parse templates', e);
@@ -64,7 +104,7 @@ export const useTemplateStore = defineStore('templates', {
       const targetId = this.currentTemplateId;
 
       const data = {
-        pages: cloneDeep(designerStore.pages),
+        pages: sanitizePages(cloneDeep(designerStore.pages)),
         canvasSize: cloneDeep(designerStore.canvasSize),
         guides: cloneDeep(designerStore.guides),
         zoom: designerStore.zoom,
@@ -134,7 +174,7 @@ export const useTemplateStore = defineStore('templates', {
     async createTemplate(name: string, data?: any) {
       const { mode, endpoints, headers, fetcher } = getCrudConfig();
       const designerStore = useDesignerStore();
-      const newData = data || {
+      const nextData = data || {
         pages: designerStore.pages,
         canvasSize: designerStore.canvasSize,
         pageSpacingX: designerStore.pageSpacingX,
@@ -144,6 +184,7 @@ export const useTemplateStore = defineStore('templates', {
         testData: cloneDeep(designerStore.testData || {}),
         // ... capture current state if data not provided
       };
+      const newData = sanitizeTemplateData(nextData);
       
       const newTemplate: Template = {
         id: uuidv4(),
@@ -223,7 +264,7 @@ export const useTemplateStore = defineStore('templates', {
         const newTemplate: Template = {
           id: uuidv4(),
           name: `${t.name} Copy`,
-          data: JSON.parse(JSON.stringify(t.data)),
+          data: sanitizeTemplateData(JSON.parse(JSON.stringify(t.data))),
           updatedAt: Date.now()
         };
         if (mode === 'remote') {
@@ -258,8 +299,8 @@ export const useTemplateStore = defineStore('templates', {
           if (!t) return;
           const designerStore = useDesignerStore();
           designerStore.resetCanvas();
-          const data = t.data || {};
-          if (data.pages) designerStore.pages = data.pages;
+          const data = sanitizeTemplateData(t.data);
+          if (data.pages.length > 0) designerStore.pages = data.pages;
           if (data.canvasSize) designerStore.canvasSize = data.canvasSize;
           if (data.guides) designerStore.guides = data.guides;
           if (data.zoom !== undefined) designerStore.zoom = data.zoom;
@@ -293,10 +334,10 @@ export const useTemplateStore = defineStore('templates', {
         // Reset canvas to defaults first to avoid inheriting settings from previous template
         designerStore.resetCanvas();
         
-        const data = t.data;
+        const data = sanitizeTemplateData(t.data);
         
         // Restore state
-        if (data.pages) designerStore.pages = data.pages;
+        if (data.pages.length > 0) designerStore.pages = data.pages;
         if (data.canvasSize) designerStore.canvasSize = data.canvasSize;
         if (data.guides) designerStore.guides = data.guides;
         if (data.zoom !== undefined) designerStore.zoom = data.zoom;

@@ -2,7 +2,7 @@
 import { computed, ref, onMounted, onUnmounted, nextTick, inject, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
-import { ElementType } from '@/types';
+import { ElementType, type PrintElement } from '@/types';
 import ElementWrapper from '../elements/ElementWrapper.vue';
 import TextElement from '../elements/TextElement.vue';
 import ImageElement from '../elements/ImageElement.vue';
@@ -136,7 +136,7 @@ const watermarkStyle = computed(() => {
 
 const draggingPageIndex = computed(() => {
   if (!store.isDragging || !store.selectedElementId) return -1;
-  return store.pages.findIndex(p => p.elements.some(e => e.id === store.selectedElementId));
+  return store.pages.findIndex(p => p.elements.some(e => e?.id === store.selectedElementId));
 });
 
 // Selection box state
@@ -180,6 +180,14 @@ const getComponent = (type: ElementType) => {
     case ElementType.CIRCLE: return CircleElement;
     default: return TextElement;
   }
+};
+
+const isRenderableElement = (element: PrintElement | null | undefined): element is PrintElement => {
+  return !!element && typeof element.id === 'string' && typeof element.type === 'string';
+};
+
+const getRenderableElements = (elements: Array<PrintElement | null | undefined>) => {
+  return elements.filter(isRenderableElement);
 };
 
 const handleDrop = (event: DragEvent, pageIndex: number) => {
@@ -475,7 +483,7 @@ const handleMouseUp = () => {
   if (currentSelectingPageIndex.value !== null) {
     const page = pages.value[currentSelectingPageIndex.value];
     if (page) {
-      for (const element of page.elements) {
+      for (const element of getRenderableElements(page.elements)) {
         // Check if element intersects with selection box
         const elementRight = element.x + element.width;
         const elementBottom = element.y + element.height;
@@ -520,8 +528,9 @@ const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
   let targetId: string | null = null;
   let topZ = -Infinity;
 
-  for (let i = 0; i < page.elements.length; i++) {
-    const el = page.elements[i];
+  const renderableElements = getRenderableElements(page.elements);
+  for (let i = 0; i < renderableElements.length; i++) {
+    const el = renderableElements[i];
     const within =
       x >= el.x &&
       x <= el.x + el.width &&
@@ -549,7 +558,7 @@ const getGlobalElements = () => {
   const headerBoundary = store.headerHeight + marginTop;
   const footerBoundary = store.canvasSize.height - (store.footerHeight + marginBottom);
 
-  return firstPage.elements.filter(el => {
+  return getRenderableElements(firstPage.elements).filter(el => {
     if (el.type === ElementType.TABLE) return false;
     const bounds = store.getElementBoundsAtPosition(el, el.x, el.y);
     const isRepeatPerPage = el.repeatPerPage === true;
@@ -702,7 +711,7 @@ const getGlobalElements = () => {
 
       <!-- Elements -->
       <ElementWrapper
-        v-for="element in page.elements"
+        v-for="element in getRenderableElements(page.elements)"
         :key="element.id"
         :element="element"
         :is-selected="store.selectedElementId === element.id || store.selectedElementIds.includes(element.id)"
