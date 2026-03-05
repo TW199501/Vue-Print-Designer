@@ -33,39 +33,42 @@ export const usePrint = () => {
 
   const createRepeatedPages = (originalPages: Page[]): Page[] => {
     const original = cloneDeep(originalPages);
-    
-    // Check if header/footer regions are defined
+    if (original.length === 0) return original;
+
     const hasHeader = store.headerHeight > 0 && store.showHeaderLine;
     const hasFooter = store.footerHeight > 0 && store.showFooterLine;
-
-    if (!hasHeader && !hasFooter) return original;
 
     const basePage = original[0];
     const canvasHeight = store.canvasSize.height;
     const marginTop = store.pageSpacingY || 0;
     const marginBottom = store.pageSpacingY || 0;
-    
-    // Filter elements that should be repeated (elements outside range)
-    const repeatHeaders = hasHeader ? basePage.elements.filter(e => 
-      (e.y + e.height) <= (store.headerHeight + marginTop)
-    ) : [];
-    
-    const repeatFooters = hasFooter ? basePage.elements.filter(e => 
-      e.y >= (canvasHeight - (store.footerHeight + marginBottom))
-    ) : [];
+    const headerBoundary = store.headerHeight + marginTop;
+    const footerBoundary = canvasHeight - (store.footerHeight + marginBottom);
+
+    const repeatHeaders = hasHeader ? basePage.elements.filter(e => {
+      const bounds = store.getElementBoundsAtPosition(e, e.x, e.y);
+      return bounds.maxY <= headerBoundary;
+    }) : [];
+
+    const repeatFooters = hasFooter ? basePage.elements.filter(e => {
+      const bounds = store.getElementBoundsAtPosition(e, e.x, e.y);
+      return bounds.minY >= footerBoundary;
+    }) : [];
+
+    const repeatPerPageElements = basePage.elements.filter(e => e.type !== ElementType.TABLE && e.repeatPerPage === true);
+    const repeatMap = new Map<string, typeof basePage.elements[number]>();
+    [...repeatHeaders, ...repeatFooters, ...repeatPerPageElements].forEach(el => {
+      repeatMap.set(el.id, el);
+    });
+    const repeatedElements = Array.from(repeatMap.values());
+    if (repeatedElements.length === 0) return original;
 
     const withRepeats = cloneDeep(original);
     for (let i = 0; i < withRepeats.length; i++) {
       if (i === 0) continue;
       const page = withRepeats[i];
-      
-      // Add repeated headers with new IDs
-      for (const el of repeatHeaders) {
-        page.elements.push({ ...cloneDeep(el), id: uuidv4() });
-      }
-      
-      // Add repeated footers with new IDs
-      for (const el of repeatFooters) {
+
+      for (const el of repeatedElements) {
         page.elements.push({ ...cloneDeep(el), id: uuidv4() });
       }
     }

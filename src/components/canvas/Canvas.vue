@@ -262,6 +262,7 @@ const handleDrop = (event: DragEvent, pageIndex: number) => {
     showFooter: type === ElementType.TABLE ? true : undefined,
     tfootRepeat: type === ElementType.TABLE ? true : undefined,
     autoPaginate: type === ElementType.TABLE ? true : undefined,
+    repeatPerPage: type === ElementType.TABLE ? undefined : false,
     footerData: type === ElementType.TABLE ? [
       { id: { value: t('canvas.defaultTableData.pageSum') }, qty: { value: '', field: '{#pageQty}' }, total: { value: '', field: '{#pageSum}' } },
       { id: { value: t('canvas.defaultTableData.total') }, qty: { value: '', field: '{#totalQty}' }, total: { value: '', field: '{#totalSum}' } },
@@ -545,11 +546,17 @@ const getGlobalElements = () => {
   const firstPage = pages.value[0];
   const marginTop = store.pageSpacingY || 0;
   const marginBottom = store.pageSpacingY || 0;
+  const headerBoundary = store.headerHeight + marginTop;
+  const footerBoundary = store.canvasSize.height - (store.footerHeight + marginBottom);
 
-  return firstPage.elements.filter(el => 
-    (store.showHeaderLine && el.y < (store.headerHeight + marginTop)) || 
-    (store.showFooterLine && el.y >= (store.canvasSize.height - (store.footerHeight + marginBottom)))
-  );
+  return firstPage.elements.filter(el => {
+    if (el.type === ElementType.TABLE) return false;
+    const bounds = store.getElementBoundsAtPosition(el, el.x, el.y);
+    const isRepeatPerPage = el.repeatPerPage === true;
+    const isHeader = store.showHeaderLine && bounds.maxY <= headerBoundary;
+    const isFooter = store.showFooterLine && bounds.minY >= footerBoundary;
+    return isRepeatPerPage || isHeader || isFooter;
+  });
 };
 </script>
 

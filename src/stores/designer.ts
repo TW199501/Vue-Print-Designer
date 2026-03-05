@@ -574,6 +574,61 @@ export const useDesignerStore = defineStore('designer', {
     setShowCornerMarkers(show: boolean) {
       this.showCornerMarkers = show;
     },
+    getElementBoundsAtPosition(el: PrintElement, x: number, y: number) {
+      const rotation = el.style?.rotate || 0;
+      const normalized = ((rotation % 360) + 360) % 360;
+      if (normalized === 0) {
+        return {
+          minX: x,
+          maxX: x + el.width,
+          minY: y,
+          maxY: y + el.height
+        };
+      }
+
+      const cx = x + el.width / 2;
+      const cy = y + el.height / 2;
+      const rad = (normalized * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+
+      const corners = [
+        { x, y },
+        { x: x + el.width, y },
+        { x, y: y + el.height },
+        { x: x + el.width, y: y + el.height }
+      ];
+
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+
+      for (const p of corners) {
+        const nx = cx + (p.x - cx) * cos - (p.y - cy) * sin;
+        const ny = cy + (p.x - cx) * sin + (p.y - cy) * cos;
+        if (nx < minX) minX = nx;
+        if (nx > maxX) maxX = nx;
+        if (ny < minY) minY = ny;
+        if (ny > maxY) maxY = ny;
+      }
+
+      return { minX, maxX, minY, maxY };
+    },
+    getElementMovementBounds(el: PrintElement) {
+      const marginX = this.pageSpacingX || 0;
+      const marginY = this.pageSpacingY || 0;
+      const maxXBoundary = this.canvasSize.width - marginX;
+      const maxYBoundary = this.canvasSize.height - marginY;
+      const originBounds = this.getElementBoundsAtPosition(el, 0, 0);
+
+      const minX = marginX - originBounds.minX;
+      const maxX = Math.max(minX, maxXBoundary - originBounds.maxX);
+      const minY = marginY - originBounds.minY;
+      const maxY = Math.max(minY, maxYBoundary - originBounds.maxY);
+
+      return { minX, maxX, minY, maxY, maxXBoundary, maxYBoundary, originBounds };
+    },
     getSnapPosition(el: PrintElement, nx: number, ny: number, isKeyboard: boolean = false, constrain: boolean = true, pageIndex: number = -1) {
       const threshold = 5;
       let x = nx;
@@ -591,69 +646,52 @@ export const useDesignerStore = defineStore('designer', {
         return true;
       };
 
-      // Effective boundaries (Margins)
-      const minX = this.pageSpacingX || 0;
-      const maxXBoundary = this.canvasSize.width - (this.pageSpacingX || 0);
-      const maxX = Math.max(minX, maxXBoundary - el.width);
-
-      const minY = this.pageSpacingY || 0;
-      const maxYBoundary = this.canvasSize.height - (this.pageSpacingY || 0);
-      const maxY = Math.max(minY, maxYBoundary - el.height);
+      const currentBounds = this.getElementBoundsAtPosition(el, el.x, el.y);
+      const movementBounds = this.getElementMovementBounds(el);
+      const { minX, maxX, minY, maxY, maxXBoundary, maxYBoundary, originBounds } = movementBounds;
+      const minXBoundary = this.pageSpacingX || 0;
+      const minYBoundary = this.pageSpacingY || 0;
+      const targetBounds = this.getElementBoundsAtPosition(el, x, y);
       
-      // Snap to Margins
-      if (shouldSnap(x, el.x, minX)) {
+      if (shouldSnap(targetBounds.minX, currentBounds.minX, minXBoundary)) {
         x = minX;
         highlightedEdge = 'left';
-      } else if (shouldSnap(x + el.width, el.x + el.width, maxXBoundary)) {
+      } else if (shouldSnap(targetBounds.maxX, currentBounds.maxX, maxXBoundary)) {
         x = maxX;
         highlightedEdge = 'right';
       }
 
-      if (shouldSnap(y, el.y, minY)) {
+      const targetBoundsY = this.getElementBoundsAtPosition(el, x, y);
+      if (shouldSnap(targetBoundsY.minY, currentBounds.minY, minYBoundary)) {
         y = minY;
         highlightedEdge = highlightedEdge || 'top';
-      } else if (shouldSnap(y + el.height, el.y + el.height, maxYBoundary)) {
+      } else if (shouldSnap(targetBoundsY.maxY, currentBounds.maxY, maxYBoundary)) {
         y = maxY;
         highlightedEdge = highlightedEdge || 'bottom';
       }
 
-      // Guides
       for (const guide of this.guides) {
         if (guide.type === 'vertical') {
-          // left edge
-          if (shouldSnap(x, el.x, guide.position)) {
-            x = guide.position;
+          const guideBounds = this.getElementBoundsAtPosition(el, x, y);
+          if (shouldSnap(guideBounds.minX, currentBounds.minX, guide.position)) {
+            x = guide.position - originBounds.minX;
             highlightedGuideId = guide.id;
-          }
-          // right edge
-          else if (shouldSnap(x + el.width, el.x + el.width, guide.position)) {
-            x = guide.position - el.width;
+          } else if (shouldSnap(guideBounds.maxX, currentBounds.maxX, guide.position)) {
+            x = guide.position - originBounds.maxX;
             highlightedGuideId = guide.id;
           }
         } else {
-          // top edge
-          if (shouldSnap(y, el.y, guide.position)) {
-            y = guide.position;
+          const guideBounds = this.getElementBoundsAtPosition(el, x, y);
+          if (shouldSnap(guideBounds.minY, currentBounds.minY, guide.position)) {
+            y = guide.position - originBounds.minY;
             highlightedGuideId = guide.id;
-          }
-          // bottom edge
-          else if (shouldSnap(y + el.height, el.y + el.height, guide.position)) {
-            y = guide.position - el.height;
+          } else if (shouldSnap(guideBounds.maxY, currentBounds.maxY, guide.position)) {
+            y = guide.position - originBounds.maxY;
             highlightedGuideId = guide.id;
           }
         }
       }
 
-      // Clamp to canvas
-      // Logic:
-      // 1. If constrain is true (e.g. keyboard, drop), use strict clamping.
-      // 2. If constrain is false (mouse drag):
-      //    a. If single page, force strict clamping (user request: "Only disable... when multiple pages exist").
-      //    b. If multiple pages, apply partial clamping:
-      //       - Always clamp X (keep on paper horizontally).
-      //       - Clamp Top ONLY if first page.
-      //       - Clamp Bottom ONLY if last page.
-      
       let applyStrictX = constrain;
       let applyStrictY = constrain;
       let applyPartialTop = false;
@@ -661,12 +699,10 @@ export const useDesignerStore = defineStore('designer', {
       
       if (!constrain) {
          if (this.pages.length <= 1) {
-             // Single page -> strict constraint
              applyStrictX = true;
              applyStrictY = true;
          } else {
-             // Multiple pages -> partial constraint
-             applyStrictX = true; // Keep horizontal constraint
+             applyStrictX = true;
              
              if (pageIndex === 0) {
                  applyPartialTop = true;
@@ -754,9 +790,6 @@ export const useDesignerStore = defineStore('designer', {
       // 4. Constrain delta to ensure no element leaves the canvas (respecting margins)
       let checkX = constrain;
       let checkYStrict = constrain;
-      
-      const marginX = this.pageSpacingX || 0;
-      const marginY = this.pageSpacingY || 0;
 
       if (!constrain) {
           if (this.pages.length <= 1) {
@@ -772,50 +805,40 @@ export const useDesignerStore = defineStore('designer', {
         for (const item of movableElements) {
            const el = item.element;
            const pIndex = item.pageIndex;
+           const movementBounds = this.getElementMovementBounds(el);
            
-           // Constrain X
            if (checkX) {
              if (dx > 0) {
-               const maxRight = this.canvasSize.width - marginX - el.width;
-               if (el.x + dx > maxRight) {
-                 dx = maxRight - el.x;
+               if (el.x + dx > movementBounds.maxX) {
+                 dx = movementBounds.maxX - el.x;
                }
              } else if (dx < 0) {
-               const minLeft = marginX;
-               if (el.x + dx < minLeft) {
-                 dx = minLeft - el.x;
+               if (el.x + dx < movementBounds.minX) {
+                 dx = movementBounds.minX - el.x;
                }
              }
            }
   
-           // Constrain Y
            if (checkYStrict) {
              if (dy > 0) {
-               const maxBottom = this.canvasSize.height - marginY - el.height;
-               if (el.y + dy > maxBottom) {
-                 dy = maxBottom - el.y;
+               if (el.y + dy > movementBounds.maxY) {
+                 dy = movementBounds.maxY - el.y;
                }
              } else if (dy < 0) {
-               const minTop = marginY;
-               if (el.y + dy < minTop) {
-                 dy = minTop - el.y;
+               if (el.y + dy < movementBounds.minY) {
+                 dy = movementBounds.minY - el.y;
                }
              }
            } else {
-             // Partial Y constraint (Multi-page mode)
-             // Only constrain Top if pIndex == 0
              if (pIndex === 0) {
                  if (dy < 0) {
-                     const minTop = marginY;
-                     if (el.y + dy < minTop) dy = minTop - el.y;
+                    if (el.y + dy < movementBounds.minY) dy = movementBounds.minY - el.y;
                  }
              }
              
-             // Only constrain Bottom if pIndex == last
              if (pIndex === this.pages.length - 1) {
                  if (dy > 0) {
-                     const maxBottom = this.canvasSize.height - marginY - el.height;
-                     if (el.y + dy > maxBottom) dy = maxBottom - el.y;
+                    if (el.y + dy > movementBounds.maxY) dy = movementBounds.maxY - el.y;
                  }
              }
            }
@@ -881,36 +904,28 @@ export const useDesignerStore = defineStore('designer', {
       let actualDy = snapped.y - primaryElement.y;
 
       // 3. Constrain delta to ensure no element leaves the canvas (similar to moveSelectedElements)
-      const marginX = this.pageSpacingX || 0;
-      const marginY = this.pageSpacingY || 0;
-
       for (const id of movableIds) {
         for (const page of this.pages) {
           const el = page.elements.find(e => e.id === id);
           if (el) {
-             // Constrain X
+             const movementBounds = this.getElementMovementBounds(el);
              if (actualDx > 0) {
-               const maxRight = this.canvasSize.width - marginX - el.width;
-               if (el.x + actualDx > maxRight) {
-                 actualDx = maxRight - el.x;
+               if (el.x + actualDx > movementBounds.maxX) {
+                 actualDx = movementBounds.maxX - el.x;
                }
              } else if (actualDx < 0) {
-               const minLeft = marginX;
-               if (el.x + actualDx < minLeft) {
-                 actualDx = minLeft - el.x;
+               if (el.x + actualDx < movementBounds.minX) {
+                 actualDx = movementBounds.minX - el.x;
                }
              }
 
-             // Constrain Y
              if (actualDy > 0) {
-               const maxBottom = this.canvasSize.height - marginY - el.height;
-               if (el.y + actualDy > maxBottom) {
-                 actualDy = maxBottom - el.y;
+               if (el.y + actualDy > movementBounds.maxY) {
+                 actualDy = movementBounds.maxY - el.y;
                }
              } else if (actualDy < 0) {
-               const minTop = marginY;
-               if (el.y + actualDy < minTop) {
-                 actualDy = minTop - el.y;
+               if (el.y + actualDy < movementBounds.minY) {
+                 actualDy = movementBounds.minY - el.y;
                }
              }
           }

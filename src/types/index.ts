@@ -95,6 +95,7 @@ export interface PrintElement {
   showFooter?: boolean; // For table
   footerData?: any[]; // For table
   customScript?: string; // For table (data processing)
+  repeatPerPage?: boolean;
   style: ElementStyle;
   // Pagination-specific (optional)
   labelText?: string;

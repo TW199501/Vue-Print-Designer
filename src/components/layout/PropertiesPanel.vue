@@ -38,6 +38,11 @@ const isSelfStyled = computed(() => {
   return [ElementType.LINE, ElementType.RECT, ElementType.CIRCLE].includes(element.value.type);
 });
 
+const showRepeatPerPage = computed(() => {
+  if (!element.value) return false;
+  return element.value.type !== ElementType.TABLE;
+});
+
 const canMergeCells = computed(() => {
   if (!store.tableSelection) return false;
   return store.tableSelection.cells.length > 1;
@@ -355,6 +360,17 @@ const handleFocusOut = (e: FocusEvent) => {
               @update:value="(v) => handleChange('height', unitToPx(Number(v), unit))" 
             />
           </div>
+        </div>
+
+        <div v-if="activeTab === 'properties' && showRepeatPerPage" class="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+          <h3 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('properties.section.dataBehavior') }}</h3>
+          <PropertyInput
+            :label="t('properties.label.repeatPerPage')"
+            type="switch"
+            :disabled="isLocked"
+            :value="element.repeatPerPage || false"
+            @update:value="(v) => handleChange('repeatPerPage', Boolean(v))"
+          />
         </div>
 
         <!-- Table Cell Operations -->

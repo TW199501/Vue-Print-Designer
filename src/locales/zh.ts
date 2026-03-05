@@ -256,6 +256,7 @@ export default {
       cornerRadius: '圆角半径',
       background: '背景',
       autoPaginate: '自动分页',
+      repeatPerPage: '每页重复',
       repeatFooter: '重复表脚',
       showFooter: '显示表脚',
       columns: '列定义 (JSON)',

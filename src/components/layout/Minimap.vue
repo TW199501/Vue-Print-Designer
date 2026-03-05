@@ -113,10 +113,43 @@ const getGlobalElements = () => {
   if (!props.pages || props.pages.length === 0) return [];
   const firstPage = props.pages[0];
   if (!firstPage?.elements) return [];
-  return firstPage.elements.filter((el: any) =>
-    (props.showHeaderLine && el.y < props.headerHeight) ||
-    (props.showFooterLine && el.y >= props.pageHeight - props.footerHeight)
-  );
+  const getRotatedBounds = (el: any) => {
+    const rotation = Number(el?.style?.rotate || 0);
+    const normalized = ((rotation % 360) + 360) % 360;
+    if (normalized === 0) {
+      return {
+        minY: el.y,
+        maxY: el.y + el.height
+      };
+    }
+    const cx = el.x + el.width / 2;
+    const cy = el.y + el.height / 2;
+    const rad = (normalized * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const corners = [
+      { x: el.x, y: el.y },
+      { x: el.x + el.width, y: el.y },
+      { x: el.x, y: el.y + el.height },
+      { x: el.x + el.width, y: el.y + el.height }
+    ];
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const p of corners) {
+      const ny = cy + (p.x - cx) * sin + (p.y - cy) * cos;
+      if (ny < minY) minY = ny;
+      if (ny > maxY) maxY = ny;
+    }
+    return { minY, maxY };
+  };
+  return firstPage.elements.filter((el: any) => {
+    if (el.type === ElementType.TABLE) return false;
+    const bounds = getRotatedBounds(el);
+    const isRepeatPerPage = el.repeatPerPage === true;
+    const isHeader = props.showHeaderLine && bounds.maxY <= props.headerHeight;
+    const isFooter = props.showFooterLine && bounds.minY >= props.pageHeight - props.footerHeight;
+    return isRepeatPerPage || isHeader || isFooter;
+  });
 };
 
 const getElementBounds = (element: any) => {

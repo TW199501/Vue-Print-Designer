@@ -256,6 +256,7 @@ export default {
       cornerRadius: 'Corner Radius',
       background: 'Background',
       autoPaginate: 'Auto Paginate',
+      repeatPerPage: 'Repeat Each Page',
       repeatFooter: 'Repeat Footer',
       showFooter: 'Show Footer',
       columns: 'Columns (JSON)',
