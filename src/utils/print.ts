@@ -160,7 +160,14 @@ export const usePrint = () => {
     };
   };
 
-  const lockViewportScroll = () => {
+  const isShadowDomContent = (content?: HTMLElement | string | HTMLElement[]) => {
+    if (!content || typeof content === 'string') return false;
+    const first = Array.isArray(content) ? content[0] : content;
+    if (!(first instanceof HTMLElement)) return false;
+    return first.getRootNode() instanceof ShadowRoot;
+  };
+
+  const lockViewportScroll = (reserveScrollbarGutter = true) => {
     const previousHtmlOverflowX = document.documentElement.style.overflowX;
     const previousHtmlOverflowY = document.documentElement.style.overflowY;
     const previousHtmlScrollbarGutter = document.documentElement.style.scrollbarGutter;
@@ -170,10 +177,10 @@ export const usePrint = () => {
 
     document.documentElement.style.overflowX = 'hidden';
     document.documentElement.style.overflowY = 'hidden';
-    document.documentElement.style.scrollbarGutter = 'stable';
+    document.documentElement.style.scrollbarGutter = reserveScrollbarGutter ? 'stable' : '';
     document.body.style.overflowX = 'hidden';
     document.body.style.overflowY = 'hidden';
-    document.body.style.scrollbarGutter = 'stable';
+    document.body.style.scrollbarGutter = reserveScrollbarGutter ? 'stable' : '';
 
     return () => {
       document.documentElement.style.overflowX = previousHtmlOverflowX;
@@ -1090,7 +1097,7 @@ export const usePrint = () => {
 
     const createPdfDocument = async (content: HTMLElement | string | HTMLElement[]) => {
     const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
-    const restoreViewport = lockViewportScroll();
+    const restoreViewport = lockViewportScroll(!isShadowDomContent(content));
 
     const width = store.canvasSize.width;
     const height = store.canvasSize.height;
@@ -1146,20 +1153,8 @@ export const usePrint = () => {
   };
 
       const browserPrint = async (content: HTMLElement | string | HTMLElement[]) => {
-      const previousHtmlOverflowX = document.documentElement.style.overflowX;
-      const previousHtmlOverflowY = document.documentElement.style.overflowY;
-      const previousHtmlScrollbarGutter = document.documentElement.style.scrollbarGutter;
-      const previousBodyOverflowX = document.body.style.overflowX;
-      const previousBodyOverflowY = document.body.style.overflowY;
-      const previousBodyScrollbarGutter = document.body.style.scrollbarGutter;
+      const restoreViewport = lockViewportScroll(!isShadowDomContent(content));
       try {
-      document.documentElement.style.overflowX = 'hidden';
-      document.documentElement.style.overflowY = 'hidden';
-      document.documentElement.style.scrollbarGutter = 'stable';
-      document.body.style.overflowX = 'hidden';
-      document.body.style.overflowY = 'hidden';
-      document.body.style.scrollbarGutter = 'stable';
-
       const pdf = await createPdfDocument(content);
         const blob = pdf.output('blob');
         const blobUrl = URL.createObjectURL(blob);
@@ -1222,12 +1217,7 @@ export const usePrint = () => {
         console.error('Print failed', error);
         alert('Print failed');
     } finally {
-        document.documentElement.style.overflowX = previousHtmlOverflowX;
-        document.documentElement.style.overflowY = previousHtmlOverflowY;
-        document.documentElement.style.scrollbarGutter = previousHtmlScrollbarGutter;
-        document.body.style.overflowX = previousBodyOverflowX;
-        document.body.style.overflowY = previousBodyOverflowY;
-        document.body.style.scrollbarGutter = previousBodyScrollbarGutter;
+        restoreViewport();
     }
   };
 
@@ -1482,7 +1472,7 @@ export const usePrint = () => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
         const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
-        const restoreViewport = lockViewportScroll();
+        const restoreViewport = lockViewportScroll(!isShadowDomContent(targetContent));
         
         const width = store.canvasSize.width;
         const height = store.canvasSize.height;
@@ -1547,7 +1537,7 @@ export const usePrint = () => {
     try {
         const targetContent = content || Array.from(document.querySelectorAll('.print-page')) as HTMLElement[];
         const restore = await prepareEnvironment({ mutateStore: false, setExporting: false });
-        const restoreViewport = lockViewportScroll();
+        const restoreViewport = lockViewportScroll(!isShadowDomContent(targetContent));
         
         const width = store.canvasSize.width;
         const height = store.canvasSize.height;
