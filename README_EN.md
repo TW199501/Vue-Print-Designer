@@ -61,42 +61,9 @@ PrintDot Client is the companion desktop print helper (Wails + Vue) for device d
 - Node.js >= 16.0.0
 - npm >= 7.0.0 or yarn / pnpm
 
-### Install Dependencies
+### Integration
 
-```bash
-npm install
-```
-
-### Development
-
-```bash
-npm run dev
-```
-
-Open the local dev server to use the designer.
-
-### Production Build
-
-```bash
-npm run build
-```
-
-### Build Web Components Bundle
-
-```bash
-npm run build:wc
-```
-
-Artifacts:
-
-- `dist/print-designer.es.js`
-- `dist/print-designer.umd.js`
-- `dist/print-designer.css`
-- `dist/web-component.d.ts`
-
-## Integration
-
-### Option A: Build from Source and Integrate Your API
+#### Option A: Build from Source and Integrate Your API
 
 Best for deep customization.
 
@@ -108,7 +75,7 @@ Recommended integration points:
 
 Custom element extension guide: [docs/en/guide/custom-element.md](https://github.com/0ldFive/Vue-Print-Designer/blob/master/docs/en/guide/custom-element.md)
 
-### Option B: npm Package (Web Components)
+#### Option B: npm Package (Web Components)
 
 Works with any stack (Vue/React/Angular/Vanilla). Web Components **supports Vue 2** as a custom element, no Vue 2 component adapter required.
 
@@ -118,7 +85,7 @@ Parameters, CRUD, and JSON examples: [docs/en/guide/web-components-guide.md](htt
 npm i vue-print-designer
 ```
 
-#### 1) Use the component (Vue 3 / Vite)
+##### 1) Use the component (Vue 3 / Vite)
 
 Import in the entry file:
 
@@ -136,7 +103,7 @@ Use the custom element in your template:
 </template>
 ```
 
-#### 2) Vue 3 Options API: Separate init from usage
+##### 2) Vue 3 Options API: Separate init from usage
 
 **Designer page (init and editing)**
 
@@ -173,7 +140,7 @@ await el.export({ type: 'pdf', filename: 'order-20240223.pdf' });
 const pdfBlob = await el.export({ type: 'pdfBlob' });
 ```
 
-#### 3) Event hooks
+##### 3) Event hooks
 
 ```ts
 el.addEventListener('ready', () => {});
@@ -186,7 +153,7 @@ el.addEventListener('error', (e) => {
 });
 ```
 
-#### 4) Integration Example
+##### 4) Integration Example
 
 To help developers get started quickly, we provide a complete integration example based on **Vue 3 + Element Plus**. This project demonstrates how to embed the print designer into a real-world business application.
 
