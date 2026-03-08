@@ -19,7 +19,17 @@ Vue Print Designer is a visual print designer for business forms, labels, receip
 | **Designer main view and canvas**<br>![Designer main view](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/1.png) | **Print preview**<br>![Print preview](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/2.png) | **Print parameter settings**<br>![Print parameters](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/3.png) |
 | **System settings and preferences**<br>![System settings](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/4.png) | **Shortcut reference**<br>![Shortcuts](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/5.png) | **Advanced table editing**<br>![Advanced table](https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/6.png) |
 
-## Core Features & Advantages
+## Community
+
+Join our QQ group for usage discussions, integration tips, and troubleshooting.
+
+- QQ Group: **1038069636**
+
+<p>
+    <img src="./docs/images/qq_group.jpg" alt="Vue Print Designer QQ Group QR Code (1038069636)" width="160" />
+</p>
+
+## Core Features & Highlights
 
 Most printing plugins are either **framework-locked** or **limited to basic printing**. We focus on solving **complex pagination** and **high integration costs**, providing an enterprise-grade solution:
 
@@ -27,8 +37,6 @@ Most printing plugins are either **framework-locked** or **limited to basic prin
 - **Cross-Framework**: No framework lock-in. Built on Web Components, compatible with Vue/React/Angular/Pure HTML and any other stack.
 - **Production Ready**: More than just printing. Full support for silent printing, cloud printing, PDF/Image export, and detailed parameter control.
 - **Flexible Extension**: Supports custom elements and API integration for deep business customization.
-
-## Highlights
 
 - Drag-and-drop editing with text, images, barcodes, QR codes, tables, and shapes
 - Automatic table pagination with header/footer repeat
