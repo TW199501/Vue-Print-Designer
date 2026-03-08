@@ -19,6 +19,7 @@ export const usePrint = () => {
   const store = useDesignerStore();
   const {
     printMode,
+    silentPrint,
     localSettings,
     remoteSettings,
     localStatus,
@@ -27,6 +28,8 @@ export const usePrint = () => {
     remotePrintOptions,
     localWsUrl,
     remoteSelectedClientId,
+    fetchRemoteClients,
+    fetchRemotePrinters,
     submitRemoteTask,
     exportImageMerged
   } = usePrintSettings();
@@ -1401,6 +1404,19 @@ export const usePrint = () => {
     }
 
     const options = request?.options || (mode === 'local' ? localPrintOptions : remotePrintOptions);
+    if (mode === 'remote' && silentPrint.value) {
+      if (!remoteSelectedClientId.value) {
+        await fetchRemoteClients();
+      }
+      if (!options.printer && remoteSelectedClientId.value) {
+        const printers = await fetchRemotePrinters(remoteSelectedClientId.value);
+        const fallbackPrinter = printers[0]?.printer_name || '';
+        if (fallbackPrinter) {
+          options.printer = fallbackPrinter;
+          remotePrintOptions.printer = fallbackPrinter;
+        }
+      }
+    }
     if (!options.printer) {
       alert('Printer is required');
       return;

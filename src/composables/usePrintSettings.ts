@@ -636,6 +636,7 @@ const createState = (): PrintSettingsState => {
     localSocket.value = null;
     localStatus.value = 'disconnected';
     localStatusMessage.value = '';
+    printMode.value = 'browser';
   };
 
   const connectRemote = async () => {
@@ -717,6 +718,7 @@ const createState = (): PrintSettingsState => {
     remoteSocket.value = null;
     remoteStatus.value = 'disconnected';
     remoteStatusMessage.value = '';
+    printMode.value = 'browser';
   };
 
   const fetchLocalPrinters = async () => {

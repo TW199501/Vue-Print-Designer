@@ -247,6 +247,9 @@ const handleLocalConnection = async () => {
       return;
     }
     await connectLocal();
+    if (localStatus.value === 'connected') {
+      printMode.value = 'local';
+    }
   } catch (error) {
     console.error('Local connection error:', error);
   }
@@ -260,6 +263,9 @@ const handleRemoteConnection = async () => {
       return;
     }
     await connectRemote();
+    if (remoteStatus.value === 'connected') {
+      printMode.value = 'remote';
+    }
   } catch (error) {
     console.error('Remote connection error:', error);
   }
@@ -365,7 +371,16 @@ onUnmounted(() => {
               :class="activeTab === 'local' ? 'bg-white text-blue-600 border-l-4 border-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-4 border-transparent'"
             >
               <PrintIcon class="w-5 h-5" />
-              {{ t('settings.localConnection') }}
+              <span class="flex items-center gap-2">
+                <span>{{ t('settings.localConnection') }}</span>
+                <span
+                  v-if="localConnected"
+                  class="relative inline-flex h-2.5 w-2.5"
+                >
+                  <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-400/80 animate-[ping_2.4s_ease-in-out_infinite]"></span>
+                  <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                </span>
+              </span>
             </button>
             <button
               @click="activeTab = 'remote'"
@@ -373,7 +388,16 @@ onUnmounted(() => {
               :class="activeTab === 'remote' ? 'bg-white text-blue-600 border-l-4 border-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100 border-l-4 border-transparent'"
             >
               <CloudIcon class="w-5 h-5" />
-              {{ t('settings.remoteConnection') }}
+              <span class="flex items-center gap-2">
+                <span>{{ t('settings.remoteConnection') }}</span>
+                <span
+                  v-if="remoteConnected"
+                  class="relative inline-flex h-2.5 w-2.5"
+                >
+                  <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-400/80 animate-[ping_2.4s_ease-in-out_infinite]"></span>
+                  <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                </span>
+              </span>
             </button>
           </div>
         </div>
