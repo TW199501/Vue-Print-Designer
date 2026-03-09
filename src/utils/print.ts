@@ -807,7 +807,13 @@ export const usePrint = () => {
                      // AND the table is already at the top of the page, we MUST accept at least one row.
                      if (splitIndex === 0) {
                          const marginTop = store.pageSpacingY || 0;
-                         const startY = copyHeader && headerHeight > 0 ? (headerHeight + marginTop + 10) : marginTop;
+                         const minTop = copyHeader && headerHeight > 0 ? (headerHeight + marginTop) : marginTop;
+                         let startY = minTop;
+                         const originalTopVal = parseAttrNumber(wrapper, 'data-original-top', parseFloat(wrapper.style.top || '') || 0);
+                         if (originalTopVal >= minTop && originalTopVal <= minTop + 100) {
+                             startY = originalTopVal;
+                         }
+
                          // If we are essentially at the top already
                          if (wrapperTop <= startY + 5) {
                              splitIndex = 1; // Force one row to stay
@@ -842,7 +848,13 @@ export const usePrint = () => {
                  // Set top to headerHeight + padding or just below header
                  // If headerHeight is 0, use 20px padding.
                  const marginTop = store.pageSpacingY || 0;
-                 const startY = copyHeader && headerHeight > 0 ? (headerHeight + marginTop + 10) : marginTop;
+                 const minTop = copyHeader && headerHeight > 0 ? (headerHeight + marginTop) : marginTop;
+                 let startY = minTop;
+                 const originalTopVal = parseAttrNumber(wrapper, 'data-original-top', parseFloat(wrapper.style.top || '') || 0);
+                 if (originalTopVal >= minTop && originalTopVal <= minTop + 100) {
+                     startY = originalTopVal;
+                 }
+                 
                  newWrapper.style.removeProperty('top');
                  newWrapper.style.setProperty('top', `${startY}px`, 'important');
                  // Height is already auto from the cloned wrapper
