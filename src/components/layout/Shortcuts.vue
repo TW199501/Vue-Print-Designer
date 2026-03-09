@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref, nextTick, inject, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
+import { formatShortcut } from '@/utils/os';
 import type { PrintElement } from '@/types';
 import DeleteIcon from '~icons/material-symbols/delete';
 import CutIcon from '~icons/material-symbols/content-cut';
@@ -355,9 +356,17 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="showMenu" ref="menuRef" class="fixed z-[9999]" :style="{ left: `${menuX}px`, top: `${menuY}px` }">
-    <div class="bg-white border border-gray-200 shadow-xl rounded-md min-w-[160px] py-1">
-      <button
+  <Transition
+    enter-active-class="transition duration-100 ease-out"
+    enter-from-class="transform scale-95 opacity-0"
+    enter-to-class="transform scale-100 opacity-100"
+    leave-active-class="transition duration-75 ease-in"
+    leave-from-class="transform scale-100 opacity-100"
+    leave-to-class="transform scale-95 opacity-0"
+  >
+    <div v-if="showMenu" ref="menuRef" class="fixed z-[9999]" :style="{ left: `${menuX}px`, top: `${menuY}px` }">
+      <div class="bg-white border border-gray-200 shadow-xl rounded-md min-w-[160px] py-1">
+        <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
         :disabled="(store.selectedElementIds.length === 0 && !store.selectedGuideId) || (store.selectedElement?.locked)"
         @click="() => {
@@ -372,7 +381,8 @@ onUnmounted(() => {
         }"
       >
         <DeleteIcon class="w-4 h-4" />
-        <span>{{ t('common.delete') }}{{ store.selectedElementIds.length > 1 ? ` (${store.selectedElementIds.length})` : '' }}</span>
+        <span class="flex-1">{{ t('common.delete') }}{{ store.selectedElementIds.length > 1 ? ` (${store.selectedElementIds.length})` : '' }}</span>
+        <span class="text-xs text-gray-400">{{ formatShortcut(['Del']) }}</span>
       </button>
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
@@ -380,7 +390,8 @@ onUnmounted(() => {
         @click="() => { store.cut(); showMenu=false; }"
       >
         <CutIcon class="w-4 h-4" />
-        <span>{{ t('common.cut') }}</span>
+        <span class="flex-1">{{ t('common.cut') }}</span>
+        <span class="text-xs text-gray-400">{{ formatShortcut(['Ctrl', 'X']) }}</span>
       </button>
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
@@ -388,7 +399,8 @@ onUnmounted(() => {
         @click="() => { store.copy(); showMenu=false; }"
       >
         <CopyIcon class="w-4 h-4" />
-        <span>{{ t('common.copy') }}</span>
+        <span class="flex-1">{{ t('common.copy') }}</span>
+        <span class="text-xs text-gray-400">{{ formatShortcut(['Ctrl', 'C']) }}</span>
       </button>
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
@@ -396,7 +408,8 @@ onUnmounted(() => {
         @click="() => { store.paste(getPasteTarget(clickX, clickY)); showMenu=false; }"
       >
         <PasteIcon class="w-4 h-4" />
-        <span>{{ t('common.paste') }}</span>
+        <span class="flex-1">{{ t('common.paste') }}</span>
+        <span class="text-xs text-gray-400">{{ formatShortcut(['Ctrl', 'V']) }}</span>
       </button>
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
@@ -404,7 +417,8 @@ onUnmounted(() => {
         @click="() => { store.toggleLock(); showMenu=false; }"
       >
         <component :is="store.selectedElement?.locked ? UnlockIcon : LockIcon" class="w-4 h-4" />
-        <span>{{ store.selectedElement?.locked ? t('common.unlock') : t('common.lock') }}</span>
+        <span class="flex-1">{{ store.selectedElement?.locked ? t('common.unlock') : t('common.lock') }}</span>
+        <span class="text-xs text-gray-400">{{ formatShortcut(['Ctrl', 'L']) }}</span>
       </button>
       <div class="border-t border-gray-200 my-1"></div>
       <button
@@ -412,15 +426,18 @@ onUnmounted(() => {
         @click="store.undo(); showMenu=false;"
       >
         <UndoIcon class="w-4 h-4" />
-        <span>{{ t('common.undo') }}</span>
+        <span class="flex-1">{{ t('common.undo') }}</span>
+        <span class="text-xs text-gray-400">{{ formatShortcut(['Ctrl', 'Z']) }}</span>
       </button>
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
         @click="store.redo(); showMenu=false;"
       >
         <RedoIcon class="w-4 h-4" />
-        <span>{{ t('common.redo') }}</span>
+        <span class="flex-1">{{ t('common.redo') }}</span>
+        <span class="text-xs text-gray-400">{{ formatShortcut(['Ctrl', 'Y']) }}</span>
       </button>
     </div>
   </div>
+  </Transition>
 </template>
