@@ -34,7 +34,7 @@ Join our QQ group for usage discussions, integration tips, and troubleshooting.
 
 ## Core Features & Highlights
 
-Most printing plugins are either **framework-locked** or **limited to basic printing**. We focus on solving **complex pagination** and **high integration costs**, providing an enterprise-grade solution:
+Most printing plugins are either framework-locked or too basic. We focus on complex pagination and low-cost integration for an enterprise-grade solution:
 
 - **Out of the Box**: Unlike manual pagination logic, includes a complete drag-and-drop designer and preview engine, automatically handling table pagination and headers.
 - **Cross-Framework**: No framework lock-in. Built on Web Components, compatible with Vue/React/Angular/Pure HTML and any other stack.
@@ -59,7 +59,7 @@ PrintDot Client is the companion desktop print helper (Wails + Vue) for device d
 
 | Main view - device status & connection | Settings - preferences & options |
 | --- | --- |
-| <img src="https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/7.png" alt="PrintDot main view" width="220" /> | <img src="https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/8.png" alt="PrintDot settings" width="220" /> |
+| <img src="https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/7.png" alt="PrintDot main view" width="180" /> | <img src="https://raw.githubusercontent.com/0ldFive/Vue-Print-Designer/master/docs/images/8.png" alt="PrintDot settings" width="180" /> |
 
 <p>
     <a href="https://github.com/0ldFive/PrintDot-Client/releases" target="_blank" rel="noopener noreferrer">⬇ Download PrintDot Client</a>
