@@ -133,6 +133,73 @@ const buildLayerAssignments = (
   return assignments;
 };
 
+const canLayerMoveInPage = (
+  page: Page,
+  idSet: Set<string>,
+  mode: LayerMoveMode,
+) => {
+  const ordered = getLayerSortedElements(page);
+  let hasSelected = false;
+
+  if (mode === "front" || mode === "back") {
+    let selectedMaxZ = -Infinity;
+    let selectedMinZ = Infinity;
+    let otherMaxZ = -Infinity;
+    let otherMinZ = Infinity;
+
+    for (const item of ordered) {
+      const z = getElementZIndex(item.element);
+      if (idSet.has(item.element.id)) {
+        hasSelected = true;
+        selectedMaxZ = Math.max(selectedMaxZ, z);
+        selectedMinZ = Math.min(selectedMinZ, z);
+      } else {
+        otherMaxZ = Math.max(otherMaxZ, z);
+        otherMinZ = Math.min(otherMinZ, z);
+      }
+    }
+
+    if (!hasSelected) return false;
+    if (otherMaxZ === -Infinity || otherMinZ === Infinity) return false;
+
+    if (mode === "front") {
+      return selectedMaxZ < otherMaxZ;
+    }
+
+    return selectedMinZ > otherMinZ;
+  }
+
+  const selectedIndices: number[] = [];
+  ordered.forEach((item, index) => {
+    if (idSet.has(item.element.id)) {
+      selectedIndices.push(index);
+    }
+  });
+
+  if (selectedIndices.length === 0) return false;
+
+  if (mode === "forward") {
+    for (let i = ordered.length - 2; i >= 0; i -= 1) {
+      const current = ordered[i];
+      const next = ordered[i + 1];
+      if (idSet.has(current.element.id) && !idSet.has(next.element.id)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  for (let i = 1; i < ordered.length; i += 1) {
+    const current = ordered[i];
+    const previous = ordered[i - 1];
+    if (idSet.has(current.element.id) && !idSet.has(previous.element.id)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 const normalizeContextMenuConfig = (
   config: ListContextMenuConfig | null | undefined,
 ): ListContextMenuConfig | null => {
@@ -273,6 +340,7 @@ export const useDesignerStore = defineStore("designer", {
     isDragging: false,
     showGrid: true,
     showMarginLines: true,
+    allowDragOutsideCanvas: false,
     showCornerMarkers: true,
     headerHeight: 100,
     footerHeight: 100,
@@ -421,6 +489,7 @@ export const useDesignerStore = defineStore("designer", {
       this.canvasSize = { width: 794, height: 1123 };
       this.zoom = 1;
       this.showGrid = true;
+      this.allowDragOutsideCanvas = false;
       this.showCornerMarkers = true;
       this.showMinimap = false;
       this.showHelp = false;
@@ -441,6 +510,7 @@ export const useDesignerStore = defineStore("designer", {
           zoom: this.zoom,
           showGrid: this.showGrid,
           showMarginLines: this.showMarginLines,
+          allowDragOutsideCanvas: this.allowDragOutsideCanvas,
           showCornerMarkers: this.showCornerMarkers,
           headerHeight: this.headerHeight,
           footerHeight: this.footerHeight,
@@ -494,6 +564,8 @@ export const useDesignerStore = defineStore("designer", {
       this.zoom = snapshot.zoom;
       this.showGrid = snapshot.showGrid;
       this.showMarginLines = snapshot.showMarginLines;
+      this.allowDragOutsideCanvas =
+        snapshot.allowDragOutsideCanvas ?? this.allowDragOutsideCanvas;
       this.showCornerMarkers = snapshot.showCornerMarkers;
       this.headerHeight = snapshot.headerHeight;
       this.footerHeight = snapshot.footerHeight;
@@ -976,6 +1048,9 @@ export const useDesignerStore = defineStore("designer", {
     setShowMarginLines(show: boolean) {
       this.showMarginLines = show;
     },
+    setAllowDragOutsideCanvas(show: boolean) {
+      this.allowDragOutsideCanvas = show;
+    },
     setShowCornerMarkers(show: boolean) {
       this.showCornerMarkers = show;
     },
@@ -1347,19 +1422,8 @@ export const useDesignerStore = defineStore("designer", {
       let applyPartialBottom = false;
 
       if (!constrain) {
-        if (this.pages.length <= 1) {
-          applyStrictX = true;
-          applyStrictY = true;
-        } else {
-          applyStrictX = true;
-
-          if (activePageIndex === 0) {
-            applyPartialTop = true;
-          }
-          if (activePageIndex === this.pages.length - 1) {
-            applyPartialBottom = true;
-          }
-        }
+        applyStrictX = false;
+        applyStrictY = false;
       }
 
       if (applyStrictX) {
@@ -1484,18 +1548,15 @@ export const useDesignerStore = defineStore("designer", {
       // 4. Constrain delta to ensure no element leaves the canvas (respecting margins)
       let checkX = constrain;
       let checkYStrict = constrain;
+      let checkYPartial = false;
 
       if (!constrain) {
-        if (this.pages.length <= 1) {
-          checkX = true;
-          checkYStrict = true;
-        } else {
-          checkX = true;
-          checkYStrict = false;
-        }
+        checkX = false;
+        checkYStrict = false;
+        checkYPartial = false;
       }
 
-      if (checkX || checkYStrict || (!checkYStrict && this.pages.length > 1)) {
+      if (checkX || checkYStrict || checkYPartial) {
         for (const item of movableElements) {
           const el = item.element;
           const pIndex = item.pageIndex;
@@ -1523,7 +1584,7 @@ export const useDesignerStore = defineStore("designer", {
                 dy = movementBounds.minY - el.y;
               }
             }
-          } else {
+          } else if (checkYPartial) {
             if (pIndex === 0) {
               if (dy < 0) {
                 if (el.y + dy < movementBounds.minY)
@@ -1764,6 +1825,10 @@ export const useDesignerStore = defineStore("designer", {
         assignments: Map<string, number>;
       }> = [];
       for (let pageIndex = 0; pageIndex < this.pages.length; pageIndex += 1) {
+        if (!canLayerMoveInPage(this.pages[pageIndex], unlockedIds, mode)) {
+          continue;
+        }
+
         const assignments = buildLayerAssignments(
           this.pages[pageIndex],
           unlockedIds,
@@ -1792,6 +1857,30 @@ export const useDesignerStore = defineStore("designer", {
           };
         }
       }
+    },
+    canMoveElementsLayer(ids: string[], mode: LayerMoveMode) {
+      if (!this.isTemplateEditable) return false;
+      if (!ids || ids.length === 0) return false;
+
+      const idSet = new Set(ids);
+      const unlockedIds = new Set<string>();
+      for (const page of this.pages) {
+        for (const el of page.elements) {
+          if (idSet.has(el.id) && !el.locked) {
+            unlockedIds.add(el.id);
+          }
+        }
+      }
+
+      if (unlockedIds.size === 0) return false;
+
+      for (let pageIndex = 0; pageIndex < this.pages.length; pageIndex += 1) {
+        if (canLayerMoveInPage(this.pages[pageIndex], unlockedIds, mode)) {
+          return true;
+        }
+      }
+
+      return false;
     },
     sendElementsToBack(ids: string[]) {
       this.moveElementsLayer(ids, "back");
@@ -1894,7 +1983,11 @@ export const useDesignerStore = defineStore("designer", {
         }
       }
     },
-    selectElement(id: string | null, isMultiSelect: boolean = false) {
+    selectElement(
+      id: string | null,
+      isMultiSelect: boolean = false,
+      autoBringToFront: boolean = true,
+    ) {
       // Clear guide selection when selecting elements
       if (id) {
         this.selectedGuideId = null;
@@ -1926,7 +2019,7 @@ export const useDesignerStore = defineStore("designer", {
         this.selectedElementIds = id ? [id] : [];
       }
 
-      if (this.selectedElementIds.length > 0) {
+      if (autoBringToFront && this.selectedElementIds.length > 0) {
         this.bringElementsToFront(this.selectedElementIds);
       }
 

@@ -236,6 +236,7 @@ export interface CustomElementEditSnapshot {
   zoom: number;
   showGrid: boolean;
   showMarginLines: boolean;
+  allowDragOutsideCanvas: boolean;
   showCornerMarkers: boolean;
   headerHeight: number;
   footerHeight: number;
@@ -287,6 +288,7 @@ export interface DesignerState {
   isDragging: boolean;
   showGrid: boolean;
   showMarginLines: boolean;
+  allowDragOutsideCanvas: boolean;
   showCornerMarkers: boolean;
   headerHeight: number;
   footerHeight: number;

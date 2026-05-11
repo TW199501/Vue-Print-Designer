@@ -12,6 +12,7 @@ const props = defineProps<{
   isSelected: boolean;
   zoom: number;
   pageIndex: number;
+  clipToPageBounds?: boolean;
   readOnly?: boolean;
 }>();
 
@@ -29,6 +30,8 @@ const actualIsSelected = computed(() => {
   const isMultiSelected = !props.isSelected && store.selectedElementIds.includes(props.element.id);
   return !props.readOnly && (props.isSelected || isMultiSelected);
 });
+
+const shouldConstrainToCanvas = computed(() => !store.allowDragOutsideCanvas);
 
 const selfBorderedTypes = [ElementType.TABLE, ElementType.LINE, ElementType.RECT, ElementType.CIRCLE];
 
@@ -121,6 +124,21 @@ const style = computed(() => {
   // Keep outer width/height equal to the element size regardless of border width.
   baseStyle.boxSizing = 'border-box';
 
+  if (props.clipToPageBounds) {
+    const pageWidth = store.canvasSize.width;
+    const pageHeight = store.canvasSize.height;
+    const clipLeft = Math.max(0, -props.element.x);
+    const clipTop = Math.max(0, -props.element.y);
+    const clipRight = Math.max(0, props.element.x + props.element.width - pageWidth);
+    const clipBottom = Math.max(0, props.element.y + props.element.height - pageHeight);
+
+    if (clipLeft > 0 || clipTop > 0 || clipRight > 0 || clipBottom > 0) {
+      baseStyle.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
+    } else {
+      delete baseStyle.clipPath;
+    }
+  }
+
   return baseStyle;
 });
 
@@ -197,9 +215,9 @@ const handleMouseMove = (e: MouseEvent) => {
     }
 
     if (store.selectedElementIds.length > 1 && store.selectedElementIds.includes(props.element.id)) {
-      store.moveSelectedElements(props.element.id, initialLeft + dx, initialTop + dy, false, false);
+      store.moveSelectedElements(props.element.id, initialLeft + dx, initialTop + dy, false, shouldConstrainToCanvas.value);
     } else {
-      store.moveElementWithSnap(props.element.id, initialLeft + dx, initialTop + dy, false, false);
+      store.moveElementWithSnap(props.element.id, initialLeft + dx, initialTop + dy, false, shouldConstrainToCanvas.value);
     }
   }
 };
@@ -236,14 +254,7 @@ const handleMouseUp = (e: MouseEvent) => {
                   }
               });
            }
-        } else {
-            // Same page or global element (prevent moving to other page), enforce constraint
-            if (store.selectedElementIds.length > 1 && store.selectedElementIds.includes(props.element.id)) {
-                 store.moveSelectedElements(props.element.id, props.element.x, props.element.y, false, true);
-            } else {
-                 store.moveElementWithSnap(props.element.id, props.element.x, props.element.y, false, true);
-            }
-        }
+           }
      }
   }
 

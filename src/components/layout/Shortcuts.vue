@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, nextTick, inject, type Ref } from 'vue';
+import { onMounted, onUnmounted, ref, nextTick, inject, computed, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDesignerStore } from '@/stores/designer';
 import { useTemplateStore } from '@/stores/templates';
@@ -13,6 +13,10 @@ import LockIcon from '~icons/material-symbols/lock';
 import UnlockIcon from '~icons/material-symbols/lock-open';
 import UndoIcon from '~icons/material-symbols/undo';
 import RedoIcon from '~icons/material-symbols/redo';
+import BringToFrontIcon from '~icons/material-symbols/vertical-align-top';
+import SendToBackIcon from '~icons/material-symbols/vertical-align-bottom';
+import MoveUpIcon from '~icons/material-symbols/arrow-upward';
+import MoveDownIcon from '~icons/material-symbols/arrow-downward';
 
 const { t } = useI18n();
 const store = useDesignerStore();
@@ -28,6 +32,39 @@ const menuRef = ref<HTMLElement | null>(null);
 const canPasteHere = ref(false);
 const currentMouseX = ref(0);
 const currentMouseY = ref(0);
+
+const canBringToFront = computed(() => {
+  return store.canMoveElementsLayer(store.selectedElementIds, 'front');
+});
+
+const canSendToBack = computed(() => {
+  return store.canMoveElementsLayer(store.selectedElementIds, 'back');
+});
+
+const canMoveLayerUp = computed(() => {
+  return store.canMoveElementsLayer(store.selectedElementIds, 'forward');
+});
+
+const canMoveLayerDown = computed(() => {
+  return store.canMoveElementsLayer(store.selectedElementIds, 'backward');
+});
+
+const handleLayerMove = (mode: 'front' | 'back' | 'forward' | 'backward') => {
+  const ids = [...store.selectedElementIds];
+  if (ids.length === 0) return;
+
+  if (mode === 'front') {
+    store.moveElementsLayer(ids, 'front');
+  } else if (mode === 'back') {
+    store.sendElementsToBack(ids);
+  } else if (mode === 'forward') {
+    store.moveElementsForward(ids);
+  } else {
+    store.moveElementsBackward(ids);
+  }
+
+  showMenu.value = false;
+};
 
 const handleMouseMove = (e: MouseEvent) => {
   currentMouseX.value = e.clientX;
@@ -447,6 +484,39 @@ onUnmounted(() => {
         <PasteIcon class="w-4 h-4" />
         <span class="flex-1">{{ t('common.paste') }}</span>
         <span class="text-xs text-gray-400">{{ formatShortcut(['Ctrl', 'V']) }}</span>
+      </button>
+      <div class="border-t border-gray-200 my-1"></div>
+      <button
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 flex items-center gap-2"
+        :disabled="!canBringToFront"
+        @click="() => handleLayerMove('front')"
+      >
+        <BringToFrontIcon class="w-4 h-4" />
+        <span class="flex-1">{{ t('properties.action.bringToFront') }}</span>
+      </button>
+      <button
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 flex items-center gap-2"
+        :disabled="!canSendToBack"
+        @click="() => handleLayerMove('back')"
+      >
+        <SendToBackIcon class="w-4 h-4" />
+        <span class="flex-1">{{ t('properties.action.sendToBack') }}</span>
+      </button>
+      <button
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 flex items-center gap-2"
+        :disabled="!canMoveLayerUp"
+        @click="() => handleLayerMove('forward')"
+      >
+        <MoveUpIcon class="w-4 h-4" />
+        <span class="flex-1">{{ t('properties.action.moveUp') }}</span>
+      </button>
+      <button
+        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 flex items-center gap-2"
+        :disabled="!canMoveLayerDown"
+        @click="() => handleLayerMove('backward')"
+      >
+        <MoveDownIcon class="w-4 h-4" />
+        <span class="flex-1">{{ t('properties.action.moveDown') }}</span>
       </button>
       <button
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"

@@ -252,6 +252,7 @@ export const useTemplateStore = defineStore('templates', {
         guides: cloneDeep(designerStore.guides),
         zoom: designerStore.zoom,
         showGrid: designerStore.showGrid,
+        allowDragOutsideCanvas: designerStore.allowDragOutsideCanvas,
         headerHeight: designerStore.headerHeight,
         footerHeight: designerStore.footerHeight,
         showHeaderLine: designerStore.showHeaderLine,
@@ -419,6 +420,7 @@ export const useTemplateStore = defineStore('templates', {
         guides: cloneDeep(designerStore.guides),
         zoom: designerStore.zoom,
         showGrid: designerStore.showGrid,
+        allowDragOutsideCanvas: designerStore.allowDragOutsideCanvas,
         headerHeight: designerStore.headerHeight,
         footerHeight: designerStore.footerHeight,
         showHeaderLine: designerStore.showHeaderLine,
@@ -668,6 +670,7 @@ export const useTemplateStore = defineStore('templates', {
             if (data.guides) designerStore.guides = cloneDeep(data.guides);
             if (data.zoom !== undefined) designerStore.zoom = data.zoom;
             if (data.showGrid !== undefined) designerStore.showGrid = data.showGrid;
+            if (data.allowDragOutsideCanvas !== undefined) designerStore.allowDragOutsideCanvas = data.allowDragOutsideCanvas;
             if (data.headerHeight !== undefined) designerStore.headerHeight = data.headerHeight;
             if (data.footerHeight !== undefined) designerStore.footerHeight = data.footerHeight;
             if (data.showHeaderLine !== undefined) designerStore.showHeaderLine = data.showHeaderLine;
@@ -731,6 +734,7 @@ export const useTemplateStore = defineStore('templates', {
           if (data.guides) designerStore.guides = cloneDeep(data.guides);
           if (data.zoom !== undefined) designerStore.zoom = data.zoom;
           if (data.showGrid !== undefined) designerStore.showGrid = data.showGrid;
+          if (data.allowDragOutsideCanvas !== undefined) designerStore.allowDragOutsideCanvas = data.allowDragOutsideCanvas;
           if (data.headerHeight !== undefined) designerStore.headerHeight = data.headerHeight;
           if (data.footerHeight !== undefined) designerStore.footerHeight = data.footerHeight;
           if (data.showHeaderLine !== undefined) designerStore.showHeaderLine = data.showHeaderLine;

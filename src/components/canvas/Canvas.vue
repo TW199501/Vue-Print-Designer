@@ -143,11 +143,6 @@ const watermarkStyle = computed(() => {
   } as const;
 });
 
-const draggingPageIndex = computed(() => {
-  if (!store.isDragging || !store.selectedElementId) return -1;
-  return store.pages.findIndex(p => p.elements.some(e => e?.id === store.selectedElementId));
-});
-
 // Selection box state
 const isBoxSelecting = ref(false);
 const boxSelectionStart = ref({ x: 0, y: 0 });
@@ -197,6 +192,26 @@ const isRenderableElement = (element: PrintElement | null | undefined): element 
 
 const getRenderableElements = (elements: Array<PrintElement | null | undefined>) => {
   return elements.filter(isRenderableElement);
+};
+
+const selectedElementIdSet = computed(() => {
+  const ids = new Set(store.selectedElementIds);
+  if (store.selectedElementId) {
+    ids.add(store.selectedElementId);
+  }
+  return ids;
+});
+
+const isElementSelected = (id: string) => selectedElementIdSet.value.has(id);
+
+const pageHasSelection = computed(() => {
+  return pages.value.map((page) =>
+    getRenderableElements(page.elements).some((element) => isElementSelected(element.id))
+  );
+});
+
+const shouldClipElementToPage = (pageIndex: number, elementId: string) => {
+  return Boolean(pageHasSelection.value[pageIndex]) && !isElementSelected(elementId);
 };
 
 const toAtVariable = (raw: string) => {
@@ -405,7 +420,7 @@ const handleContextMenu = (e: MouseEvent, pageIndex: number) => {
   }
 
   if (targetId) {
-    store.selectElement(targetId, false);
+    store.selectElement(targetId, false, false);
   }
 };
 
@@ -479,9 +494,9 @@ const getGlobalElements = () => {
       <div
         :id="`page-${index}`"
         class="print-page shadow-lg relative overflow-hidden transition-all"
-        :style="[pageStyle, { 
-          overflow: draggingPageIndex === index ? 'visible' : 'hidden', 
-          zIndex: draggingPageIndex === index ? 50 : 1 
+        :style="[pageStyle, {
+          overflow: pageHasSelection[index] ? 'visible' : 'hidden',
+          zIndex: pageHasSelection[index] ? 50 : 1
         }]"
         @drop="(e) => handleDrop(e, index)"
         @dragover="handleDragOver"
@@ -563,9 +578,10 @@ const getGlobalElements = () => {
           v-for="element in getGlobalElements()"
           :key="`global-${element.id}`"
           :element="element"
-          :is-selected="store.selectedElementId === element.id || store.selectedElementIds.includes(element.id)"
+          :is-selected="isElementSelected(element.id)"
           :zoom="zoom"
           :page-index="0"
+          :clip-to-page-bounds="shouldClipElementToPage(index, element.id)"
           :read-only="true"
         >
           <component :is="getComponent(element.type)" :element="element" :page-index="index" :total-pages="pages.length" />
@@ -577,9 +593,10 @@ const getGlobalElements = () => {
         v-for="element in getRenderableElements(page.elements)"
         :key="element.id"
         :element="element"
-        :is-selected="store.selectedElementId === element.id || store.selectedElementIds.includes(element.id)"
+        :is-selected="isElementSelected(element.id)"
         :zoom="zoom"
         :page-index="index"
+        :clip-to-page-bounds="shouldClipElementToPage(index, element.id)"
         :read-only="!isTemplateEditable"
       >
         <component :is="getComponent(element.type)" :element="element" :page-index="index" :total-pages="pages.length" />

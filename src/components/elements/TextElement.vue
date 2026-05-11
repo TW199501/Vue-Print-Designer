@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, inject, type Ref } from 'vue';
 import type { PrintElement } from '@/types';
 import { useDesignerStore } from '@/stores/designer';
 import { normalizeVariableKey } from '@/utils/variables';
@@ -26,6 +26,8 @@ const editingValue = ref('');
 const editorRef = ref<HTMLTextAreaElement | null>(null);
 const rootRef = ref<HTMLElement | null>(null);
 const isReadOnlyWrapper = ref(false);
+const modalContainer = inject<Ref<HTMLElement | null>>('modal-container', ref(null));
+const toolbarAnchorRect = ref<DOMRect | null>(null);
 
 const resolvedText = computed(() => {
   const baseContent = props.element.content || '';
@@ -83,16 +85,31 @@ const isToolbarDisabled = computed(() => {
   return !store.isTemplateEditable || props.element.locked;
 });
 
-const inverseZoom = computed(() => {
-  return store.zoom > 0 ? 1 / store.zoom : 1;
-});
+const toolbarTeleportTarget = computed(() => modalContainer.value);
+
+const updateToolbarAnchorRect = () => {
+  if (!showQuickToolbar.value || !rootRef.value) {
+    toolbarAnchorRect.value = null;
+    return;
+  }
+  toolbarAnchorRect.value = rootRef.value.getBoundingClientRect();
+};
 
 const quickToolbarHostStyle = computed(() => ({
   ...toolbarResetStyle,
-  bottom: 'calc(100% + 8px)',
-  transform: `scale(${inverseZoom.value})`,
-  transformOrigin: 'left bottom'
-}));
+  display: toolbarAnchorRect.value ? 'block' : 'none',
+  position: 'fixed',
+  left: `${toolbarAnchorRect.value?.left ?? 0}px`,
+  top: `${
+    toolbarAnchorRect.value
+      ? (toolbarAnchorRect.value.top < 64
+        ? toolbarAnchorRect.value.bottom + 8
+        : Math.max(8, toolbarAnchorRect.value.top - 8))
+      : 0
+  }px`,
+  transform: toolbarAnchorRect.value && toolbarAnchorRect.value.top < 64 ? 'none' : 'translateY(-100%)',
+  transformOrigin: toolbarAnchorRect.value && toolbarAnchorRect.value.top < 64 ? 'left top' : 'left bottom'
+}) as Record<string, string>);
 
 const toolbarResetStyle = {
   writingMode: 'horizontal-tb',
@@ -272,12 +289,38 @@ watch(isInlineEditing, (val) => {
   store.setDisableGlobalShortcuts(val);
 });
 
+watch(showQuickToolbar, (visible) => {
+  if (!visible) {
+    toolbarAnchorRect.value = null;
+    return;
+  }
+  nextTick(updateToolbarAnchorRect);
+});
+
+watch(() => store.zoom, () => {
+  if (!showQuickToolbar.value) return;
+  nextTick(updateToolbarAnchorRect);
+});
+
+watch(
+  () => [props.element.x, props.element.y, props.element.width, props.element.height],
+  () => {
+    if (!showQuickToolbar.value) return;
+    nextTick(updateToolbarAnchorRect);
+  }
+);
+
 onMounted(() => {
   const wrapper = rootRef.value?.closest('.element-wrapper');
   isReadOnlyWrapper.value = wrapper?.getAttribute('data-read-only') === 'true';
+  window.addEventListener('resize', updateToolbarAnchorRect);
+  window.addEventListener('scroll', updateToolbarAnchorRect, true);
+  nextTick(updateToolbarAnchorRect);
 });
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateToolbarAnchorRect);
+  window.removeEventListener('scroll', updateToolbarAnchorRect, true);
   if (isInlineEditing.value) {
     store.setDisableGlobalShortcuts(false);
   }
@@ -387,16 +430,16 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
 
 <template>
   <div ref="rootRef" class="relative w-full h-full overflow-visible">
-    <div
-      v-if="showQuickToolbar"
-      data-print-exclude="true"
-      class="absolute left-0 z-[70]"
-      :style="quickToolbarHostStyle"
-      @mousedown.stop
-      @click.stop
-      @dblclick.stop
-    >
-      <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 px-2 shadow-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+    <Teleport v-if="showQuickToolbar && toolbarTeleportTarget" :to="toolbarTeleportTarget">
+      <div
+        data-print-exclude="true"
+        class="z-[10010] pointer-events-auto"
+        :style="quickToolbarHostStyle"
+        @mousedown.stop
+        @click.stop
+        @dblclick.stop
+      >
+        <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 px-2 shadow-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
         <select
           v-model="selectedFont"
           :disabled="isToolbarDisabled"
@@ -521,8 +564,9 @@ export const elementPropertiesSchema: ElementPropertiesSchema = {
         >
           <TextRotateVertical class="w-4 h-4" />
         </button>
+        </div>
       </div>
-    </div>
+    </Teleport>
 
     <div class="w-full h-full overflow-hidden" @dblclick="startInlineEdit" :data-auto-height="element.style.autoHeight ? 'true' : undefined" data-text-content="true" :style="{
       display: 'flex',

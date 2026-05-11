@@ -570,6 +570,7 @@ class PrintDesignerElement extends HTMLElement {
       guides: cloneDeep(this.designerStore.guides),
       zoom: this.designerStore.zoom,
       showGrid: this.designerStore.showGrid,
+      allowDragOutsideCanvas: this.designerStore.allowDragOutsideCanvas,
       headerHeight: this.designerStore.headerHeight,
       footerHeight: this.designerStore.footerHeight,
       showHeaderLine: this.designerStore.showHeaderLine,
@@ -599,6 +600,7 @@ class PrintDesignerElement extends HTMLElement {
     if (data.guides) this.designerStore.guides = cloneDeep(data.guides);
     if (data.zoom !== undefined) this.designerStore.zoom = data.zoom;
     if (data.showGrid !== undefined) this.designerStore.showGrid = data.showGrid;
+    if (data.allowDragOutsideCanvas !== undefined) this.designerStore.allowDragOutsideCanvas = data.allowDragOutsideCanvas;
     if (data.headerHeight !== undefined) this.designerStore.headerHeight = data.headerHeight;
     if (data.footerHeight !== undefined) this.designerStore.footerHeight = data.footerHeight;
     if (data.showHeaderLine !== undefined) this.designerStore.showHeaderLine = data.showHeaderLine;

@@ -273,7 +273,7 @@ const updateOffset = () => {
     const wrapperH = parseFloat(canvasStyle.value.height);
     
     // p-8 = 32px padding on each side
-    const paddingX = 64; 
+    const paddingX = 64;
     const paddingY = 64;
 
     scrollWidth.value = Math.max(containerClientWidth, wrapperW + paddingX);

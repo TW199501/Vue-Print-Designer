@@ -96,6 +96,7 @@ const handleViewJson = () => {
     guides: cloneDeep(store.guides),
     zoom: store.zoom,
     showGrid: store.showGrid,
+    allowDragOutsideCanvas: store.allowDragOutsideCanvas,
     headerHeight: store.headerHeight,
     footerHeight: store.footerHeight,
     showHeaderLine: store.showHeaderLine,

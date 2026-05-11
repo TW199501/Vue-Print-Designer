@@ -78,6 +78,7 @@ export default {
     spacingX: 'Horizontal Margin',
     spacingY: 'Vertical Margin',
     showMarginLines: 'Show Margin Lines',
+    allowDragOutsideCanvas: 'Allow Drag Outside Canvas',
     showCornerMarkers: 'Show Corner Markers',
     showGrid: 'Show Grid',
     showMinimap: 'Show Minimap',
